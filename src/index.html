@@ -13,17 +13,36 @@ section.band { margin-top: 80px; display: grid; gap: 22px; scroll-margin-top: 72
 section.band > header { display: grid; gap: 8px; max-width: 64ch; }
 section.band h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
 section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
-.fitfig { margin: 8px 0 0; display: grid; gap: 14px; }
-.ff-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-.ff-q { font-size: 1.0625rem; font-weight: 600; }
-.seg { display: inline-flex; border-radius: 999px; padding: 2px; background: var(--sunk); }
+.tokfig { margin: 8px 0 0; display: grid; gap: 16px; }
+.tf-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.tf-q { font-size: 1.0625rem; font-weight: 600; }
+.tf-eq { font-size: 0.9375rem; color: var(--ink-2); margin-top: 4px; }
+.tf-eq b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.seg { display: inline-flex; border-radius: 999px; padding: 2px; background: var(--sunk); flex-wrap: wrap; }
 .seg button { font: 500 0.82rem/1 var(--f-body); border: 0; background: none; color: var(--ink-2); padding: 8px 14px; border-radius: 999px; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 12%); }
-.ff-box { background: var(--surface); border-radius: var(--radius); padding: 18px 20px; overflow-x: auto; }
-#ff-svg { display: block; width: 100%; min-width: 600px; height: auto; }
-#ff-svg text { font-family: var(--f-body); }
-.fitfig figcaption { font-size: 0.9375rem; color: var(--ink-2); max-width: 80ch; }
-.fitfig figcaption b { color: var(--ink); font-weight: 600; }
+.tf-lanes { display: grid; gap: 10px; }
+.tf-lane { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) 6.5rem; gap: 18px; align-items: center; background: var(--surface); border-radius: 14px; padding: 16px 18px; }
+.tf-lane.best { box-shadow: inset 0 0 0 1.5px var(--accent); background: var(--bg); }
+.tf-name b { display: block; font-size: 0.97rem; font-weight: 600; }
+.tf-name span { font-size: 0.8125rem; color: var(--ink-3); }
+.tf-mid { display: grid; gap: 8px; min-width: 0; }
+.tf-bar { height: 4px; border-radius: 2px; background: var(--sunk); overflow: hidden; }
+.tf-bar i { display: block; height: 100%; width: 0; background: var(--ink-3); }
+.tf-lane.best .tf-bar i { background: var(--accent); }
+.tf-out { font: 0.8125rem/1.5 var(--f-mono); color: var(--ink); height: 6em; overflow: hidden; white-space: pre-wrap; word-break: break-word; display: flex; flex-direction: column; justify-content: flex-end; }
+.tf-out .cur { display: inline-block; width: 7px; height: 1.05em; vertical-align: -0.15em; background: var(--accent); margin-left: 1px; animation: tf-blink 1s steps(1) infinite; }
+@keyframes tf-blink { 50% { opacity: 0; } }
+.tf-rate { text-align: right; }
+.tf-rate b { display: block; font-family: var(--f-display); font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+.tf-lane.best .tf-rate b { color: var(--accent); }
+.tf-rate span { font-size: 0.75rem; color: var(--ink-3); }
+.tokfig figcaption { font-size: 0.9375rem; color: var(--ink-2); max-width: 80ch; }
+.tokfig figcaption b { color: var(--ink); font-weight: 600; }
+@media (max-width: 760px) {
+  .tf-lane { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+  .tf-mid { grid-column: 1 / -1; grid-row: 2; }
+}
 .qs { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 40px; align-items: start; }
 .qs-left { display: grid; gap: 14px; }
 .qs-left h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
@@ -72,16 +91,20 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
     </div>
   </header>
 
-  <figure class="fitfig" id="msi">
-    <div class="ff-top">
-      <p class="ff-q" id="ff-q">Each device gets an engine shaped to it.</p>
-      <div class="seg" role="group" aria-label="Engine">
-        <button type="button" id="ff-generic" aria-pressed="false">Generic engine</button>
-        <button type="button" id="ff-msi" aria-pressed="true">Fitted engines</button>
+  <figure class="tokfig" id="msi">
+    <div class="tf-top">
+      <div>
+        <p class="tf-q">On a local device, speed is set by the bytes read per token.</p>
+        <p class="tf-eq">tokens/s ≈ <b id="tf-bw">273 GB/s</b> ÷ bytes read per token × tokens per read</p>
+      </div>
+      <div class="seg" role="group" aria-label="Device" id="tf-dev">
+        <button type="button" data-bw="273" aria-pressed="true">DGX Spark</button>
+        <button type="button" data-bw="819" aria-pressed="false">Mac Studio</button>
+        <button type="button" data-bw="256" aria-pressed="false">Strix Halo</button>
       </div>
     </div>
-    <div class="ff-box"><svg id="ff-svg" viewBox="0 58 900 240" role="img" aria-label="Three devices with differently shaped limits: one flat generic engine leaves gaps on each, fitted engines fill them"></svg></div>
-    <figcaption><b>Fit the engine to the device.</b> Every device has a different shape of limits. One generic design leaves gaps on each; an engine fitted to one device fills them.</figcaption>
+    <div class="tf-lanes" id="tf-lanes"></div>
+    <figcaption><b>Fit the engine to the device.</b> A 27B dense model on one device, decoding for one user. A generic engine reads all 16-bit weights for every token. Reading fewer bytes and getting more tokens per read are the levers a fitted engine pulls. Speeds are idealized bandwidth bounds from published specs; the text streams at those rates.</figcaption>
   </figure>
 
   <section class="band qs" id="start">
@@ -174,59 +197,49 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 </script>
 <script>
 (() => {
-  const NS = "http://www.w3.org/2000/svg", svg = document.getElementById("ff-svg");
-  const el = (t, a, p = svg) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
-  const tx = (x, y, str, a = {}, p = svg) => { const e = el("text", { x, y, ...a }, p); e.textContent = str; return e; };
-  // three devices, each an abstract profile of limits (illustrative shapes, not specs)
-  const DEV = [
-    { name: "NVIDIA DGX Spark", x: 30, tops: [190, 150, 205, 170] },
-    { name: "Apple Mac", x: 330, tops: [160, 200, 150, 185] },
-    { name: "AMD Strix Halo", x: 630, tops: [200, 165, 180, 145] }];
-  const W = 240, TOPY = 34, BASE = 262, ENGH = 72;
-  function draw(f) {
-    svg.innerHTML = "";
-    const defs = el("defs", {});
-    const pat = el("pattern", { id: "ff-hatch", width: 7, height: 7, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
-    el("rect", { width: 7, height: 7, fill: "#ffffff" }, pat); el("line", { x1: 0, y1: 0, x2: 0, y2: 7, stroke: "#d2d2d7", "stroke-width": 3 }, pat);
-    const fitted = f > 0.5;
-    DEV.forEach(dv => {
-      const n = dv.tops.length, cw = W / n, flat = Math.min(...dv.tops);
-      // device silhouette
-      let d = `M${dv.x},${BASE}`;
-      dv.tops.forEach((t, i) => { d += ` L${dv.x + i * cw},${t} L${dv.x + (i + 1) * cw},${t}`; });
-      d += ` L${dv.x + W},${BASE} Z`;
-      el("path", { d, fill: "#e3e3e8" });
-      tx(dv.x + W / 2, BASE + 26, dv.name, { "text-anchor": "middle", "font-size": 14, "font-weight": 600, fill: "#1d1d1f" });
-      // engine lower edge: flat at the device's highest point, or following its profile
-      const bot = dv.tops.map(t => flat + (t - flat) * f);
-      dv.tops.forEach((t, i) => {
-        const h = t - bot[i];
-        if (h > 2) el("rect", { x: dv.x + i * cw + 1, y: bot[i], width: cw - 2, height: h, fill: "url(#ff-hatch)", opacity: Math.min(1, h / 16) });
-      });
-      const top = flat - ENGH;
-      let e = `M${dv.x},${top + 12} Q${dv.x},${top} ${dv.x + 12},${top} L${dv.x + W - 12},${top} Q${dv.x + W},${top} ${dv.x + W},${top + 12}`;
-      for (let i = n - 1; i >= 0; i--) e += ` L${dv.x + (i + 1) * cw},${bot[i]} L${dv.x + i * cw},${bot[i]}`;
-      e += " Z";
-      el("path", { d: e, fill: fitted ? "#a31f34" : "#ffffff", stroke: fitted ? "#a31f34" : "#86868b", "stroke-width": 1.5 });
-      tx(dv.x + W / 2, top + 42, fitted ? "fitted engine" : "generic engine", { "text-anchor": "middle", "font-size": 15, "font-weight": 600, fill: fitted ? "#ffffff" : "#515154" });
+  // a 27B dense model: 16-bit weights 54 GB, 3.25-bit codes about 11 GB; speculation: about 3 tokens accepted per weight read
+  const LANES = [
+    { name: "Generic engine", sub: "16-bit weights · 54 GB per token", gb: 54, per: 1 },
+    { name: "Fewer bytes", sub: "3-bit weights · 11 GB per token", gb: 11, per: 1 },
+    { name: "More tokens per read", sub: "3-bit weights + speculation · 3 tokens per read", gb: 11, per: 3, best: true }];
+  const TEXT = "def retry(fn, attempts=3):\n    for i in range(attempts):\n        try:\n            return fn()\n        except TimeoutError:\n            time.sleep(2 ** i)\n    raise RuntimeError(\"gave up\")";
+  const TOKS = TEXT.match(/\s+|[A-Za-z_]+|\d+|[^\sA-Za-z_\d]/g);  // word-sized pieces, close to real tokens
+  const box = document.getElementById("tf-lanes"), reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let bw = 273, raf = null, t0 = 0;
+  const rows = LANES.map(l => {
+    const d = document.createElement("div"); d.className = "tf-lane" + (l.best ? " best" : "");
+    d.innerHTML = `<div class="tf-name"><b>${l.name}</b><span>${l.sub}</span></div><div class="tf-mid"><div class="tf-out" aria-hidden="true"><div></div></div><div class="tf-bar"><i></i></div></div><div class="tf-rate"><b>0</b><span>tokens/s</span></div>`;
+    box.appendChild(d); return { l, out: d.querySelector(".tf-out > div"), bar: d.querySelector(".tf-bar i"), rate: d.querySelector(".tf-rate b") };
+  });
+  const rateOf = l => bw / l.gb * l.per;
+  function frame(now) {
+    const t = (now - t0) / 1000;
+    let done = true;
+    rows.forEach(r => {
+      const n = Math.min(TOKS.length, Math.floor(t * rateOf(r.l)));
+      if (n < TOKS.length) done = false;
+      r.bar.style.width = (100 * n / TOKS.length) + "%";
+      r.out.innerHTML = "";
+      r.out.append(TOKS.slice(0, n).join(""));
+      const c = document.createElement("span"); c.className = "cur"; r.out.appendChild(c);
     });
+    if (done && t > 1) { t0 = now + 1200; }  // pause, then replay
+    raf = requestAnimationFrame(frame);
   }
-  const q = document.getElementById("ff-q"), g = document.getElementById("ff-generic"), m = document.getElementById("ff-msi");
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let f = 1, anim = null, timer = null;
-  function go(to) {
-    g.setAttribute("aria-pressed", String(to === 0)); m.setAttribute("aria-pressed", String(to === 1));
-    q.textContent = to ? "Each device gets an engine shaped to it." : "One generic design leaves gaps on every device.";
-    cancelAnimationFrame(anim);
-    if (reduce) { f = to; draw(f); return; }
-    const from = f, t0 = performance.now();
-    const tick = t => { const k = Math.min(1, (t - t0) / 900); f = from + (to - from) * (1 - Math.pow(1 - k, 3)); draw(f); if (k < 1) anim = requestAnimationFrame(tick); };
-    anim = requestAnimationFrame(tick);
+  function start() {
+    document.getElementById("tf-bw").textContent = bw + " GB/s";
+    rows.forEach(r => r.rate.textContent = rateOf(r.l) >= 100 ? Math.round(rateOf(r.l)) : rateOf(r.l).toFixed(rateOf(r.l) < 10 ? 1 : 0));
+    cancelAnimationFrame(raf);
+    if (reduce) { rows.forEach(r => { r.out.textContent = TOKS.join(""); r.bar.style.width = "100%"; }); return; }
+    t0 = performance.now(); raf = requestAnimationFrame(frame);
   }
-  g.onclick = () => { clearInterval(timer); go(0); };
-  m.onclick = () => { clearInterval(timer); go(1); };
-  if (reduce) draw(1);
-  else { f = 0; draw(0); go(0); setTimeout(() => go(1), 1300); timer = setInterval(() => go(f > 0.5 ? 0 : 1), 4500); }
+  document.getElementById("tf-dev").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    bw = +b.dataset.bw;
+    document.querySelectorAll("#tf-dev button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    start();
+  });
+  start();
 })();
 </script>
 
