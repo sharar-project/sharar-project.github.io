@@ -40,6 +40,8 @@ FAVICON = ('<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,'
            "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 10 L60 36.2 L88 37.6 L66.2 55.3 "
            "L73.5 82.4 L50 67 L26.5 82.4 L33.8 55.3 L12 37.6 L40 36.2 Z' fill='%23a31f34' stroke='%23a31f34' "
            "stroke-width='10' stroke-linejoin='round'/%3E%3C/svg%3E\">")
+SIDE_CUR = {"index.html": "home", "sharar.html": "overview", "models.html": "models", "blog.html": "blog",
+            "posts/sharar-paper.html": "paper"}
 RESULTS = json.loads((ROOT / "data/results.json").read_text())
 
 
@@ -71,10 +73,13 @@ FILL, CMP_ROWS = model_numbers()
 def render(src, root, current, sub):
     page = (SRC / src).read_text()
     nav = PARTS["nav.html"]
-    for item in ("overview", "blog"):
-        nav = nav.replace(f" {{{{CUR_{item}}}}}", ' aria-current="page"' if item == current else "")
+    side = PARTS["sidebar.html"]
+    for item in ("home", "overview", "models", "paper", "blog"):
+        side = side.replace(f" {{{{SIDE_{item}}}}}", ' aria-current="page"' if item == SIDE_CUR.get(src) else "")
     page = (page.replace("/*__SITE_CSS__*/", PARTS["site.css"])
+                .replace("/*__SIDE_CSS__*/", PARTS["side.css"])
                 .replace("<!--__NAV__-->", nav)
+                .replace("<!--__SIDEBAR__-->", side)
                 .replace("<!--__FOOTER__-->", PARTS["footer.html"])
                 .replace("<!--__POST_CARD__-->", PARTS["post-card.html"])
                 .replace("<!--__CMP_ROWS__-->", CMP_ROWS)

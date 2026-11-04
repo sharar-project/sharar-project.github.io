@@ -73,3 +73,5 @@ footer.site a:hover { color: var(--accent); }
   .nav-links { gap: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+
+/*__SIDE_CSS__*/

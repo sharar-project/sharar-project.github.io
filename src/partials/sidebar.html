@@ -1,0 +1,24 @@
+<aside class="side" id="side" aria-label="Site menu">
+  <a class="side-link" href="{{ROOT}}index.html" {{SIDE_home}}>Home</a>
+  <p class="side-h">Sharar</p>
+  <a class="side-link" href="{{ROOT}}projects/sharar/index.html" {{SIDE_overview}}>Overview</a>
+  <a class="side-link" href="{{ROOT}}projects/sharar/models/index.html" {{SIDE_models}}>Models</a>
+  <a class="side-link" href="{{ROOT}}index.html#start">Get started</a>
+  <a class="side-link" href="{{ROOT}}blog/sharar-paper/index.html" {{SIDE_paper}}>Paper</a>
+  <p class="side-h">Blog</p>
+  <a class="side-link" href="{{ROOT}}blog/index.html" {{SIDE_blog}}>All posts</a>
+  <a class="side-link" href="{{ROOT}}blog/sharar-paper/index.html">The Sharar paper</a>
+  <p class="side-h">Code</p>
+  <span class="side-link soon" title="The repository opens with the paper">GitHub (soon)</span>
+</aside>
+<div class="side-scrim" id="side-scrim" hidden></div>
+<script>
+(() => {
+  const body = document.body, btn = document.getElementById("side-btn"), scrim = document.getElementById("side-scrim");
+  const set = open => { body.classList.toggle("side-open", open); scrim.hidden = !open; if (btn) btn.setAttribute("aria-expanded", String(open)); };
+  if (btn) btn.addEventListener("click", () => set(!body.classList.contains("side-open")));
+  scrim.addEventListener("click", () => set(false));
+  document.addEventListener("keydown", e => { if (e.key === "Escape") set(false); });
+  document.querySelectorAll("#side a").forEach(a => a.addEventListener("click", () => set(false)));
+})();
+</script>

@@ -80,6 +80,30 @@ footer.site a:hover { color: var(--accent); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
 
+/* side menu: always shown on wide screens, a drawer from the menu button below that */
+.side { position: fixed; z-index: 25; top: calc(53px + env(safe-area-inset-top, 0px)); bottom: 0; left: 0; width: 232px; padding: 22px 16px 32px max(20px, env(safe-area-inset-left, 0px)); background: var(--bg); border-right: 1px solid var(--rule); overflow-y: auto; display: flex; flex-direction: column; gap: 2px; font-family: var(--f-body); }
+.side-h { margin: 16px 0 4px 10px; font-size: 0.75rem; font-weight: 600; color: var(--ink-3); }
+.side-link { display: block; padding: 7px 10px; border-radius: 8px; font-size: 0.9rem; color: var(--ink-2); text-decoration: none; }
+a.side-link:hover { background: var(--surface); color: var(--ink); }
+.side-link[aria-current="page"] { background: var(--accent-soft, #f6e4e7); color: var(--accent); font-weight: 600; }
+.side-link.soon { color: var(--ink-3); }
+.side-btn { display: none; width: 40px; height: 40px; margin-left: -8px; border: 0; background: none; border-radius: 10px; color: var(--ink); cursor: pointer; align-items: center; justify-content: center; flex: none; }
+.side-btn:hover { background: var(--surface); }
+.side-btn svg { width: 22px; height: 22px; }
+.side-scrim { position: fixed; inset: 0; z-index: 24; background: rgb(0 0 0 / 25%); }
+@media (min-width: 1181px) {
+  body { padding-left: 232px; }
+  .nav { margin-left: -232px; padding-left: max(24px, env(safe-area-inset-left, 0px)); }
+  .nav-inner { max-width: none; }
+}
+@media (max-width: 1180px) {
+  .side { transform: translateX(-100%); transition: transform .25s ease; box-shadow: none; }
+  body.side-open .side { transform: none; box-shadow: 0 10px 40px rgb(0 0 0 / 18%); }
+  .side-btn { display: inline-flex; }
+}
+@media (prefers-reduced-motion: reduce) { .side { transition: none; } }
+
+
 .hero { padding-block: 80px 48px; display: grid; gap: 22px; justify-items: center; text-align: center; }
 .hero .kicker { font-size: 0.9375rem; font-weight: 600; color: var(--accent); }
 .hero h1 { font-size: clamp(2.5rem, 6.6vw, 4.4rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.04; max-width: 16ch; }
@@ -141,16 +165,35 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 
 <nav class="nav" aria-label="Site">
   <div class="nav-inner">
-    <a class="wordmark site" href="index.html"><svg class="logo" width="24" height="24" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="lg-nav" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#a31f34" stop-opacity="0.1"/><stop offset="0.7" stop-color="#a31f34" stop-opacity="0.9"/></linearGradient></defs><path d="M56 24 L6 94 L78 46 Z" fill="url(#lg-nav)"/><path d="M70.5 10.4 L73.9 28.4 L91.7 32.4 L75.7 41.2 L77.4 59.4 L64.1 46.8 L47.3 54.1 L55.1 37.5 L43.0 23.8 L61.2 26.1 Z" fill="#a31f34" stroke="#a31f34" stroke-width="7" stroke-linejoin="round"/></svg><span>Sharar</span></a>
-    <div class="nav-links">
-      <a href="projects/sharar/index.html">Overview</a>
-      <a href="index.html#start">Get started</a>
-      <a href="blog/sharar-paper/index.html">Paper</a>
-      <a href="blog/index.html">Blog</a>
-      <span class="soon" title="The repository opens with the paper">GitHub (soon)</span>
-    </div>
+    <div style="display:flex;align-items:center;gap:4px"><button class="side-btn" id="side-btn" type="button" aria-label="Open menu" aria-controls="side" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <a class="wordmark site" href="index.html"><svg class="logo" width="24" height="24" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="lg-nav" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#a31f34" stop-opacity="0.1"/><stop offset="0.7" stop-color="#a31f34" stop-opacity="0.9"/></linearGradient></defs><path d="M56 24 L6 94 L78 46 Z" fill="url(#lg-nav)"/><path d="M70.5 10.4 L73.9 28.4 L91.7 32.4 L75.7 41.2 L77.4 59.4 L64.1 46.8 L47.3 54.1 L55.1 37.5 L43.0 23.8 L61.2 26.1 Z" fill="#a31f34" stroke="#a31f34" stroke-width="7" stroke-linejoin="round"/></svg><span>Sharar</span></a></div>
   </div>
 </nav>
+<aside class="side" id="side" aria-label="Site menu">
+  <a class="side-link" href="index.html" aria-current="page">Home</a>
+  <p class="side-h">Sharar</p>
+  <a class="side-link" href="projects/sharar/index.html">Overview</a>
+  <a class="side-link" href="projects/sharar/models/index.html">Models</a>
+  <a class="side-link" href="index.html#start">Get started</a>
+  <a class="side-link" href="blog/sharar-paper/index.html">Paper</a>
+  <p class="side-h">Blog</p>
+  <a class="side-link" href="blog/index.html">All posts</a>
+  <a class="side-link" href="blog/sharar-paper/index.html">The Sharar paper</a>
+  <p class="side-h">Code</p>
+  <span class="side-link soon" title="The repository opens with the paper">GitHub (soon)</span>
+</aside>
+<div class="side-scrim" id="side-scrim" hidden></div>
+<script>
+(() => {
+  const body = document.body, btn = document.getElementById("side-btn"), scrim = document.getElementById("side-scrim");
+  const set = open => { body.classList.toggle("side-open", open); scrim.hidden = !open; if (btn) btn.setAttribute("aria-expanded", String(open)); };
+  if (btn) btn.addEventListener("click", () => set(!body.classList.contains("side-open")));
+  scrim.addEventListener("click", () => set(false));
+  document.addEventListener("keydown", e => { if (e.key === "Escape") set(false); });
+  document.querySelectorAll("#side a").forEach(a => a.addEventListener("click", () => set(false)));
+})();
+</script>
+
 
 
 <main class="wrap">

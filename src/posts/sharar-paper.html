@@ -202,6 +202,7 @@ section > .figcap { margin-top: -4px; }
 .copyrow h2 { font-size: clamp(1.6rem, 3vw, 2rem); }
 .stats { margin-top: 48px; }
 @media (max-width: 760px) { .nav-links { gap: 16px; } .nav-inner { gap: 14px; } }
+/*__SIDE_CSS__*/
 pre.code { background: var(--surface); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font: 0.86rem/1.65 var(--f-mono); color: var(--ink); margin: 0; }
 pre.code .c { color: var(--ink-3); }
 .copyrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -221,12 +222,14 @@ footer b { color: var(--ink); font-family: var(--f-display); }
 
 <nav class="nav" aria-label="Sections">
   <div class="nav-inner">
+    <button class="side-btn" id="side-btn" type="button" aria-label="Open menu" aria-controls="side" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     <div class="crumbs"><a class="wordmark" style="color:var(--ink);display:inline-flex;align-items:center;gap:7px;font-style:italic;font-weight:800" href="{{ROOT}}index.html">{{LOGO:post}}<span>{{SITE}}</span></a><span class="sep">/</span><a href="{{ROOT}}blog/index.html">Blog</a></div>
     <div class="nav-links">
       <a href="#idea">Idea</a><a href="#surgery">Model surgery</a><a href="#memory">Memory</a><a href="#speculation">Speculation</a><a href="#results">Results</a><a href="#bibtex">BibTeX</a>
     </div>
   </div>
 </nav>
+<!--__SIDEBAR__-->
 <div class="wrap" id="top">
   <header class="hero">
     <h1><span class="brand">Sharar</span>: Fast Agentic Inference on Unified-Memory Devices</h1>
