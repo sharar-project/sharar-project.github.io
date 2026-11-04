@@ -143,7 +143,10 @@ table.acc th { font: 600 0.8rem var(--f-body); color: var(--ink-3); text-align: 
 table.acc td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--rule); }
 table.acc td:first-child, table.acc th:first-child { text-align: left; }
 table.acc td i { font-style: normal; font-size: 0.72rem; color: var(--ink-3); margin-left: 5px; }
-table.acc tr.ours td { color: var(--ink); font-weight: 600; }
+table.acc tr.ours td { color: var(--ink); font-weight: 600; background: #e8f0fb; border-bottom-color: #e8f0fb; }
+table.acc tr.ours td:first-child { border-radius: 8px 0 0 8px; box-shadow: inset 3px 0 0 #2f6fd0; }
+table.acc tr.ours td:last-child { border-radius: 0 8px 8px 0; }
+table.acc tr.ours td i { color: #4d6a94; }
 table.acc tr.ours td i { font-weight: 400; }
 .math { display: grid; gap: 14px; background: var(--surface); border-radius: var(--radius); padding: 22px 26px; max-width: 100%; overflow-x: auto; }
 .math math { font-family: var(--f-math); font-size: 1.3rem; color: var(--ink); }
