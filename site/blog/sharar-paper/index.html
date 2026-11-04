@@ -6,6 +6,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 10 L60 36.2 L88 37.6 L66.2 55.3 L73.5 82.4 L50 67 L26.5 82.4 L33.8 55.3 L12 37.6 L40 36.2 Z' fill='%23a31f34' stroke='%23a31f34' stroke-width='10' stroke-linejoin='round'/%3E%3C/svg%3E">
 <title>Sharar: Fast Agentic Inference on Unified-Memory Devices</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Sharar: fast agentic inference on unified-memory devices.">
@@ -181,7 +182,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgb(255 255 255 / 92%); backdrop-filter: saturate(180%) blur(14px); border-bottom: 1px solid var(--rule); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .nav-inner { max-width: 1000px; margin: 0 auto; min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .wordmark { font-family: var(--f-display); font-weight: 700; font-size: 1.125rem; letter-spacing: -0.02em; color: var(--accent); text-decoration: none; flex: none; }
-.crumbs { display: flex; align-items: baseline; gap: 8px; flex: none; }
+.crumbs { display: flex; align-items: center; gap: 8px; flex: none; }
 .crumbs .sep { color: var(--ink-3); }
 .crumbs a:not(.wordmark) { color: var(--ink-2); text-decoration: none; font-size: 0.9375rem; }
 .crumbs a:hover { color: var(--accent); }
@@ -229,7 +230,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
 
 <nav class="nav" aria-label="Sections">
   <div class="nav-inner">
-    <div class="crumbs"><a class="wordmark" style="color:var(--ink)" href="../../index.html">Sharar</a><span class="sep">/</span><a href="../../blog/index.html">Blog</a></div>
+    <div class="crumbs"><a class="wordmark" style="color:var(--ink);display:inline-flex;align-items:center;gap:7px;font-style:italic;font-weight:800" href="../../index.html"><svg class="logo" width="24" height="24" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="lg-post" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#a31f34" stop-opacity="0.1"/><stop offset="0.7" stop-color="#a31f34" stop-opacity="0.9"/></linearGradient></defs><path d="M56 24 L6 94 L78 46 Z" fill="url(#lg-post)"/><path d="M70.5 10.4 L73.9 28.4 L91.7 32.4 L75.7 41.2 L77.4 59.4 L64.1 46.8 L47.3 54.1 L55.1 37.5 L43.0 23.8 L61.2 26.1 Z" fill="#a31f34" stroke="#a31f34" stroke-width="7" stroke-linejoin="round"/></svg><span>Sharar</span></a><span class="sep">/</span><a href="../../blog/index.html">Blog</a></div>
     <div class="nav-links">
       <a href="#idea">Idea</a><a href="#surgery">Model surgery</a><a href="#memory">Memory</a><a href="#speculation">Speculation</a><a href="#results">Results</a><a href="#bibtex">BibTeX</a>
     </div>

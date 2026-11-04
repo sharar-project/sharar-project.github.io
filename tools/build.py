@@ -29,6 +29,17 @@ PAGES = [  # (source, output, path back to the site root, current site-nav item,
     ("blog.html", "blog/index.html", "../", "blog", ""),
     ("posts/sharar-paper.html", "blog/sharar-paper/index.html", "../../", "blog", ""),
 ]
+LOGO = ('<svg class="logo" width="24" height="24" viewBox="0 0 100 100" aria-hidden="true"><defs>'
+        '<linearGradient id="{id}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#a31f34" stop-opacity="0.1"/>'
+        '<stop offset="0.7" stop-color="#a31f34" stop-opacity="0.9"/></linearGradient></defs>'
+        '<path d="M56 24 L6 94 L78 46 Z" fill="url(#{id})"/>'
+        '<path d="M70.5 10.4 L73.9 28.4 L91.7 32.4 L75.7 41.2 L77.4 59.4 L64.1 46.8 L47.3 54.1 L55.1 37.5 L43.0 23.8 '
+        'L61.2 26.1 Z" fill="#a31f34" stroke="#a31f34" stroke-width="7" stroke-linejoin="round"/></svg>')
+# favicon: the board's 16 px form, a plain star (the trail does not survive at that size)
+FAVICON = ('<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,'
+           "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 10 L60 36.2 L88 37.6 L66.2 55.3 "
+           "L73.5 82.4 L50 67 L26.5 82.4 L33.8 55.3 L12 37.6 L40 36.2 Z' fill='%23a31f34' stroke='%23a31f34' "
+           "stroke-width='10' stroke-linejoin='round'/%3E%3C/svg%3E\">")
 RESULTS = json.loads((ROOT / "data/results.json").read_text())
 
 
@@ -73,6 +84,9 @@ def render(src, root, current, sub):
                 .replace("/*__RESULTS__*/", (ROOT / "data/results.json").read_text().replace("</", "<\\/")))
     for k, v in FILL.items():
         page = page.replace("{{" + k + "}}", v)
+    # the logo (canvas board "14 · Shooting star"); each use gets its own gradient id
+    page = re.sub(r"\{\{LOGO:(\w+)\}\}", lambda m: LOGO.format(id="lg-" + m.group(1)), page)
+    page = page.replace("<title>", FAVICON + "\n<title>", 1)
     # images are inlined as data URIs: the artifact viewer loads nothing from other hosts
     page = re.sub(r"\{\{IMG:([\w.-]+)\}\}", lambda m: "data:image/jpeg;base64,"
                   + base64.b64encode((SRC / "assets" / m.group(1)).read_bytes()).decode(), page)
