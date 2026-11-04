@@ -25,3 +25,15 @@ To add a post: write `src/posts/<slug>.html`, add it to `PAGES` in `tools/build.
 
 Data for the paper post comes from the paper figure builders in `~/.local/share/sharar` (bench-figures-rerun-1027,
 bench-figures-flare-1102); the hill-climb steps and accuracy table follow the paper on `main`.
+
+## Photo credits
+
+`src/assets/` holds cropped photos from Wikimedia Commons, inlined into the home page at build time:
+
+| File | Source | Author | License |
+|---|---|---|---|
+| `dgx-spark.jpg` | [Nvidia DGX Spark oblique view dllu.jpg](https://commons.wikimedia.org/wiki/File:Nvidia_DGX_Spark_oblique_view_dllu.jpg) | Daniel Lu | CC BY-SA 4.0 |
+| `mac-studio.jpg` | [Mac Studio (2022) front.jpg](https://commons.wikimedia.org/wiki/File:Mac_Studio_(2022)_front.jpg) | Yasu | CC BY-SA 3.0 |
+| `strix-halo-hp-z2-mini.jpg` | frame 00:03:56 of 超级核显来袭！AMD新品现场体验 on Commons | 极客湾 Geekerwan | CC BY 3.0 |
+
+The crops of the CC BY-SA photos are shared under the same licenses.

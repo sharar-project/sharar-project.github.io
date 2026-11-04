@@ -9,7 +9,9 @@ models page read data/results.json (the paper's main results).
 
     python3 tools/build.py
 """
+import base64
 import json
+import re
 from pathlib import Path
 
 SITE = "MSI"  # the umbrella site's name; one place to change it
@@ -71,6 +73,9 @@ def render(src, root, current, sub):
                 .replace("/*__RESULTS__*/", (ROOT / "data/results.json").read_text().replace("</", "<\\/")))
     for k, v in FILL.items():
         page = page.replace("{{" + k + "}}", v)
+    # images are inlined as data URIs: the artifact viewer loads nothing from other hosts
+    page = re.sub(r"\{\{IMG:([\w.-]+)\}\}", lambda m: "data:image/jpeg;base64,"
+                  + base64.b64encode((SRC / "assets" / m.group(1)).read_bytes()).decode(), page)
     return page.replace("{{ROOT}}", root).replace("{{SITE}}", SITE)
 
 
