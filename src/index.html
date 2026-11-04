@@ -1,0 +1,703 @@
+<title>Sharar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Sharar: fast agentic inference via language model surgery for unified-memory devices.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one 1040px column; full-width figure cards for the interactive pieces, prose held to ~66ch inside it. */
+:root {
+  --bg: #f7f6f6;          /* paper, a hair of red in the gray */
+  --surface: #ffffff;
+  --sunk: #efeded;
+  --ink: #1b1718;
+  --ink-2: #5c5557;
+  --ink-3: #8f8789;
+  --rule: #e2dedf;
+  --accent: #a31f34;      /* Sharar red, the paper figures' color */
+  --accent-soft: #f4e3e6;
+  --accent-ink: #ffffff;
+  --e-vllm: #1b1718;
+  --e-flare: #5a6a7e;
+  --e-tf: #9a9a9a;
+  --e-llama: #c9c6c7;
+  --e-nossd: #d98c98;
+  --good: #2f7a4f;
+  --warn: #9a6a12;
+  --f-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Public Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --step--1: 0.8125rem; --step-0: 1rem; --step-1: 1.1875rem; --step-2: 1.5rem; --step-3: 2.125rem; --step-4: clamp(3.25rem, 9vw, 6rem);
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141112; --surface: #1d191a; --sunk: #262122; --ink: #f1eced; --ink-2: #b8afb1; --ink-3: #847b7d; --rule: #352e30;
+  --accent: #e0566c; --accent-soft: #3a1e24; --accent-ink: #160a0d;
+  --e-vllm: #ece6e7; --e-flare: #8ea2bb; --e-tf: #8a8385; --e-llama: #534b4d; --e-nossd: #8f4352;
+  --good: #6cc394; --warn: #e0b25a; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #141112; --surface: #1d191a; --sunk: #262122; --ink: #f1eced; --ink-2: #b8afb1; --ink-3: #847b7d; --rule: #352e30;
+  --accent: #e0566c; --accent-soft: #3a1e24; --accent-ink: #160a0d;
+  --e-vllm: #ece6e7; --e-flare: #8ea2bb; --e-tf: #8a8385; --e-llama: #534b4d; --e-nossd: #8f4352;
+  --good: #6cc394; --warn: #e0b25a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: var(--step-0); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; line-height: 1.1; text-wrap: balance; margin: 0; letter-spacing: -0.015em; }
+p { margin: 0; }
+.prose { max-width: 66ch; display: grid; gap: 1em; color: var(--ink-2); }
+.prose strong { color: var(--ink); font-weight: 600; }
+.mono { font-family: var(--f-mono); }
+.num { font-variant-numeric: tabular-nums; }
+.eyebrow { font-family: var(--f-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.cap { font-size: var(--step--1); color: var(--ink-3); }
+
+/* nav + hero */
+nav.top { display: flex; justify-content: space-between; align-items: center; padding-block: 20px; font-size: var(--step--1); color: var(--ink-2); gap: 12px; flex-wrap: wrap; }
+nav.top a { text-decoration: none; }
+nav.top a:hover { color: var(--accent); }
+.hero { padding-block: 40px 28px; display: grid; gap: 18px; justify-items: center; text-align: center; }
+.hero h1 { font-size: var(--step-4); font-weight: 800; letter-spacing: -0.035em; line-height: 0.95; }
+.hero h1 .bar { color: var(--accent); }
+.subtitle { font-family: var(--f-display); font-size: clamp(1.15rem, 2.6vw, 1.6rem); font-weight: 500; color: var(--ink-2); max-width: 34ch; line-height: 1.25; text-wrap: balance; }
+.subtitle em { font-style: normal; color: var(--accent); }
+.authors { font-size: var(--step-0); color: var(--ink); }
+.affil { font-size: var(--step--1); color: var(--ink-3); margin-top: -10px; }
+.links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; font: 500 var(--step--1)/1 var(--f-body); text-decoration: none; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); cursor: pointer; }
+.btn:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: transparent; color: var(--ink-3); border-color: var(--rule); cursor: default; }
+.btn svg { width: 15px; height: 15px; }
+
+/* figure cards */
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px; }
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.card-head .lead { font-size: var(--step--1); color: var(--ink-2); }
+.card-head .lead b { color: var(--accent); font-variant-numeric: tabular-nums; }
+.tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { font: 500 0.75rem/1 var(--f-body); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.chip:hover { border-color: var(--ink-3); color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; padding: 2px; background: var(--sunk); flex-wrap: wrap; }
+.seg button { font: 500 0.78rem/1 var(--f-body); border: 0; background: none; color: var(--ink-2); padding: 7px 12px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+svg text { font-family: var(--f-body); }
+.axis text { fill: var(--ink-3); font-size: 11px; }
+.axis line, .axis path { stroke: var(--rule); }
+.gridl { stroke: var(--rule); stroke-width: 1; }
+
+/* hero figure */
+.climb { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 22px; align-items: stretch; }
+.climb svg { width: 100%; height: auto; display: block; }
+.step-note { border-left: 1px solid var(--rule); padding-left: 22px; display: grid; align-content: start; gap: 10px; min-width: 0; }
+.step-note .idx { font-family: var(--f-mono); font-size: 0.75rem; color: var(--ink-3); }
+.step-note h3 { font-size: var(--step-2); }
+.step-note .val { font-family: var(--f-display); font-size: 2.6rem; font-weight: 800; color: var(--accent); line-height: 1; font-variant-numeric: tabular-nums; }
+.step-note .val small { font: 500 var(--step--1) var(--f-body); color: var(--ink-3); margin-left: 4px; }
+.step-note p { color: var(--ink-2); font-size: 0.94rem; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font: 500 0.7rem/1 var(--f-mono); padding: 5px 8px; border-radius: 4px; background: var(--sunk); color: var(--ink-2); letter-spacing: 0.02em; }
+.tag.exact { color: var(--good); }
+.tag.lossy { color: var(--warn); }
+.stepchips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 14px; }
+.fig-cap { margin-top: 12px; text-align: center; }
+.tldr { text-align: center; max-width: 70ch; margin: 18px auto 0; color: var(--ink-2); }
+.tldr b { color: var(--ink); font-weight: 600; }
+.bar-step { transition: opacity .35s ease; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-block: 1px solid var(--rule); margin-top: 28px; }
+.stat { padding: 18px 16px; display: grid; gap: 4px; }
+.stat + .stat { border-left: 1px solid var(--rule); }
+.stat .big { font-family: var(--f-display); font-size: var(--step-3); font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat .big span { color: var(--accent); }
+.stat .what { font-size: var(--step--1); color: var(--ink-2); }
+
+/* sections */
+section.block { padding-block: 64px 0; display: grid; gap: 22px; }
+.thesis { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.5rem, 3.4vw, 2.3rem); line-height: 1.18; letter-spacing: -0.02em; max-width: 30ch; margin: 72px auto 0; text-align: center; text-wrap: balance; }
+.thesis span { color: var(--accent); }
+.sec-head { display: grid; gap: 8px; }
+.sec-head h2 { font-size: var(--step-3); }
+.pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--ink); }
+.pillar { padding: 18px 20px 4px 0; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.pillar + .pillar { padding-left: 20px; border-left: 1px solid var(--rule); }
+.pillar h3 { font-size: var(--step-1); }
+.pillar .res { font-family: var(--f-mono); font-size: 0.75rem; color: var(--accent); }
+.pillar p { color: var(--ink-2); font-size: 0.94rem; }
+.pillar ul { margin: 0; padding-left: 1.1em; color: var(--ink-2); font-size: 0.9rem; }
+
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px; align-items: start; }
+.ctrl { display: grid; gap: 6px; }
+.ctrl label { font-size: var(--step--1); color: var(--ink-2); display: flex; justify-content: space-between; gap: 10px; }
+.ctrl label output { font-family: var(--f-mono); color: var(--ink); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.readout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.readout div { background: var(--sunk); border-radius: 8px; padding: 10px 12px; }
+.readout .k { font-size: 0.72rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.readout .v { font-family: var(--f-display); font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.readout .v.acc { color: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--step--1); color: var(--ink-2); }
+.legend button { all: unset; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.legend button[aria-pressed="false"] { opacity: .35; }
+.legend i { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font: 500 0.75rem/1.4 var(--f-mono); padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
+.chart { position: relative; }
+
+pre.code { background: var(--sunk); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font: 0.86rem/1.65 var(--f-mono); color: var(--ink); margin: 0; }
+pre.code .c { color: var(--ink-3); }
+.copyrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+footer { margin-top: 88px; border-top: 1px solid var(--rule); padding-block: 26px 40px; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; font-size: var(--step--1); color: var(--ink-3); }
+footer b { color: var(--ink); font-family: var(--f-display); }
+
+@media (max-width: 760px) {
+  .climb, .two { grid-template-columns: minmax(0, 1fr); }
+  .step-note { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 16px; }
+  .pillars { grid-template-columns: minmax(0, 1fr); }
+  .pillar + .pillar { padding-left: 0; border-left: 0; border-top: 1px solid var(--rule); }
+  .stats { grid-template-columns: minmax(0, 1fr); }
+  .stat + .stat { border-left: 0; border-top: 1px solid var(--rule); }
+  .card { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <nav class="top">
+    <a href="https://github.com/abdelfattah-lab">Abdelfattah Lab · Cornell</a>
+    <span class="mono">DGX Spark · GB10 · 128 GB unified memory</span>
+  </nav>
+
+  <header class="hero">
+    <h1>Sharar</h1>
+    <p class="subtitle">Fast agentic inference via <em>language model surgery</em> for unified-memory devices</p>
+    <p class="authors">Authors to be announced</p>
+    <p class="affil">Cornell University</p>
+    <div class="links">
+      <span class="btn ghost" title="The paper is in preparation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
+        Paper · coming soon</span>
+      <span class="btn ghost" title="The repository is private for now">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Code · coming soon</span>
+      <a class="btn" href="#techniques">Explore the techniques ↓</a>
+    </div>
+  </header>
+
+  <!-- hero: the speed hill climb -->
+  <figure class="card" id="climb-card" style="margin:0">
+    <div class="card-head">
+      <p class="lead">Building Sharar · <b id="climb-lead">27.9 tokens/s</b></p>
+      <div class="tools">
+        <button class="chip" id="climb-play" type="button">Pause</button>
+        <button class="chip" id="climb-replay" type="button">Replay</button>
+      </div>
+    </div>
+    <div class="climb">
+      <svg id="climb-svg" viewBox="0 0 620 330" role="img" aria-label="Decode throughput rising from 27.9 to 119.6 tokens per second as each technique is added"></svg>
+      <div class="step-note" aria-live="polite">
+        <span class="idx" id="note-idx">STEP 1 / 8</span>
+        <h3 id="note-title">No speculation</h3>
+        <div class="val" id="note-val">27.9<small>tok/s</small></div>
+        <div class="tags" id="note-tags"></div>
+        <p id="note-body"></p>
+      </div>
+    </div>
+    <div class="stepchips" id="climb-chips"></div>
+    <figcaption class="cap fig-cap">Qwen3.8-Flash-Next (125B MoE) · one DGX Spark · one request (batch size 1) · decode tokens/s after each technique is added. Click a step to jump to it.</figcaption>
+  </figure>
+  <p class="tldr">On one DGX Spark, Sharar decodes Qwen3.8-Flash-Next at <b>103 tokens/s</b> for one user, <b>2.1×</b> the fastest baseline engine, peaks at <b>794 tokens/s</b> across 64 requests, and finishes <b>150 agentic tasks per hour</b> with 16 agents, <b>3.1×</b> vLLM.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="big num">103 <span>tok/s</span></div><div class="what">Single-user decode, Flash-Next, 16k prompts. vLLM 38, TensorFold 49, llama.cpp 33.</div></div>
+    <div class="stat"><div class="big num">794 <span>tok/s</span></div><div class="what">Peak decode throughput at 64 requests. Best baseline: TensorFold, 184 at 16 requests.</div></div>
+    <div class="stat"><div class="big num">150 <span>tasks/h</span></div><div class="what">Agentic tasks with 16 concurrent agents (AA-AgentPerf traces). vLLM 49, TensorFold 34.</div></div>
+  </div>
+
+  <p class="thesis">Local agents keep extending long histories in the <span>same memory</span> that holds the model. Sharar decides what stays resident, what survives between turns, and what each accepted token costs.</p>
+
+  <!-- techniques -->
+  <section class="block" id="techniques">
+    <div class="sec-head">
+      <span class="eyebrow">Three surgeries</span>
+      <h2>Move fewer bytes, keep finished work, verify cheaper</h2>
+    </div>
+    <div class="pillars">
+      <div class="pillar">
+        <span class="res">bytes read per token ↓</span>
+        <h3>Model surgery</h3>
+        <p>Calibrated 3-bit weights for dense projections and routed experts, packed so FP8 tensor cores consume them directly.</p>
+        <ul><li>3.25 bits/weight: 8-entry FP8 codebook, scale per 32 weights</li><li>NVFP4 KV cache, INT8 recurrent state</li><li>2-bit draft head with top-16 rescoring</li></ul>
+      </div>
+      <div class="pillar">
+        <span class="res">work kept across turns ↑</span>
+        <h3>Unified-memory hierarchy</h3>
+        <p>Evicted conversations are demoted to the SSD instead of discarded, so an agent's next turn resumes rather than recomputes.</p>
+        <ul><li>Whole continuations: KV pages, recurrent snapshots, draft state</li><li>One ledger for GPU pools, staging buffers and page cache</li><li>Sparse lookup tables (PLE) served from NVMe</li></ul>
+      </div>
+      <div class="pillar">
+        <span class="res">work per accepted token ↓</span>
+        <h3>Adaptive speculation</h3>
+        <p>Each draft-verify round is sized and priced: draft as deep as acceptance pays for, and keep verify batches cheap.</p>
+        <ul><li>Adaptive draft depth from observed acceptance</li><li>Optional relaxed verification (top-k, logit margin)</li><li>Shared routed-expert budget in verify batches</li></ul>
+      </div>
+    </div>
+    <p class="cap">Sharar serves three profiles. <span class="mono">exact</span> keeps the model's own outputs; <span class="mono">fast</span> (default) and <span class="mono">throughput</span> add named lossy approximations. The tags in the figure above say which steps are which.</p>
+  </section>
+
+  <!-- expert sharing -->
+  <section class="block" id="experts">
+    <div class="sec-head">
+      <span class="eyebrow">Try it · expert sharing</span>
+      <h2>A verify batch reads the union of every token's experts</h2>
+    </div>
+    <div class="prose"><p>In an MoE layer each token picks its own top-k experts, and verifying a batch of draft tokens must load every expert any of them chose. Sharar gives the batch a <strong>shared budget</strong>: each token's top choice is guaranteed, the remaining slots go to the experts with the most routing mass, and every token's second choice is taken from inside that set. Fewer distinct experts means fewer weight bytes per round.</p></div>
+    <div class="card two">
+      <div class="chart"><svg id="moe-svg" viewBox="0 0 470 300" role="img" aria-label="Token by expert routing grid"></svg></div>
+      <div style="display:grid;gap:16px;min-width:0">
+        <div class="seg" role="group" aria-label="Routing policy">
+          <button type="button" id="moe-topk" aria-pressed="false">Per-token top-2</button>
+          <button type="button" id="moe-shared" aria-pressed="true">Shared budget</button>
+        </div>
+        <div class="ctrl" id="moe-budget-ctrl">
+          <label for="moe-b">Expert budget B <output id="moe-b-out">4</output></label>
+          <input type="range" id="moe-b" min="3" max="8" step="1" value="4">
+        </div>
+        <div class="readout">
+          <div><div class="k">Experts loaded</div><div class="v acc num" id="moe-loaded">4 / 12</div></div>
+          <div><div class="k">Expert bytes vs top-2</div><div class="v num" id="moe-bytes">50%</div></div>
+          <div><div class="k">Tokens keeping own top-2</div><div class="v num" id="moe-keep">2 / 6</div></div>
+          <div><div class="k">Routing mass kept</div><div class="v num" id="moe-mass">…</div></div>
+        </div>
+        <p class="cap">Paper example: 6 draft tokens, 12 experts, k = 2. Each token weights its first choice 0.6 and its second 0.4. Red cells are top choices, pink cells second choices; the shaded columns are the experts read from memory. Lossy: tokens that lose their own second choice get a substitute from the set.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- adaptive depth -->
+  <section class="block" id="depth">
+    <div class="sec-head">
+      <span class="eyebrow">Try it · adaptive drafting</span>
+      <h2>Draft only as deep as acceptance pays for</h2>
+    </div>
+    <div class="prose"><p>Each extra draft token costs one more draft step and one more verification row. Sharar keeps a per-request estimate <span class="mono">q</span> of how often a drafted position is accepted, and picks the depth that maximizes expected tokens per unit of round time:</p>
+    <p class="mono" style="color:var(--ink);font-size:.95rem">d* = argmax<sub>1≤d≤d<sub>max</sub></sub> (Σ<sub>j=0..d</sub> q<sup>j</sup>) / (1 + c·(d − 1))</p>
+    <p>Move the sliders. High-acceptance text (code, repeated tool output) earns deep drafts; uncertain text earns shallow ones. Under exact verification this changes speed only, never the output.</p></div>
+    <div class="card two">
+      <div class="chart" id="depth-chart"><svg id="depth-svg" viewBox="0 0 470 280" role="img" aria-label="Expected tokens per unit time against draft depth"></svg></div>
+      <div style="display:grid;gap:16px;min-width:0">
+        <div class="ctrl"><label for="dq">Acceptance per position q <output id="dq-out">0.80</output></label><input type="range" id="dq" min="0.30" max="0.97" step="0.01" value="0.80"></div>
+        <div class="ctrl"><label for="dc">Cost of one more draft step c <output id="dc-out">0.12</output></label><input type="range" id="dc" min="0.02" max="0.60" step="0.01" value="0.12"></div>
+        <div class="ctrl"><label for="dmax">Depth cap d<sub>max</sub> <output id="dmax-out">8</output></label><input type="range" id="dmax" min="2" max="10" step="1" value="8"></div>
+        <div class="readout">
+          <div><div class="k">Chosen depth d*</div><div class="v acc num" id="d-star">5</div></div>
+          <div><div class="k">Tokens per round</div><div class="v num" id="d-tok">…</div></div>
+          <div><div class="k">Speed vs no drafting</div><div class="v num" id="d-speed">…</div></div>
+          <div><div class="k">Speed vs fixed depth 8</div><div class="v num" id="d-fixed">…</div></div>
+        </div>
+        <p class="cap">The model from the paper: constant per-position acceptance, round time 1 + c(d − 1) relative to a depth-one round. Bars are tokens per unit time; the red bar is d*.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- draft head -->
+  <section class="block" id="drafthead">
+    <div class="sec-head">
+      <span class="eyebrow">Model surgery · draft head</span>
+      <h2>A 2-bit draft head that still agrees with FP8</h2>
+    </div>
+    <div class="prose"><p>The draft model's vocabulary head is the largest matrix it reads every step. Sharar stores it in 2 bits and rescores the top-16 candidates in higher precision, which recovers agreement where it was lost: on uncertain tokens, where the naive 2-bit head picks a different token half the time. Only the drafter changes, so the target still decides every token.</p></div>
+    <div class="card">
+      <div class="card-head"><div class="legend" id="dh-legend"></div></div>
+      <div class="chart" id="dh-chart"><svg id="dh-svg" viewBox="0 0 900 300" role="img" aria-label="Draft head agreement against entropy"></svg></div>
+      <p class="cap" style="margin-top:8px">Agreement with the FP8 head's token, binned by the FP8 head's entropy (bits). Overall agreement is in each legend entry.</p>
+    </div>
+  </section>
+
+  <!-- ssd tier -->
+  <section class="block" id="ssd">
+    <div class="sec-head">
+      <span class="eyebrow">Unified-memory hierarchy · SSD tier</span>
+      <h2>When open context outgrows the GPU, demote it to the SSD</h2>
+    </div>
+    <div class="prose"><p>192 agent conversations open at once, 32 running. Once their contexts exceed the KV that fits beside the weights, other engines drop prefixes and recompute them on the agent's next turn. Sharar writes complete continuations to NVMe and reads them back, so turns keep starting from cache. During the burst, median time to first token is <strong>4.0 s on Sharar against 167 s on vLLM</strong>, 42× lower.</p></div>
+    <div class="card">
+      <div class="card-head">
+        <div class="legend" id="burst-legend"></div>
+        <div class="seg" role="group" aria-label="Metric">
+          <button type="button" id="b-ttft" aria-pressed="true">Median TTFT</button>
+          <button type="button" id="b-hit" aria-pressed="false">Cache hit</button>
+        </div>
+      </div>
+      <div class="chart" id="burst-chart"><svg id="burst-svg" viewBox="0 0 900 360" role="img" aria-label="Open context, and TTFT or cache hit, over requests served"></svg></div>
+      <p class="cap" style="margin-top:8px">Qwen3.8-Flash-Next, AA-AgentPerf traces, thinking-off setting, 192 conversations, 32 agents. Top strip: open context in millions of tokens; the dashed line is Sharar's GPU KV capacity (1.58 M tokens) and the shaded span is where open context exceeds it. Rolling windows over requests served.</p>
+    </div>
+  </section>
+
+  <!-- results explorer -->
+  <section class="block" id="results">
+    <div class="sec-head">
+      <span class="eyebrow">Results · four models, five engines</span>
+      <h2>Faster for one user, and for many</h2>
+    </div>
+    <div class="prose"><p>Warm-cache decode on SPEED-Bench prompts: each point is one concurrency level, plotted as per-user speed against total output throughput. Up and to the right is better. Each engine runs its fastest measured setting with its own speculation enabled. Hover a point for its request count.</p></div>
+    <div class="card" style="display:grid;gap:14px">
+      <div class="card-head" style="margin:0">
+        <div class="seg" role="group" aria-label="Model" id="r-model"></div>
+        <div class="seg" role="group" aria-label="Prompt length" id="r-ctx"></div>
+      </div>
+      <div class="legend" id="r-legend"></div>
+      <div class="two" style="gap:22px">
+        <div class="chart" id="warm-chart"><svg id="warm-svg" viewBox="0 0 470 330" role="img" aria-label="Output throughput against per-user speed"></svg></div>
+        <div class="chart" id="agent-chart"><svg id="agent-svg" viewBox="0 0 470 330" role="img" aria-label="Agentic tasks per hour against concurrent agents"></svg></div>
+      </div>
+      <p class="cap">Left: SPEED-Bench, warm cache, log–log. Right: agentic tasks per hour on AgentPerf-Local traces against concurrent agents (thinking-off setting). One DGX Spark per engine. TensorFold serves at most 16 streams; the rest queue.</p>
+    </div>
+  </section>
+
+  <!-- quick start -->
+  <section class="block" id="start">
+    <div class="sec-head">
+      <span class="eyebrow">Quick start</span>
+      <h2>Serve a model on one Spark</h2>
+    </div>
+    <div class="copyrow"><p class="cap">Install uv, then:</p><button class="chip" type="button" data-copy="qs">Copy</button></div>
+    <pre class="code" id="qs"><span class="c"># the repository opens with the paper</span>
+git clone https://github.com/abdelfattah-lab/sharar && cd sharar
+uv sync
+uv run sharar serve 27b          <span class="c"># Qwen3.8-27B on http://127.0.0.1:30001</span>
+uv run sharar serve flashnext    <span class="c"># Qwen3.8-Flash-Next (125B MoE)</span>
+uv run sharar launch claude      <span class="c"># point a coding agent at it</span></pre>
+    <p class="cap">OpenAI- and Anthropic-compatible APIs, 262K context, one Spark or two over ConnectX. Add <span class="mono">--exact</span> for the model's own outputs.</p>
+  </section>
+
+  <section class="block" id="cite">
+    <div class="copyrow"><h2 style="font-size:var(--step-2)">Citation</h2><button class="chip" type="button" data-copy="bib">Copy</button></div>
+    <pre class="code" id="bib">@misc{sharar2026,
+  title  = {Sharar: Fast Agentic Inference via Language Model Surgery
+            for Unified-Memory Devices},
+  author = {TBD},
+  year   = {2026}
+}</pre>
+  </section>
+
+  <footer>
+    <span><b>Sharar</b> · Abdelfattah Lab, Cornell University</span>
+    <span>Numbers from the paper draft, November 2026. Measured on NVIDIA DGX Spark (GB10).</span>
+  </footer>
+</div>
+
+<script id="results-data" type="application/json">/*__RESULTS__*/</script>
+<script id="burst-data" type="application/json">/*__BURST__*/</script>
+<script>
+(() => {
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const txt = (parent, x, y, s, attrs = {}) => { const t = el("text", { x, y, ...attrs }, parent); t.textContent = s; return t; };
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const ENGINE_VAR = { "Sharar": "--accent", "vLLM": "--e-vllm", "Flare": "--e-flare", "TensorFold": "--e-tf", "llama.cpp": "--e-llama", "Sharar w/o SSD tier": "--e-nossd" };
+const col = e => `var(${ENGINE_VAR[e]})`;
+function tipFor(box) { let t = box.querySelector(".tip"); if (!t) { t = document.createElement("div"); t.className = "tip"; t.hidden = true; box.appendChild(t); } return t; }
+function showTip(box, svg, x, y, s) { const t = tipFor(box), r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal; t.textContent = s; t.style.left = (x / vb.width * r.width) + "px"; t.style.top = (y / vb.height * r.height) + "px"; t.hidden = false; }
+function hideTip(box) { tipFor(box).hidden = true; }
+
+/* ---------------- hero: the hill climb ---------------- */
+const STEPS = [
+  ["No spec.", "No speculation", 27.9, ["baseline"], "Sharar's runtime decoding one token per forward pass. Every token streams the whole active model through about 258 GB/s of memory bandwidth."],
+  ["+ MTP", "+ Multi-token prediction", 54.9, ["exact", "speculation"], "The model's own MTP head drafts several tokens; the target verifies them in one pass and keeps the accepted prefix. Same outputs, about twice the speed."],
+  ["+ 3-bit weights", "+ 3-bit weights", 78.7, ["lossy · calibrated", "model surgery"], "Dense projections and routed experts in 3.25 bits per weight: an 8-entry FP8 codebook, GPTQ-style calibration, and kernels that expand codes straight into FP8 tensor-core operands."],
+  ["+ 2-bit draft head", "+ 2-bit draft head", 80.9, ["draft only", "model surgery"], "The drafter's vocabulary head drops to 2 bits with top-16 rescoring. It agrees with the FP8 head on 99.76% of tokens, and only the drafter reads it."],
+  ["+ Relaxed verif.", "+ Relaxed verification", 82.1, ["lossy · optional", "speculation"], "A drafted token survives if it sits in the target's top-k within a logit margin of the best, instead of having to equal the argmax. Acceptance still stops at the first failure."],
+  ["+ Expert sharing", "+ Expert sharing", 108.5, ["lossy · optional", "speculation"], "The verify batch shares a budget of routed experts: top choices are guaranteed, the rest come from the experts with the most routing mass. Fewer distinct experts, fewer bytes per round."],
+  ["+ Adaptive drafting", "+ Adaptive drafting", 113.9, ["exact", "speculation"], "Draft depth follows each request's observed acceptance, so cheap confident stretches draft deep and uncertain ones stop early."],
+  ["Fast", "Fast profile", 119.6, ["default profile"], "The remaining settings of Sharar's default fast profile. 4.3× the starting point, on the same Spark and the same model."],
+];
+const climbSvg = $("climb-svg");
+const W = 620, H = 330, L = 44, R = 12, T = 26, B = 58, YMAX = 140;
+const n = STEPS.length, cw = (W - L - R) / n;
+const xs = i => L + i * cw, ys = v => T + (H - T - B) * (1 - v / YMAX);
+const ax = el("g", { class: "axis" }, climbSvg);
+for (const t of [0, 25, 50, 75, 100, 125]) { el("line", { x1: L, x2: W - R, y1: ys(t), y2: ys(t), class: "gridl" }, ax); txt(ax, L - 8, ys(t) + 4, t, { "text-anchor": "end" }); }
+txt(ax, 12, (T + H - B) / 2, "tokens/s", { transform: `rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor": "middle" });
+const area = el("path", { fill: "var(--accent)", "fill-opacity": 0.08 }, climbSvg);
+const line = el("path", { fill: "none", stroke: "var(--accent)", "stroke-width": 2.5, "stroke-linejoin": "round" }, climbSvg);
+const labels = STEPS.map((s, i) => {
+  const g = el("g", { class: "bar-step" }, climbSvg);
+  const v = txt(g, xs(i) + cw / 2, ys(s[2]) - 18, s[2].toFixed(1), { "text-anchor": "middle", "font-size": 12, "font-weight": 600, fill: "var(--ink)", class: "num" });
+  const d = i ? txt(g, xs(i) + cw / 2, ys(s[2]) - 5, `+${Math.round(100 * (s[2] / STEPS[i - 1][2] - 1))}%`, { "text-anchor": "middle", "font-size": 10, fill: "var(--ink-3)" }) : null;
+  const words = s[0].replace("+ ", "+\u00a0").split(" ");
+  const lab = el("text", { x: xs(i) + cw / 2, y: H - B + 18, "text-anchor": "middle", "font-size": 10.5, fill: "var(--ink-2)" }, climbSvg);
+  const half = Math.ceil(words.length / 2);
+  [words.slice(0, half).join(" "), words.slice(half).join(" ")].filter(Boolean).forEach((w, k) => { const ts = el("tspan", { x: xs(i) + cw / 2, dy: k ? 13 : 0 }, lab); ts.textContent = w; });
+  const hit = el("rect", { x: xs(i), y: T, width: cw, height: H - T - B + 40, fill: "transparent", style: "cursor:pointer" }, climbSvg);
+  hit.addEventListener("click", () => { stop(); show(i, true); });
+  return { g, lab };
+});
+const gain = el("g", {}, climbSvg);
+const chips = STEPS.map((s, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = s[0]; b.setAttribute("aria-pressed", "false"); b.onclick = () => { stop(); show(i, true); }; $("climb-chips").appendChild(b); return b; });
+let cur = -1, shown = 0, timer = null, playing = false, anim = null;
+function pathFor(k, frac) { // stairs through step k, the last tread rising by frac
+  let d = "", a = "";
+  for (let i = 0; i <= k; i++) {
+    const v = i === k && i > 0 ? STEPS[i - 1][2] + (STEPS[i][2] - STEPS[i - 1][2]) * frac : STEPS[i][2];
+    d += (i ? `L${xs(i)},${ys(v)}` : `M${xs(0)},${ys(v)}`) + `L${xs(i + 1)},${ys(v)}`;
+  }
+  a = d.replace(/^M/, `M${xs(0)},${ys(0)}L`) + `L${xs(k + 1)},${ys(0)}Z`;
+  return [d, a];
+}
+function draw(k, frac) { const [d, a] = pathFor(k, frac); line.setAttribute("d", d); area.setAttribute("d", a); }
+function show(k, jump) {
+  cur = k;
+  labels.forEach((l, i) => { l.g.style.opacity = i <= k ? 1 : 0; l.lab.setAttribute("fill", i === k ? "var(--accent)" : "var(--ink-2)"); l.lab.setAttribute("font-weight", i === k ? 700 : 400); });
+  chips.forEach((c, i) => c.setAttribute("aria-pressed", String(i === k)));
+  cancelAnimationFrame(anim);
+  if (jump || reduce || k === 0) draw(k, 1);
+  else { const t0 = performance.now(); const tick = t => { const f = Math.min(1, (t - t0) / 450); draw(k, 1 - Math.pow(1 - f, 3)); if (f < 1) anim = requestAnimationFrame(tick); }; anim = requestAnimationFrame(tick); }
+  const s = STEPS[k];
+  $("climb-lead").textContent = `${s[2].toFixed(1)} tokens/s`;
+  $("note-idx").textContent = `STEP ${k + 1} / ${n}`;
+  $("note-title").textContent = s[1];
+  $("note-val").innerHTML = `${s[2].toFixed(1)}<small>tok/s${k ? ` · ${(s[2] / STEPS[0][2]).toFixed(1)}× start` : ""}</small>`;
+  $("note-tags").innerHTML = s[3].map(t => `<span class="tag ${t.startsWith("exact") ? "exact" : t.startsWith("lossy") ? "lossy" : ""}">${t}</span>`).join("");
+  $("note-body").textContent = s[4];
+  gain.innerHTML = "";
+  if (k === n - 1) {
+    const gx = xs(n - 1) + cw / 2;
+    el("line", { x1: xs(1), x2: gx, y1: ys(STEPS[0][2]), y2: ys(STEPS[0][2]), stroke: "var(--accent)", "stroke-dasharray": "2 3", "stroke-width": 1 }, gain);
+    el("line", { x1: gx, x2: gx, y1: ys(STEPS[0][2]), y2: ys(STEPS[n - 1][2]) + 26, stroke: "var(--accent)", "stroke-width": 1.4 }, gain);
+    el("path", { d: `M${gx - 4},${ys(STEPS[n - 1][2]) + 32}L${gx},${ys(STEPS[n - 1][2]) + 24}L${gx + 4},${ys(STEPS[n - 1][2]) + 32}Z`, fill: "var(--accent)" }, gain);
+    txt(gain, gx - 8, (ys(STEPS[0][2]) + ys(STEPS[n - 1][2])) / 2 + 10, "4.3×", { "text-anchor": "end", "font-size": 18, "font-weight": 800, fill: "var(--accent)", "font-family": "var(--f-display)" });
+  }
+}
+function stop() { playing = false; clearInterval(timer); $("climb-play").textContent = "Play"; }
+function play(from) { playing = true; $("climb-play").textContent = "Pause"; let k = from; show(k); clearInterval(timer); timer = setInterval(() => { if (k >= n - 1) { stop(); return; } show(++k); }, 1700); }
+$("climb-play").onclick = () => playing ? stop() : play(cur >= n - 1 ? 0 : cur + 1);
+$("climb-replay").onclick = () => play(0);
+if (reduce) { show(n - 1, true); stop(); } else play(0);
+
+/* ---------------- expert sharing ---------------- */
+const TOK = [ // [top1, top2, next]
+  [1, 6, 3], [3, 9, 1], [1, 11, 7], [7, 2, 3], [3, 9, 7], [7, 5, 1]];
+const FILL = [9, 2, 5, 6, 11]; // after the guarantees, by remaining routing mass (E9 0.8, then 0.4 each)
+let moeMode = "shared";
+const moeSvg = $("moe-svg");
+function drawMoe() {
+  const B = +$("moe-b").value; $("moe-b-out").textContent = B;
+  moeSvg.innerHTML = "";
+  const gx = 46, gy = 34, cs = 34, rh = 36;
+  let set, pairs;
+  if (moeMode === "topk") { set = new Set(TOK.flatMap(t => [t[0], t[1]])); pairs = TOK.map(t => [t[0], t[1]]); }
+  else {
+    set = new Set([1, 3, 7]); for (const e of FILL) { if (set.size >= B) break; set.add(e); }
+    pairs = TOK.map(t => [t[0], set.has(t[1]) ? t[1] : t[2]]);
+  }
+  for (let e = 1; e <= 12; e++) {
+    const x = gx + (e - 1) * cs;
+    if (set.has(e)) el("rect", { x: x + 1, y: gy - 22, width: cs - 2, height: rh * 6 + 26, rx: 4, fill: "var(--accent-soft)" }, moeSvg);
+    txt(moeSvg, x + cs / 2, gy - 8, `E${e}`, { "text-anchor": "middle", "font-size": 11, fill: set.has(e) ? "var(--accent)" : "var(--ink-3)", "font-weight": set.has(e) ? 700 : 400 });
+  }
+  TOK.forEach((t, r) => {
+    const y = gy + r * rh;
+    txt(moeSvg, gx - 10, y + rh / 2 + 4, `t${r + 1}`, { "text-anchor": "end", "font-size": 11, fill: "var(--ink-2)" });
+    for (let e = 1; e <= 12; e++) {
+      const x = gx + (e - 1) * cs;
+      const kind = e === pairs[r][0] ? 1 : e === pairs[r][1] ? 2 : 0;
+      el("rect", { x: x + 5, y: y + 5, width: cs - 10, height: rh - 10, rx: 3, fill: kind === 1 ? "var(--accent)" : kind === 2 ? "var(--e-nossd)" : "var(--sunk)", stroke: kind === 0 ? "var(--rule)" : "none" }, moeSvg);
+      if (moeMode === "shared" && kind === 2 && pairs[r][1] !== t[1]) txt(moeSvg, x + cs / 2, y + rh / 2 + 4, "↺", { "text-anchor": "middle", "font-size": 12, fill: "var(--ink)" });
+    }
+  });
+  txt(moeSvg, gx, gy + rh * 6 + 26, moeMode === "topk" ? "Each token loads its own two experts" : "↺ second choice replaced from inside the shared set", { "font-size": 11, fill: "var(--ink-3)" });
+  const keep = pairs.filter((p, r) => p[1] === TOK[r][1]).length;
+  // routing mass kept: top choice 0.6 always, own second 0.4, a substitute (its third choice) counted as 0
+  const mass = TOK.reduce((s, t, r) => s + 0.6 + (pairs[r][1] === t[1] ? 0.4 : 0), 0) / TOK.length;
+  $("moe-loaded").textContent = `${set.size} / 12`;
+  $("moe-bytes").textContent = `${Math.round(100 * set.size / 8)}%`;
+  $("moe-keep").textContent = `${keep} / 6`;
+  $("moe-mass").textContent = moeMode === "topk" ? "100%" : `≥ ${Math.round(100 * mass)}%`;
+  $("moe-budget-ctrl").style.opacity = moeMode === "topk" ? .4 : 1;
+  $("moe-b").disabled = moeMode === "topk";
+}
+$("moe-topk").onclick = () => { moeMode = "topk"; $("moe-topk").setAttribute("aria-pressed", "true"); $("moe-shared").setAttribute("aria-pressed", "false"); drawMoe(); };
+$("moe-shared").onclick = () => { moeMode = "shared"; $("moe-shared").setAttribute("aria-pressed", "true"); $("moe-topk").setAttribute("aria-pressed", "false"); drawMoe(); };
+$("moe-b").oninput = drawMoe;
+drawMoe();
+
+/* ---------------- adaptive depth ---------------- */
+const depthSvg = $("depth-svg");
+function rate(q, c, d) { let s = 0; for (let j = 0; j <= d; j++) s += Math.pow(q, j); return [s, s / (1 + c * (d - 1))]; }
+function drawDepth() {
+  const q = +$("dq").value, c = +$("dc").value, dmax = +$("dmax").value;
+  $("dq-out").textContent = q.toFixed(2); $("dc-out").textContent = c.toFixed(2); $("dmax-out").textContent = dmax;
+  const ds = Array.from({ length: 10 }, (_, i) => i + 1), r = ds.map(d => rate(q, c, d)[1]);
+  let best = 1; for (let d = 1; d <= dmax; d++) if (r[d - 1] > r[best - 1]) best = d;
+  depthSvg.innerHTML = "";
+  const L = 40, R = 8, T = 16, B = 40, W = 470, H = 280, ymax = Math.max(4, Math.ceil(Math.max(...r) + 0.5));
+  const bw = (W - L - R) / 10, y = v => T + (H - T - B) * (1 - v / ymax);
+  const ax = el("g", { class: "axis" }, depthSvg);
+  for (let t = 0; t <= ymax; t += ymax > 6 ? 2 : 1) { el("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "gridl" }, ax); txt(ax, L - 6, y(t) + 4, t, { "text-anchor": "end" }); }
+  ds.forEach((d, i) => {
+    const x = L + i * bw, v = r[i], over = d > dmax;
+    el("rect", { x: x + bw * 0.18, y: y(v), width: bw * 0.64, height: y(0) - y(v), rx: 2, fill: d === best ? "var(--accent)" : over ? "var(--sunk)" : "var(--e-tf)", stroke: over ? "var(--rule)" : "none" }, depthSvg);
+    txt(depthSvg, x + bw / 2, H - B + 16, d, { "text-anchor": "middle", "font-size": 11, fill: d === best ? "var(--accent)" : "var(--ink-3)", "font-weight": d === best ? 700 : 400 });
+    if (d === best) txt(depthSvg, x + bw / 2, y(v) - 6, v.toFixed(2), { "text-anchor": "middle", "font-size": 11, "font-weight": 700, fill: "var(--accent)" });
+  });
+  txt(depthSvg, (L + W - R) / 2, H - 6, "draft depth d (bars past the cap are unavailable)", { "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  txt(depthSvg, 10, (T + H - B) / 2, "tokens per unit time", { transform: `rotate(-90 10 ${(T + H - B) / 2})`, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  const [tok, rb] = rate(q, c, best);
+  $("d-star").textContent = best;
+  $("d-tok").textContent = tok.toFixed(2);
+  $("d-speed").textContent = `${rb.toFixed(2)}×`;
+  const f = rate(q, c, Math.min(8, dmax))[1];
+  $("d-fixed").textContent = `${(rb / f).toFixed(2)}×`;
+}
+["dq", "dc", "dmax"].forEach(id => $(id).oninput = drawDepth);
+drawDepth();
+
+/* ---------------- draft head ---------------- */
+const ENT = [0.0007, 0.0026, 0.019, 0.11, 0.40, 0.90, 1.39, 2.27, 4.22];
+const DH = [
+  { name: "2-bit + top-16 rescore (served) · 99.76%", v: [100, 100, 100, 100, 100, 100, 100, 100, 97.5], c: "var(--accent)", on: true },
+  { name: "3-bit + top-8 rescore · 99.96%", v: [100, 100, 100, 100, 100, 100, 100, 100, 99.6], c: "var(--e-vllm)", on: true, dash: "2 4" },
+  { name: "2-bit, no rescore · 85.60%", v: [100, 100, 100, 99.3, 95.2, 80.4, 70.2, 61.4, 48.8], c: "var(--e-tf)", on: true, dash: "7 4" }];
+function legend(box, items, redraw) {
+  box.innerHTML = "";
+  items.forEach(it => { const b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-pressed", String(it.on)); b.innerHTML = `<i style="background:${it.c}"></i>${it.name}`; b.onclick = () => { it.on = !it.on; b.setAttribute("aria-pressed", String(it.on)); redraw(); }; box.appendChild(b); });
+}
+const dhSvg = $("dh-svg");
+function drawDH() {
+  dhSvg.innerHTML = "";
+  const L = 46, R = 16, T = 14, B = 40, W = 900, H = 300, lx = v => Math.log10(v), x0 = lx(0.0005), x1 = lx(6);
+  const x = v => L + (W - L - R) * (lx(v) - x0) / (x1 - x0), y = v => T + (H - T - B) * (1 - (v - 40) / 62);
+  const ax = el("g", { class: "axis" }, dhSvg);
+  for (const t of [40, 60, 80, 100]) { el("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "gridl" }, ax); txt(ax, L - 8, y(t) + 4, `${t}%`, { "text-anchor": "end" }); }
+  for (const t of [0.001, 0.01, 0.1, 1]) txt(ax, x(t), H - B + 18, t, { "text-anchor": "middle" });
+  txt(ax, (L + W) / 2, H - 4, "FP8 head entropy (bits, log scale)", { "text-anchor": "middle" });
+  const box = $("dh-chart");
+  DH.filter(s => s.on).forEach(s => {
+    el("polyline", { points: s.v.map((v, i) => `${x(ENT[i])},${y(v)}`).join(" "), fill: "none", stroke: s.c, "stroke-width": 2.2, "stroke-dasharray": s.dash || "none" }, dhSvg);
+    s.v.forEach((v, i) => { const p = el("circle", { cx: x(ENT[i]), cy: y(v), r: 4, fill: s.c, stroke: "var(--surface)", "stroke-width": 1.5 }, dhSvg);
+      p.addEventListener("pointerenter", () => showTip(box, dhSvg, x(ENT[i]), y(v), `entropy ${ENT[i]} · ${v}%`)); p.addEventListener("pointerleave", () => hideTip(box)); });
+  });
+}
+legend($("dh-legend"), DH, drawDH); drawDH();
+
+/* ---------------- burst ---------------- */
+const BURST = JSON.parse($("burst-data").textContent);
+const BRUNS = ["Sharar", "Sharar w/o SSD tier", "vLLM", "TensorFold"].map(n => ({ name: n, c: col(n), on: true, dash: n.includes("w/o") ? "6 4" : "none" }));
+let bMetric = "ttft";
+const bSvg = $("burst-svg");
+function drawBurst() {
+  bSvg.innerHTML = "";
+  const L = 52, R = 14, W = 900, XMAX = 4032, x = v => L + (W - L - R) * v / XMAX;
+  const T1 = 22, H1 = 80, T2 = 128, H2 = 192;
+  const oc = BURST.open_ctx, over = oc.filter(p => p[1] > BURST.kv_mtok);
+  const b0 = over.length ? over[0][0] : 0, b1 = over.length ? over[over.length - 1][0] : 0;
+  el("rect", { x: x(b0), y: T1 - 22, width: x(b1) - x(b0), height: T2 + H2 - T1 + 22, fill: "var(--sunk)" }, bSvg);
+  txt(bSvg, (x(b0) + x(b1)) / 2, T1 - 8, "context burst", { "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  const y1 = v => T1 + H1 * (1 - v / 3.5);
+  const ax = el("g", { class: "axis" }, bSvg);
+  for (const t of [0, 1, 2, 3]) { el("line", { x1: L, x2: W - R, y1: y1(t), y2: y1(t), class: "gridl" }, ax); txt(ax, L - 8, y1(t) + 4, `${t}M`, { "text-anchor": "end" }); }
+  el("line", { x1: L, x2: W - R, y1: y1(BURST.kv_mtok), y2: y1(BURST.kv_mtok), stroke: "var(--ink-2)", "stroke-dasharray": "3 3" }, bSvg);
+  txt(bSvg, W - R, y1(BURST.kv_mtok) - 5, "GPU KV capacity", { "text-anchor": "end", "font-size": 10.5, fill: "var(--ink-3)" });
+  el("polyline", { points: oc.map(p => `${x(p[0])},${y1(p[1])}`).join(" "), fill: "none", stroke: "var(--ink)", "stroke-width": 1.6 }, bSvg);
+  txt(bSvg, 12, T1 + H1 / 2, "open ctx", { transform: `rotate(-90 12 ${T1 + H1 / 2})`, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  let y2, ticks, fmt;
+  if (bMetric === "ttft") { const lo = Math.log10(0.5), hi = Math.log10(600); y2 = v => T2 + H2 * (1 - (Math.log10(Math.max(v, 0.5)) - lo) / (hi - lo)); ticks = [1, 10, 100]; fmt = t => `${t} s`; }
+  else { y2 = v => T2 + H2 * (1 - v / 100); ticks = [0, 50, 100]; fmt = t => `${t}%`; }
+  for (const t of ticks) { el("line", { x1: L, x2: W - R, y1: y2(t), y2: y2(t), class: "gridl" }, ax); txt(ax, L - 8, y2(t) + 4, fmt(t), { "text-anchor": "end" }); }
+  for (const t of [0, 1000, 2000, 3000, 4000]) txt(ax, x(t), T2 + H2 + 18, t ? `${t / 1000}k` : "0", { "text-anchor": "middle" });
+  txt(ax, (L + W) / 2, T2 + H2 + 36, "requests served", { "text-anchor": "middle" });
+  txt(bSvg, 12, T2 + H2 / 2, bMetric === "ttft" ? "median TTFT" : "prompt from cache", { transform: `rotate(-90 12 ${T2 + H2 / 2})`, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  const box = $("burst-chart");
+  [...BRUNS].reverse().filter(r => r.on).forEach(r => {
+    const pts = BURST.runs[r.name];
+    el("polyline", { points: pts.map(p => `${x(p[0])},${y2(bMetric === "ttft" ? p[2] : p[1])}`).join(" "), fill: "none", stroke: r.c, "stroke-width": r.name === "Sharar" ? 2.6 : 1.8, "stroke-dasharray": r.dash, "stroke-linejoin": "round" }, bSvg);
+  });
+  const hover = el("rect", { x: L, y: T1, width: W - L - R, height: T2 + H2 - T1, fill: "transparent" }, bSvg);
+  const guide = el("line", { y1: T1, y2: T2 + H2, stroke: "var(--ink-3)", "stroke-width": 1, visibility: "hidden" }, bSvg);
+  hover.addEventListener("pointermove", ev => {
+    const r = bSvg.getBoundingClientRect(), vx = (ev.clientX - r.left) / r.width * W, req = (vx - L) / (W - L - R) * XMAX;
+    guide.setAttribute("x1", vx); guide.setAttribute("x2", vx); guide.setAttribute("visibility", "visible");
+    const parts = BRUNS.filter(b => b.on).map(b => { const p = BURST.runs[b.name].reduce((a, q) => Math.abs(q[0] - req) < Math.abs(a[0] - req) ? q : a); return `${b.name.replace(" w/o SSD tier", " no-SSD")} ${bMetric === "ttft" ? p[2].toFixed(1) + " s" : p[1].toFixed(0) + "%"}`; });
+    showTip(box, bSvg, vx, T2 + 10, `req ${Math.round(req)} · ` + parts.join(" · "));
+  });
+  hover.addEventListener("pointerleave", () => { guide.setAttribute("visibility", "hidden"); hideTip(box); });
+}
+legend($("burst-legend"), BRUNS, drawBurst);
+$("b-ttft").onclick = () => { bMetric = "ttft"; $("b-ttft").setAttribute("aria-pressed", "true"); $("b-hit").setAttribute("aria-pressed", "false"); drawBurst(); };
+$("b-hit").onclick = () => { bMetric = "hit"; $("b-hit").setAttribute("aria-pressed", "true"); $("b-ttft").setAttribute("aria-pressed", "false"); drawBurst(); };
+drawBurst();
+
+/* ---------------- results explorer ---------------- */
+const RES = JSON.parse($("results-data").textContent);
+const RENG = ["Sharar", "vLLM", "Flare", "TensorFold", "llama.cpp"].map(n => ({ name: n === "Sharar" ? "Sharar (ours)" : n, key: n, c: col(n), on: true }));
+const AKEY = { Sharar: "sharar", vLLM: "vllm", Flare: "flare", TensorFold: "tensorfold", "llama.cpp": "llamacpp" };
+let rModel = "Qwen3.8-Flash-Next", rCtx = "16k";
+function seg(box, opts, get, set) {
+  box.innerHTML = "";
+  opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.textContent = o; b.setAttribute("aria-pressed", String(o === get())); b.onclick = () => { set(o); [...box.children].forEach(c => c.setAttribute("aria-pressed", String(c.textContent === o))); drawResults(); }; box.appendChild(b); });
+}
+seg($("r-model"), RES.models, () => rModel, v => rModel = v);
+seg($("r-ctx"), ["8k", "16k", "32k"], () => rCtx, v => rCtx = v);
+legend($("r-legend"), RENG, drawResults);
+function drawResults() {
+  // warm decode, log-log; axes fixed per model across contexts so switching prompt length is comparable
+  const svg = $("warm-svg"), box = $("warm-chart"); svg.innerHTML = "";
+  const L = 50, R = 14, T = 26, B = 44, W = 470, H = 330;
+  const all = Object.values(RES.warm[rModel]).flatMap(c => Object.values(c).flat());
+  const xlo = Math.log10(Math.min(...all.map(p => p.user)) / 1.2), xhi = Math.log10(Math.max(...all.map(p => p.user)) * 1.2);
+  const ylo = Math.log10(Math.min(...all.map(p => p.agg)) / 1.3), yhi = Math.log10(Math.max(...all.map(p => p.agg)) * 1.3);
+  const x = v => L + (W - L - R) * (Math.log10(v) - xlo) / (xhi - xlo), y = v => T + (H - T - B) * (1 - (Math.log10(v) - ylo) / (yhi - ylo));
+  const ax = el("g", { class: "axis" }, svg);
+  for (const t of [1, 2, 5, 10, 20, 50, 100, 200]) if (Math.log10(t) >= xlo && Math.log10(t) <= xhi) { el("line", { x1: x(t), x2: x(t), y1: T, y2: H - B, class: "gridl" }, ax); txt(ax, x(t), H - B + 16, t, { "text-anchor": "middle" }); }
+  for (const t of [10, 20, 50, 100, 200, 500, 1000]) if (Math.log10(t) >= ylo && Math.log10(t) <= yhi) { el("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "gridl" }, ax); txt(ax, L - 6, y(t) + 4, t >= 1000 ? "1k" : t, { "text-anchor": "end" }); }
+  txt(ax, (L + W) / 2, H - 8, "per-user speed (tokens/s/user)", { "text-anchor": "middle" });
+  txt(ax, 12, (T + H - B) / 2, "output throughput (tokens/s)", { transform: `rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor": "middle" });
+  txt(svg, L, 14, `SPEED-Bench, ${rCtx} prompts`, { "font-size": 12.5, "font-weight": 600, fill: "var(--ink)" });
+  const cells = RES.warm[rModel][rCtx] || {};
+  [...RENG].reverse().filter(e => e.on && cells[e.key]).forEach(e => {
+    const pts = cells[e.key];
+    el("polyline", { points: pts.map(p => `${x(p.user)},${y(p.agg)}`).join(" "), fill: "none", stroke: e.c, "stroke-width": e.key === "Sharar" ? 2.8 : 2, "stroke-linejoin": "round" }, svg);
+    pts.forEach(p => { const c = el("circle", { cx: x(p.user), cy: y(p.agg), r: e.key === "Sharar" ? 4.5 : 3.6, fill: e.c, stroke: "var(--surface)", "stroke-width": 1.5, style: "cursor:default" }, svg);
+      c.addEventListener("pointerenter", () => showTip(box, svg, x(p.user), y(p.agg), `${e.key} · ${p.n} req · ${p.user} tok/s/user · ${p.agg} tok/s${p.accept ? ` · accept ${p.accept}` : ""}`));
+      c.addEventListener("pointerleave", () => hideTip(box)); });
+  });
+  const missing = RENG.filter(e => e.on && !cells[e.key]).map(e => e.key);
+  if (missing.length) txt(svg, W - R, 14, `not measured here: ${missing.join(", ")}`, { "text-anchor": "end", "font-size": 10.5, fill: "var(--ink-3)" });
+
+  // agents
+  const as = $("agent-svg"), abox = $("agent-chart"); as.innerHTML = "";
+  const AX = [1, 8, 16, 32], ax_ = v => L + (W - L - R) * (Math.log2(v) - Math.log2(0.8)) / (Math.log2(40) - Math.log2(0.8)), ay = v => T + (H - T - B) * (1 - v / 200);
+  const g2 = el("g", { class: "axis" }, as);
+  for (const t of [0, 50, 100, 150, 200]) { el("line", { x1: L, x2: W - R, y1: ay(t), y2: ay(t), class: "gridl" }, g2); txt(g2, L - 6, ay(t) + 4, t, { "text-anchor": "end" }); }
+  for (const t of AX) txt(g2, ax_(t), H - B + 16, t, { "text-anchor": "middle" });
+  txt(g2, (L + W) / 2, H - 8, "concurrent agents", { "text-anchor": "middle" });
+  txt(g2, 12, (T + H - B) / 2, "tasks per hour", { transform: `rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor": "middle" });
+  txt(as, L, 14, "AgentPerf-Local, all prompt lengths", { "font-size": 12.5, "font-weight": 600, fill: "var(--ink)" });
+  const am = RES.agents[rModel.toLowerCase()] || {};
+  [...RENG].reverse().filter(e => e.on && am[AKEY[e.key]]).forEach(e => {
+    const pts = am[AKEY[e.key]];
+    el("polyline", { points: pts.map(p => `${ax_(p[0])},${ay(p[1])}`).join(" "), fill: "none", stroke: e.c, "stroke-width": e.key === "Sharar" ? 2.8 : 2 }, as);
+    pts.forEach(p => { const c = el("circle", { cx: ax_(p[0]), cy: ay(p[1]), r: e.key === "Sharar" ? 4.5 : 3.6, fill: e.c, stroke: "var(--surface)", "stroke-width": 1.5 }, as);
+      c.addEventListener("pointerenter", () => showTip(abox, as, ax_(p[0]), ay(p[1]), `${e.key} · ${p[0]} agents · ${p[1]} tasks/h`));
+      c.addEventListener("pointerleave", () => hideTip(abox)); });
+  });
+}
+drawResults();
+
+/* copy buttons */
+document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => {
+  const pre = $(b.dataset.copy), s = pre.innerText;
+  const done = () => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1400); };
+  try { navigator.clipboard.writeText(s).then(done, () => { getSelection().selectAllChildren(pre); b.textContent = "Selected"; }); }
+  catch { getSelection().selectAllChildren(pre); b.textContent = "Selected"; }
+}));
+})();
+</script>

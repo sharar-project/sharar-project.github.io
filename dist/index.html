@@ -1,0 +1,2964 @@
+<title>Sharar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Sharar: fast agentic inference via language model surgery for unified-memory devices.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one 1040px column; full-width figure cards for the interactive pieces, prose held to ~66ch inside it. */
+:root {
+  --bg: #f7f6f6;          /* paper, a hair of red in the gray */
+  --surface: #ffffff;
+  --sunk: #efeded;
+  --ink: #1b1718;
+  --ink-2: #5c5557;
+  --ink-3: #8f8789;
+  --rule: #e2dedf;
+  --accent: #a31f34;      /* Sharar red, the paper figures' color */
+  --accent-soft: #f4e3e6;
+  --accent-ink: #ffffff;
+  --e-vllm: #1b1718;
+  --e-flare: #5a6a7e;
+  --e-tf: #9a9a9a;
+  --e-llama: #c9c6c7;
+  --e-nossd: #d98c98;
+  --good: #2f7a4f;
+  --warn: #9a6a12;
+  --f-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Public Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --step--1: 0.8125rem; --step-0: 1rem; --step-1: 1.1875rem; --step-2: 1.5rem; --step-3: 2.125rem; --step-4: clamp(3.25rem, 9vw, 6rem);
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141112; --surface: #1d191a; --sunk: #262122; --ink: #f1eced; --ink-2: #b8afb1; --ink-3: #847b7d; --rule: #352e30;
+  --accent: #e0566c; --accent-soft: #3a1e24; --accent-ink: #160a0d;
+  --e-vllm: #ece6e7; --e-flare: #8ea2bb; --e-tf: #8a8385; --e-llama: #534b4d; --e-nossd: #8f4352;
+  --good: #6cc394; --warn: #e0b25a; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #141112; --surface: #1d191a; --sunk: #262122; --ink: #f1eced; --ink-2: #b8afb1; --ink-3: #847b7d; --rule: #352e30;
+  --accent: #e0566c; --accent-soft: #3a1e24; --accent-ink: #160a0d;
+  --e-vllm: #ece6e7; --e-flare: #8ea2bb; --e-tf: #8a8385; --e-llama: #534b4d; --e-nossd: #8f4352;
+  --good: #6cc394; --warn: #e0b25a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: var(--step-0); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; line-height: 1.1; text-wrap: balance; margin: 0; letter-spacing: -0.015em; }
+p { margin: 0; }
+.prose { max-width: 66ch; display: grid; gap: 1em; color: var(--ink-2); }
+.prose strong { color: var(--ink); font-weight: 600; }
+.mono { font-family: var(--f-mono); }
+.num { font-variant-numeric: tabular-nums; }
+.eyebrow { font-family: var(--f-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.cap { font-size: var(--step--1); color: var(--ink-3); }
+
+/* nav + hero */
+nav.top { display: flex; justify-content: space-between; align-items: center; padding-block: 20px; font-size: var(--step--1); color: var(--ink-2); gap: 12px; flex-wrap: wrap; }
+nav.top a { text-decoration: none; }
+nav.top a:hover { color: var(--accent); }
+.hero { padding-block: 40px 28px; display: grid; gap: 18px; justify-items: center; text-align: center; }
+.hero h1 { font-size: var(--step-4); font-weight: 800; letter-spacing: -0.035em; line-height: 0.95; }
+.hero h1 .bar { color: var(--accent); }
+.subtitle { font-family: var(--f-display); font-size: clamp(1.15rem, 2.6vw, 1.6rem); font-weight: 500; color: var(--ink-2); max-width: 34ch; line-height: 1.25; text-wrap: balance; }
+.subtitle em { font-style: normal; color: var(--accent); }
+.authors { font-size: var(--step-0); color: var(--ink); }
+.affil { font-size: var(--step--1); color: var(--ink-3); margin-top: -10px; }
+.links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; font: 500 var(--step--1)/1 var(--f-body); text-decoration: none; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); cursor: pointer; }
+.btn:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: transparent; color: var(--ink-3); border-color: var(--rule); cursor: default; }
+.btn svg { width: 15px; height: 15px; }
+
+/* figure cards */
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px; }
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.card-head .lead { font-size: var(--step--1); color: var(--ink-2); }
+.card-head .lead b { color: var(--accent); font-variant-numeric: tabular-nums; }
+.tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { font: 500 0.75rem/1 var(--f-body); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.chip:hover { border-color: var(--ink-3); color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; padding: 2px; background: var(--sunk); flex-wrap: wrap; }
+.seg button { font: 500 0.78rem/1 var(--f-body); border: 0; background: none; color: var(--ink-2); padding: 7px 12px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+svg text { font-family: var(--f-body); }
+.axis text { fill: var(--ink-3); font-size: 11px; }
+.axis line, .axis path { stroke: var(--rule); }
+.gridl { stroke: var(--rule); stroke-width: 1; }
+
+/* hero figure */
+.climb { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 22px; align-items: stretch; }
+.climb svg { width: 100%; height: auto; display: block; }
+.step-note { border-left: 1px solid var(--rule); padding-left: 22px; display: grid; align-content: start; gap: 10px; min-width: 0; }
+.step-note .idx { font-family: var(--f-mono); font-size: 0.75rem; color: var(--ink-3); }
+.step-note h3 { font-size: var(--step-2); }
+.step-note .val { font-family: var(--f-display); font-size: 2.6rem; font-weight: 800; color: var(--accent); line-height: 1; font-variant-numeric: tabular-nums; }
+.step-note .val small { font: 500 var(--step--1) var(--f-body); color: var(--ink-3); margin-left: 4px; }
+.step-note p { color: var(--ink-2); font-size: 0.94rem; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font: 500 0.7rem/1 var(--f-mono); padding: 5px 8px; border-radius: 4px; background: var(--sunk); color: var(--ink-2); letter-spacing: 0.02em; }
+.tag.exact { color: var(--good); }
+.tag.lossy { color: var(--warn); }
+.stepchips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 14px; }
+.fig-cap { margin-top: 12px; text-align: center; }
+.tldr { text-align: center; max-width: 70ch; margin: 18px auto 0; color: var(--ink-2); }
+.tldr b { color: var(--ink); font-weight: 600; }
+.bar-step { transition: opacity .35s ease; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-block: 1px solid var(--rule); margin-top: 28px; }
+.stat { padding: 18px 16px; display: grid; gap: 4px; }
+.stat + .stat { border-left: 1px solid var(--rule); }
+.stat .big { font-family: var(--f-display); font-size: var(--step-3); font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat .big span { color: var(--accent); }
+.stat .what { font-size: var(--step--1); color: var(--ink-2); }
+
+/* sections */
+section.block { padding-block: 64px 0; display: grid; gap: 22px; }
+.thesis { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.5rem, 3.4vw, 2.3rem); line-height: 1.18; letter-spacing: -0.02em; max-width: 30ch; margin: 72px auto 0; text-align: center; text-wrap: balance; }
+.thesis span { color: var(--accent); }
+.sec-head { display: grid; gap: 8px; }
+.sec-head h2 { font-size: var(--step-3); }
+.pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--ink); }
+.pillar { padding: 18px 20px 4px 0; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.pillar + .pillar { padding-left: 20px; border-left: 1px solid var(--rule); }
+.pillar h3 { font-size: var(--step-1); }
+.pillar .res { font-family: var(--f-mono); font-size: 0.75rem; color: var(--accent); }
+.pillar p { color: var(--ink-2); font-size: 0.94rem; }
+.pillar ul { margin: 0; padding-left: 1.1em; color: var(--ink-2); font-size: 0.9rem; }
+
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px; align-items: start; }
+.ctrl { display: grid; gap: 6px; }
+.ctrl label { font-size: var(--step--1); color: var(--ink-2); display: flex; justify-content: space-between; gap: 10px; }
+.ctrl label output { font-family: var(--f-mono); color: var(--ink); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.readout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.readout div { background: var(--sunk); border-radius: 8px; padding: 10px 12px; }
+.readout .k { font-size: 0.72rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.readout .v { font-family: var(--f-display); font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.readout .v.acc { color: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--step--1); color: var(--ink-2); }
+.legend button { all: unset; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.legend button[aria-pressed="false"] { opacity: .35; }
+.legend i { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font: 500 0.75rem/1.4 var(--f-mono); padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
+.chart { position: relative; }
+
+pre.code { background: var(--sunk); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font: 0.86rem/1.65 var(--f-mono); color: var(--ink); margin: 0; }
+pre.code .c { color: var(--ink-3); }
+.copyrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+footer { margin-top: 88px; border-top: 1px solid var(--rule); padding-block: 26px 40px; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; font-size: var(--step--1); color: var(--ink-3); }
+footer b { color: var(--ink); font-family: var(--f-display); }
+
+@media (max-width: 760px) {
+  .climb, .two { grid-template-columns: minmax(0, 1fr); }
+  .step-note { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 16px; }
+  .pillars { grid-template-columns: minmax(0, 1fr); }
+  .pillar + .pillar { padding-left: 0; border-left: 0; border-top: 1px solid var(--rule); }
+  .stats { grid-template-columns: minmax(0, 1fr); }
+  .stat + .stat { border-left: 0; border-top: 1px solid var(--rule); }
+  .card { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <nav class="top">
+    <a href="https://github.com/abdelfattah-lab">Abdelfattah Lab · Cornell</a>
+    <span class="mono">DGX Spark · GB10 · 128 GB unified memory</span>
+  </nav>
+
+  <header class="hero">
+    <h1>Sharar</h1>
+    <p class="subtitle">Fast agentic inference via <em>language model surgery</em> for unified-memory devices</p>
+    <p class="authors">Authors to be announced</p>
+    <p class="affil">Cornell University</p>
+    <div class="links">
+      <span class="btn ghost" title="The paper is in preparation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
+        Paper · coming soon</span>
+      <span class="btn ghost" title="The repository is private for now">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Code · coming soon</span>
+      <a class="btn" href="#techniques">Explore the techniques ↓</a>
+    </div>
+  </header>
+
+  <!-- hero: the speed hill climb -->
+  <figure class="card" id="climb-card" style="margin:0">
+    <div class="card-head">
+      <p class="lead">Building Sharar · <b id="climb-lead">27.9 tokens/s</b></p>
+      <div class="tools">
+        <button class="chip" id="climb-play" type="button">Pause</button>
+        <button class="chip" id="climb-replay" type="button">Replay</button>
+      </div>
+    </div>
+    <div class="climb">
+      <svg id="climb-svg" viewBox="0 0 620 330" role="img" aria-label="Decode throughput rising from 27.9 to 119.6 tokens per second as each technique is added"></svg>
+      <div class="step-note" aria-live="polite">
+        <span class="idx" id="note-idx">STEP 1 / 8</span>
+        <h3 id="note-title">No speculation</h3>
+        <div class="val" id="note-val">27.9<small>tok/s</small></div>
+        <div class="tags" id="note-tags"></div>
+        <p id="note-body"></p>
+      </div>
+    </div>
+    <div class="stepchips" id="climb-chips"></div>
+    <figcaption class="cap fig-cap">Qwen3.8-Flash-Next (125B MoE) · one DGX Spark · one request (batch size 1) · decode tokens/s after each technique is added. Click a step to jump to it.</figcaption>
+  </figure>
+  <p class="tldr">On one DGX Spark, Sharar decodes Qwen3.8-Flash-Next at <b>103 tokens/s</b> for one user, <b>2.1×</b> the fastest baseline engine, peaks at <b>794 tokens/s</b> across 64 requests, and finishes <b>150 agentic tasks per hour</b> with 16 agents, <b>3.1×</b> vLLM.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="big num">103 <span>tok/s</span></div><div class="what">Single-user decode, Flash-Next, 16k prompts. vLLM 38, TensorFold 49, llama.cpp 33.</div></div>
+    <div class="stat"><div class="big num">794 <span>tok/s</span></div><div class="what">Peak decode throughput at 64 requests. Best baseline: TensorFold, 184 at 16 requests.</div></div>
+    <div class="stat"><div class="big num">150 <span>tasks/h</span></div><div class="what">Agentic tasks with 16 concurrent agents (AA-AgentPerf traces). vLLM 49, TensorFold 34.</div></div>
+  </div>
+
+  <p class="thesis">Local agents keep extending long histories in the <span>same memory</span> that holds the model. Sharar decides what stays resident, what survives between turns, and what each accepted token costs.</p>
+
+  <!-- techniques -->
+  <section class="block" id="techniques">
+    <div class="sec-head">
+      <span class="eyebrow">Three surgeries</span>
+      <h2>Move fewer bytes, keep finished work, verify cheaper</h2>
+    </div>
+    <div class="pillars">
+      <div class="pillar">
+        <span class="res">bytes read per token ↓</span>
+        <h3>Model surgery</h3>
+        <p>Calibrated 3-bit weights for dense projections and routed experts, packed so FP8 tensor cores consume them directly.</p>
+        <ul><li>3.25 bits/weight: 8-entry FP8 codebook, scale per 32 weights</li><li>NVFP4 KV cache, INT8 recurrent state</li><li>2-bit draft head with top-16 rescoring</li></ul>
+      </div>
+      <div class="pillar">
+        <span class="res">work kept across turns ↑</span>
+        <h3>Unified-memory hierarchy</h3>
+        <p>Evicted conversations are demoted to the SSD instead of discarded, so an agent's next turn resumes rather than recomputes.</p>
+        <ul><li>Whole continuations: KV pages, recurrent snapshots, draft state</li><li>One ledger for GPU pools, staging buffers and page cache</li><li>Sparse lookup tables (PLE) served from NVMe</li></ul>
+      </div>
+      <div class="pillar">
+        <span class="res">work per accepted token ↓</span>
+        <h3>Adaptive speculation</h3>
+        <p>Each draft-verify round is sized and priced: draft as deep as acceptance pays for, and keep verify batches cheap.</p>
+        <ul><li>Adaptive draft depth from observed acceptance</li><li>Optional relaxed verification (top-k, logit margin)</li><li>Shared routed-expert budget in verify batches</li></ul>
+      </div>
+    </div>
+    <p class="cap">Sharar serves three profiles. <span class="mono">exact</span> keeps the model's own outputs; <span class="mono">fast</span> (default) and <span class="mono">throughput</span> add named lossy approximations. The tags in the figure above say which steps are which.</p>
+  </section>
+
+  <!-- expert sharing -->
+  <section class="block" id="experts">
+    <div class="sec-head">
+      <span class="eyebrow">Try it · expert sharing</span>
+      <h2>A verify batch reads the union of every token's experts</h2>
+    </div>
+    <div class="prose"><p>In an MoE layer each token picks its own top-k experts, and verifying a batch of draft tokens must load every expert any of them chose. Sharar gives the batch a <strong>shared budget</strong>: each token's top choice is guaranteed, the remaining slots go to the experts with the most routing mass, and every token's second choice is taken from inside that set. Fewer distinct experts means fewer weight bytes per round.</p></div>
+    <div class="card two">
+      <div class="chart"><svg id="moe-svg" viewBox="0 0 470 300" role="img" aria-label="Token by expert routing grid"></svg></div>
+      <div style="display:grid;gap:16px;min-width:0">
+        <div class="seg" role="group" aria-label="Routing policy">
+          <button type="button" id="moe-topk" aria-pressed="false">Per-token top-2</button>
+          <button type="button" id="moe-shared" aria-pressed="true">Shared budget</button>
+        </div>
+        <div class="ctrl" id="moe-budget-ctrl">
+          <label for="moe-b">Expert budget B <output id="moe-b-out">4</output></label>
+          <input type="range" id="moe-b" min="3" max="8" step="1" value="4">
+        </div>
+        <div class="readout">
+          <div><div class="k">Experts loaded</div><div class="v acc num" id="moe-loaded">4 / 12</div></div>
+          <div><div class="k">Expert bytes vs top-2</div><div class="v num" id="moe-bytes">50%</div></div>
+          <div><div class="k">Tokens keeping own top-2</div><div class="v num" id="moe-keep">2 / 6</div></div>
+          <div><div class="k">Routing mass kept</div><div class="v num" id="moe-mass">…</div></div>
+        </div>
+        <p class="cap">Paper example: 6 draft tokens, 12 experts, k = 2. Each token weights its first choice 0.6 and its second 0.4. Red cells are top choices, pink cells second choices; the shaded columns are the experts read from memory. Lossy: tokens that lose their own second choice get a substitute from the set.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- adaptive depth -->
+  <section class="block" id="depth">
+    <div class="sec-head">
+      <span class="eyebrow">Try it · adaptive drafting</span>
+      <h2>Draft only as deep as acceptance pays for</h2>
+    </div>
+    <div class="prose"><p>Each extra draft token costs one more draft step and one more verification row. Sharar keeps a per-request estimate <span class="mono">q</span> of how often a drafted position is accepted, and picks the depth that maximizes expected tokens per unit of round time:</p>
+    <p class="mono" style="color:var(--ink);font-size:.95rem">d* = argmax<sub>1≤d≤d<sub>max</sub></sub> (Σ<sub>j=0..d</sub> q<sup>j</sup>) / (1 + c·(d − 1))</p>
+    <p>Move the sliders. High-acceptance text (code, repeated tool output) earns deep drafts; uncertain text earns shallow ones. Under exact verification this changes speed only, never the output.</p></div>
+    <div class="card two">
+      <div class="chart" id="depth-chart"><svg id="depth-svg" viewBox="0 0 470 280" role="img" aria-label="Expected tokens per unit time against draft depth"></svg></div>
+      <div style="display:grid;gap:16px;min-width:0">
+        <div class="ctrl"><label for="dq">Acceptance per position q <output id="dq-out">0.80</output></label><input type="range" id="dq" min="0.30" max="0.97" step="0.01" value="0.80"></div>
+        <div class="ctrl"><label for="dc">Cost of one more draft step c <output id="dc-out">0.12</output></label><input type="range" id="dc" min="0.02" max="0.60" step="0.01" value="0.12"></div>
+        <div class="ctrl"><label for="dmax">Depth cap d<sub>max</sub> <output id="dmax-out">8</output></label><input type="range" id="dmax" min="2" max="10" step="1" value="8"></div>
+        <div class="readout">
+          <div><div class="k">Chosen depth d*</div><div class="v acc num" id="d-star">5</div></div>
+          <div><div class="k">Tokens per round</div><div class="v num" id="d-tok">…</div></div>
+          <div><div class="k">Speed vs no drafting</div><div class="v num" id="d-speed">…</div></div>
+          <div><div class="k">Speed vs fixed depth 8</div><div class="v num" id="d-fixed">…</div></div>
+        </div>
+        <p class="cap">The model from the paper: constant per-position acceptance, round time 1 + c(d − 1) relative to a depth-one round. Bars are tokens per unit time; the red bar is d*.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- draft head -->
+  <section class="block" id="drafthead">
+    <div class="sec-head">
+      <span class="eyebrow">Model surgery · draft head</span>
+      <h2>A 2-bit draft head that still agrees with FP8</h2>
+    </div>
+    <div class="prose"><p>The draft model's vocabulary head is the largest matrix it reads every step. Sharar stores it in 2 bits and rescores the top-16 candidates in higher precision, which recovers agreement where it was lost: on uncertain tokens, where the naive 2-bit head picks a different token half the time. Only the drafter changes, so the target still decides every token.</p></div>
+    <div class="card">
+      <div class="card-head"><div class="legend" id="dh-legend"></div></div>
+      <div class="chart" id="dh-chart"><svg id="dh-svg" viewBox="0 0 900 300" role="img" aria-label="Draft head agreement against entropy"></svg></div>
+      <p class="cap" style="margin-top:8px">Agreement with the FP8 head's token, binned by the FP8 head's entropy (bits). Overall agreement is in each legend entry.</p>
+    </div>
+  </section>
+
+  <!-- ssd tier -->
+  <section class="block" id="ssd">
+    <div class="sec-head">
+      <span class="eyebrow">Unified-memory hierarchy · SSD tier</span>
+      <h2>When open context outgrows the GPU, demote it to the SSD</h2>
+    </div>
+    <div class="prose"><p>192 agent conversations open at once, 32 running. Once their contexts exceed the KV that fits beside the weights, other engines drop prefixes and recompute them on the agent's next turn. Sharar writes complete continuations to NVMe and reads them back, so turns keep starting from cache. During the burst, median time to first token is <strong>4.0 s on Sharar against 167 s on vLLM</strong>, 42× lower.</p></div>
+    <div class="card">
+      <div class="card-head">
+        <div class="legend" id="burst-legend"></div>
+        <div class="seg" role="group" aria-label="Metric">
+          <button type="button" id="b-ttft" aria-pressed="true">Median TTFT</button>
+          <button type="button" id="b-hit" aria-pressed="false">Cache hit</button>
+        </div>
+      </div>
+      <div class="chart" id="burst-chart"><svg id="burst-svg" viewBox="0 0 900 360" role="img" aria-label="Open context, and TTFT or cache hit, over requests served"></svg></div>
+      <p class="cap" style="margin-top:8px">Qwen3.8-Flash-Next, AA-AgentPerf traces, thinking-off setting, 192 conversations, 32 agents. Top strip: open context in millions of tokens; the dashed line is Sharar's GPU KV capacity (1.58 M tokens) and the shaded span is where open context exceeds it. Rolling windows over requests served.</p>
+    </div>
+  </section>
+
+  <!-- results explorer -->
+  <section class="block" id="results">
+    <div class="sec-head">
+      <span class="eyebrow">Results · four models, five engines</span>
+      <h2>Faster for one user, and for many</h2>
+    </div>
+    <div class="prose"><p>Warm-cache decode on SPEED-Bench prompts: each point is one concurrency level, plotted as per-user speed against total output throughput. Up and to the right is better. Each engine runs its fastest measured setting with its own speculation enabled. Hover a point for its request count.</p></div>
+    <div class="card" style="display:grid;gap:14px">
+      <div class="card-head" style="margin:0">
+        <div class="seg" role="group" aria-label="Model" id="r-model"></div>
+        <div class="seg" role="group" aria-label="Prompt length" id="r-ctx"></div>
+      </div>
+      <div class="legend" id="r-legend"></div>
+      <div class="two" style="gap:22px">
+        <div class="chart" id="warm-chart"><svg id="warm-svg" viewBox="0 0 470 330" role="img" aria-label="Output throughput against per-user speed"></svg></div>
+        <div class="chart" id="agent-chart"><svg id="agent-svg" viewBox="0 0 470 330" role="img" aria-label="Agentic tasks per hour against concurrent agents"></svg></div>
+      </div>
+      <p class="cap">Left: SPEED-Bench, warm cache, log–log. Right: agentic tasks per hour on AgentPerf-Local traces against concurrent agents (thinking-off setting). One DGX Spark per engine. TensorFold serves at most 16 streams; the rest queue.</p>
+    </div>
+  </section>
+
+  <!-- quick start -->
+  <section class="block" id="start">
+    <div class="sec-head">
+      <span class="eyebrow">Quick start</span>
+      <h2>Serve a model on one Spark</h2>
+    </div>
+    <div class="copyrow"><p class="cap">Install uv, then:</p><button class="chip" type="button" data-copy="qs">Copy</button></div>
+    <pre class="code" id="qs"><span class="c"># the repository opens with the paper</span>
+git clone https://github.com/abdelfattah-lab/sharar && cd sharar
+uv sync
+uv run sharar serve 27b          <span class="c"># Qwen3.8-27B on http://127.0.0.1:30001</span>
+uv run sharar serve flashnext    <span class="c"># Qwen3.8-Flash-Next (125B MoE)</span>
+uv run sharar launch claude      <span class="c"># point a coding agent at it</span></pre>
+    <p class="cap">OpenAI- and Anthropic-compatible APIs, 262K context, one Spark or two over ConnectX. Add <span class="mono">--exact</span> for the model's own outputs.</p>
+  </section>
+
+  <section class="block" id="cite">
+    <div class="copyrow"><h2 style="font-size:var(--step-2)">Citation</h2><button class="chip" type="button" data-copy="bib">Copy</button></div>
+    <pre class="code" id="bib">@misc{sharar2026,
+  title  = {Sharar: Fast Agentic Inference via Language Model Surgery
+            for Unified-Memory Devices},
+  author = {TBD},
+  year   = {2026}
+}</pre>
+  </section>
+
+  <footer>
+    <span><b>Sharar</b> · Abdelfattah Lab, Cornell University</span>
+    <span>Numbers from the paper draft, November 2026. Measured on NVIDIA DGX Spark (GB10).</span>
+  </footer>
+</div>
+
+<script id="results-data" type="application/json">{
+ "models": [
+  "Qwen3.8-27B",
+  "Qwen3.8-Flash-Next",
+  "Nemotron-3.5-Bolt",
+  "Nemotron-3.5-Super"
+ ],
+ "warm": {
+  "Qwen3.8-27B": {
+   "8k": {
+    "Sharar": [
+     {
+      "n": 1,
+      "user": 65.1,
+      "agg": 65.1,
+      "accept": "4.24"
+     },
+     {
+      "n": 2,
+      "user": 62.2,
+      "agg": 122.0,
+      "accept": "4.22"
+     },
+     {
+      "n": 4,
+      "user": 52.2,
+      "agg": 212.7,
+      "accept": "3.89"
+     },
+     {
+      "n": 8,
+      "user": 44.6,
+      "agg": 354.8,
+      "accept": "3.87"
+     },
+     {
+      "n": 16,
+      "user": 30.0,
+      "agg": 483.7,
+      "accept": "3.88"
+     },
+     {
+      "n": 32,
+      "user": 19.6,
+      "agg": 639.0,
+      "accept": "3.95"
+     },
+     {
+      "n": 64,
+      "user": 12.5,
+      "agg": 799.8,
+      "accept": "3.98"
+     }
+    ],
+    "vLLM": [
+     {
+      "n": 1,
+      "user": 27.1,
+      "agg": 27.1,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 24.7,
+      "agg": 49.3,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 21.9,
+      "agg": 89.6,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 15.1,
+      "agg": 118.2,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 13.4,
+      "agg": 213.8,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 8.7,
+      "agg": 278.4,
+      "accept": null
+     }
+    ],
+    "TensorFold": [
+     {
+      "n": 1,
+      "user": 44.5,
+      "agg": 44.5,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 41.9,
+      "agg": 82.5,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 31.3,
+      "agg": 124.3,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 21.9,
+      "agg": 186.1,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 12.1,
+      "agg": 202.5,
+      "accept": null
+     }
+    ]
+   },
+   "16k": {
+    "Sharar": [
+     {
+      "n": 1,
+      "user": 61.9,
+      "agg": 61.9,
+      "accept": "4.09"
+     },
+     {
+      "n": 2,
+      "user": 57.4,
+      "agg": 112.9,
+      "accept": "4.04"
+     },
+     {
+      "n": 4,
+      "user": 48.7,
+      "agg": 194.4,
+      "accept": "3.83"
+     },
+     {
+      "n": 8,
+      "user": 39.7,
+      "agg": 319.8,
+      "accept": "3.78"
+     },
+     {
+      "n": 16,
+      "user": 24.8,
+      "agg": 398.4,
+      "accept": "3.76"
+     },
+     {
+      "n": 32,
+      "user": 16.0,
+      "agg": 512.2,
+      "accept": "3.82"
+     },
+     {
+      "n": 64,
+      "user": 10.0,
+      "agg": 629.2,
+      "accept": "3.81"
+     }
+    ],
+    "vLLM": [
+     {
+      "n": 1,
+      "user": 26.3,
+      "agg": 26.3,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 23.4,
+      "agg": 46.4,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 21.0,
+      "agg": 82.8,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 13.4,
+      "agg": 107.1,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 12.2,
+      "agg": 193.8,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 7.4,
+      "agg": 239.0,
+      "accept": null
+     }
+    ],
+    "TensorFold": [
+     {
+      "n": 1,
+      "user": 47.5,
+      "agg": 47.5,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 35.7,
+      "agg": 70.0,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 28.6,
+      "agg": 112.3,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 18.8,
+      "agg": 158.2,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 9.7,
+      "agg": 167.2,
+      "accept": null
+     }
+    ],
+    "llama.cpp": [
+     {
+      "n": 1,
+      "user": 21.1,
+      "agg": 21.1,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 15.6,
+      "agg": 31.1,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 11.8,
+      "agg": 47.4,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 5.1,
+      "agg": 40.3,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 2.8,
+      "agg": 46.0,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 1.1,
+      "agg": 43.4,
+      "accept": null
+     }
+    ],
+    "Flare": [
+     {
+      "n": 1,
+      "user": 28.6,
+      "agg": 28.6,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 26.5,
+      "agg": 52.4,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 22.4,
+      "agg": 90.2,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 17.8,
+      "agg": 141.7,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 11.8,
+      "agg": 187.2,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 5.1,
+      "agg": 158.7,
+      "accept": null
+     }
+    ]
+   },
+   "32k": {
+    "Sharar": [
+     {
+      "n": 1,
+      "user": 65.6,
+      "agg": 65.6,
+      "accept": "4.51"
+     },
+     {
+      "n": 2,
+      "user": 59.1,
+      "agg": 117.0,
+      "accept": "4.47"
+     },
+     {
+      "n": 4,
+      "user": 49.4,
+      "agg": 192.9,
+      "accept": "4.21"
+     },
+     {
+      "n": 8,
+      "user": 34.8,
+      "agg": 279.9,
+      "accept": "3.9"
+     },
+     {
+      "n": 16,
+      "user": 19.4,
+      "agg": 313.5,
+      "accept": "3.82"
+     },
+     {
+      "n": 32,
+      "user": 12.5,
+      "agg": 396.6,
+      "accept": "3.84"
+     },
+     {
+      "n": 64,
+      "user": 7.5,
+      "agg": 471.6,
+      "accept": "3.83"
+     }
+    ],
+    "vLLM": [
+     {
+      "n": 1,
+      "user": 26.1,
+      "agg": 26.1,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 23.2,
+      "agg": 45.7,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 20.0,
+      "agg": 81.0,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 12.9,
+      "agg": 102.1,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 10.5,
+      "agg": 165.7,
+      "accept": null
+     }
+    ],
+    "TensorFold": [
+     {
+      "n": 1,
+      "user": 44.0,
+      "agg": 44.0,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 35.8,
+      "agg": 73.5,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 22.6,
+      "agg": 102.7,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 14.4,
+      "agg": 128.3,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 8.2,
+      "agg": 145.1,
+      "accept": null
+     }
+    ],
+    "Flare": [
+     {
+      "n": 1,
+      "user": 27.7,
+      "agg": 27.7,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 25.0,
+      "agg": 49.7,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 21.9,
+      "agg": 88.1,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 17.2,
+      "agg": 134.2,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 10.8,
+      "agg": 169.3,
+      "accept": null
+     }
+    ]
+   }
+  },
+  "Qwen3.8-Flash-Next": {
+   "8k": {
+    "Sharar": [
+     {
+      "n": 1,
+      "user": 106.9,
+      "agg": 106.9,
+      "accept": "4.06"
+     },
+     {
+      "n": 2,
+      "user": 86.8,
+      "agg": 173.2,
+      "accept": "4.01"
+     },
+     {
+      "n": 4,
+      "user": 65.0,
+      "agg": 258.4,
+      "accept": "4.02"
+     },
+     {
+      "n": 8,
+      "user": 49.2,
+      "agg": 393.2,
+      "accept": "4.04"
+     },
+     {
+      "n": 16,
+      "user": 35.3,
+      "agg": 565.1,
+      "accept": "3.45"
+     },
+     {
+      "n": 32,
+      "user": 21.8,
+      "agg": 701.3,
+      "accept": "3.47"
+     },
+     {
+      "n": 64,
+      "user": 13.4,
+      "agg": 861.1,
+      "accept": "3.46"
+     }
+    ],
+    "vLLM": [
+     {
+      "n": 1,
+      "user": 38.8,
+      "agg": 38.8,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 30.2,
+      "agg": 59.8,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 20.8,
+      "agg": 82.1,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 13.1,
+      "agg": 104.1,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 9.2,
+      "agg": 145.5,
+      "accept": null
+     }
+    ],
+    "TensorFold": [
+     {
+      "n": 1,
+      "user": 52.2,
+      "agg": 52.2,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 39.3,
+      "agg": 76.9,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 27.2,
+      "agg": 109.0,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 17.7,
+      "agg": 143.8,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 11.8,
+      "agg": 192.6,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 5.3,
+      "agg": 163.6,
+      "accept": null
+     }
+    ],
+    "Flare": [
+     {
+      "n": 1,
+      "user": 43.2,
+      "agg": 43.2,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 33.4,
+      "agg": 66.3,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 23.9,
+      "agg": 95.0,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 15.8,
+      "agg": 126.0,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 9.0,
+      "agg": 143.7,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 6.3,
+      "agg": 201.1,
+      "accept": null
+     }
+    ]
+   },
+   "16k": {
+    "Sharar": [
+     {
+      "n": 1,
+      "user": 103.1,
+      "agg": 103.1,
+      "accept": "4.92"
+     },
+     {
+      "n": 2,
+      "user": 82.2,
+      "agg": 163.7,
+      "accept": "3.89"
+     },
+     {
+      "n": 4,
+      "user": 61.7,
+      "agg": 246.0,
+      "accept": "3.97"
+     },
+     {
+      "n": 8,
+      "user": 45.8,
+      "agg": 366.5,
+      "accept": "4.0"
+     },
+     {
+      "n": 16,
+      "user": 32.2,
+      "agg": 517.7,
+      "accept": "3.39"
+     },
+     {
+      "n": 32,
+      "user": 20.1,
+      "agg": 642.6,
+      "accept": "3.42"
+     },
+     {
+      "n": 64,
+      "user": 12.5,
+      "agg": 794.2,
+      "accept": "3.43"
+     }
+    ],
+    "vLLM": [
+     {
+      "n": 1,
+      "user": 38.2,
+      "agg": 38.2,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 29.5,
+      "agg": 58.4,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 20.3,
+      "agg": 80.2,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 13.3,
+      "agg": 105.4,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 9.2,
+      "agg": 146.4,
+      "accept": null
+     }
+    ],
+    "TensorFold": [
+     {
+      "n": 1,
+      "user": 48.7,
+      "agg": 48.7,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 36.6,
+      "agg": 72.1,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 25.4,
+      "agg": 102.6,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 17.9,
+      "agg": 142.9,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 11.3,
+      "agg": 183.9,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 5.1,
+      "agg": 158.6,
+      "accept": null
+     }
+    ],
+    "llama.cpp": [
+     {
+      "n": 1,
+      "user": 33.4,
+      "agg": 33.4,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 23.4,
+      "agg": 46.4,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 13.9,
+      "agg": 54.2,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 8.4,
+      "agg": 66.4,
+      "accept": null
+     }
+    ],
+    "Flare": [
+     {
+      "n": 1,
+      "user": 41.5,
+      "agg": 41.5,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 32.9,
+      "agg": 65.4,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 24.7,
+      "agg": 98.2,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 15.4,
+      "agg": 122.2,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 9.0,
+      "agg": 143.4,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 6.4,
+      "agg": 204.6,
+      "accept": null
+     }
+    ]
+   },
+   "32k": {
+    "Sharar": [
+     {
+      "n": 1,
+      "user": 102.4,
+      "agg": 102.4,
+      "accept": "4.97"
+     },
+     {
+      "n": 2,
+      "user": 80.8,
+      "agg": 161.4,
+      "accept": "4.03"
+     },
+     {
+      "n": 4,
+      "user": 57.5,
+      "agg": 229.5,
+      "accept": "4.0"
+     },
+     {
+      "n": 8,
+      "user": 43.3,
+      "agg": 348.4,
+      "accept": "4.03"
+     },
+     {
+      "n": 16,
+      "user": 30.8,
+      "agg": 491.5,
+      "accept": "3.43"
+     },
+     {
+      "n": 32,
+      "user": 18.8,
+      "agg": 601.5,
+      "accept": "3.46"
+     },
+     {
+      "n": 64,
+      "user": 11.5,
+      "agg": 732.0,
+      "accept": "3.45"
+     }
+    ],
+    "vLLM": [
+     {
+      "n": 1,
+      "user": 39.0,
+      "agg": 39.0,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 30.2,
+      "agg": 59.9,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 20.3,
+      "agg": 80.3,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 13.1,
+      "agg": 104.5,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 9.2,
+      "agg": 144.0,
+      "accept": null
+     }
+    ],
+    "TensorFold": [
+     {
+      "n": 1,
+      "user": 51.2,
+      "agg": 51.2,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 39.9,
+      "agg": 78.3,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 26.2,
+      "agg": 108.7,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 18.5,
+      "agg": 147.1,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 11.5,
+      "agg": 187.7,
+      "accept": null
+     }
+    ],
+    "Flare": [
+     {
+      "n": 1,
+      "user": 42.4,
+      "agg": 42.4,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 34.7,
+      "agg": 68.7,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 24.8,
+      "agg": 98.3,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 15.0,
+      "agg": 120.0,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 8.6,
+      "agg": 138.3,
+      "accept": null
+     }
+    ]
+   }
+  },
+  "Nemotron-3.5-Bolt": {
+   "8k": {
+    "Sharar": [
+     {
+      "n": 1,
+      "user": 116.6,
+      "agg": 116.6,
+      "accept": "4.22"
+     },
+     {
+      "n": 2,
+      "user": 93.4,
+      "agg": 182.5,
+      "accept": "4.24"
+     },
+     {
+      "n": 4,
+      "user": 64.9,
+      "agg": 256.5,
+      "accept": "4.19"
+     },
+     {
+      "n": 8,
+      "user": 42.0,
+      "agg": 338.0,
+      "accept": "4.19"
+     },
+     {
+      "n": 16,
+      "user": 27.7,
+      "agg": 438.4,
+      "accept": "4.29"
+     },
+     {
+      "n": 32,
+      "user": 16.7,
+      "agg": 526.6,
+      "accept": "4.31"
+     },
+     {
+      "n": 64,
+      "user": 9.3,
+      "agg": 593.7,
+      "accept": "4.18"
+     }
+    ],
+    "vLLM": [
+     {
+      "n": 1,
+      "user": 76.1,
+      "agg": 76.1,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 62.6,
+      "agg": 122.0,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 43.7,
+      "agg": 176.1,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 29.8,
+      "agg": 246.4,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 16.4,
+      "agg": 301.9,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 8.9,
+      "agg": 329.6,
+      "accept": null
+     },
+     {
+      "n": 64,
+      "user": 4.7,
+      "agg": 368.4,
+      "accept": null
+     }
+    ],
+    "TensorFold": [
+     {
+      "n": 1,
+      "user": 83.5,
+      "agg": 83.5,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 64.3,
+      "agg": 124.9,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 46.5,
+      "agg": 181.7,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 31.5,
+      "agg": 238.0,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 19.6,
+      "agg": 292.4,
+      "accept": null
+     }
+    ],
+    "Flare": [
+     {
+      "n": 1,
+      "user": 86.7,
+      "agg": 86.7,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 69.6,
+      "agg": 134.9,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 49.5,
+      "agg": 193.0,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 36.0,
+      "agg": 282.7,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 23.8,
+      "agg": 366.3,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 14.2,
+      "agg": 436.6,
+      "accept": null
+     }
+    ]
+   },
+   "16k": {
+    "Sharar": [
+     {
+      "n": 1,
+      "user": 112.0,
+      "agg": 112.0,
+      "accept": "4.11"
+     },
+     {
+      "n": 2,
+      "user": 89.8,
+      "agg": 175.9,
+      "accept": "4.17"
+     },
+     {
+      "n": 4,
+      "user": 64.6,
+      "agg": 252.0,
+      "accept": "4.09"
+     },
+     {
+      "n": 8,
+      "user": 42.3,
+      "agg": 333.6,
+      "accept": "4.16"
+     },
+     {
+      "n": 16,
+      "user": 26.7,
+      "agg": 420.2,
+      "accept": "4.22"
+     },
+     {
+      "n": 32,
+      "user": 16.2,
+      "agg": 507.3,
+      "accept": "4.22"
+     },
+     {
+      "n": 64,
+      "user": 9.0,
+      "agg": 569.0,
+      "accept": "4.15"
+     }
+    ],
+    "vLLM": [
+     {
+      "n": 1,
+      "user": 77.6,
+      "agg": 77.6,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 60.9,
+      "agg": 119.0,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 43.3,
+      "agg": 168.7,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 27.9,
+      "agg": 233.8,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 17.0,
+      "agg": 294.2,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 8.7,
+      "agg": 318.5,
+      "accept": null
+     },
+     {
+      "n": 64,
+      "user": 5.0,
+      "agg": 374.0,
+      "accept": null
+     }
+    ],
+    "TensorFold": [
+     {
+      "n": 1,
+      "user": 83.7,
+      "agg": 83.7,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 61.3,
+      "agg": 118.1,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 45.5,
+      "agg": 179.9,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 31.7,
+      "agg": 236.3,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 18.4,
+      "agg": 276.9,
+      "accept": null
+     }
+    ],
+    "llama.cpp": [
+     {
+      "n": 1,
+      "user": 69.3,
+      "agg": 69.3,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 36.2,
+      "agg": 68.3,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 21.0,
+      "agg": 80.6,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 11.9,
+      "agg": 88.4,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 5.7,
+      "agg": 86.1,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 2.7,
+      "agg": 87.4,
+      "accept": null
+     }
+    ],
+    "Flare": [
+     {
+      "n": 1,
+      "user": 82.4,
+      "agg": 82.4,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 68.2,
+      "agg": 133.3,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 52.5,
+      "agg": 201.6,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 35.4,
+      "agg": 275.0,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 22.5,
+      "agg": 349.5,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 13.8,
+      "agg": 423.8,
+      "accept": null
+     }
+    ]
+   },
+   "32k": {
+    "Sharar": [
+     {
+      "n": 1,
+      "user": 108.8,
+      "agg": 108.8,
+      "accept": "4.07"
+     },
+     {
+      "n": 2,
+      "user": 84.8,
+      "agg": 166.7,
+      "accept": "4.04"
+     },
+     {
+      "n": 4,
+      "user": 62.1,
+      "agg": 248.1,
+      "accept": "4.09"
+     },
+     {
+      "n": 8,
+      "user": 39.8,
+      "agg": 312.0,
+      "accept": "4.08"
+     },
+     {
+      "n": 16,
+      "user": 25.1,
+      "agg": 393.1,
+      "accept": "4.09"
+     },
+     {
+      "n": 32,
+      "user": 14.6,
+      "agg": 467.8,
+      "accept": "4.09"
+     },
+     {
+      "n": 64,
+      "user": 8.5,
+      "agg": 535.3,
+      "accept": "4.12"
+     }
+    ],
+    "vLLM": [
+     {
+      "n": 1,
+      "user": 73.3,
+      "agg": 73.3,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 59.2,
+      "agg": 115.3,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 40.8,
+      "agg": 157.3,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 29.1,
+      "agg": 225.4,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 17.2,
+      "agg": 279.8,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 9.1,
+      "agg": 306.7,
+      "accept": null
+     },
+     {
+      "n": 64,
+      "user": 5.2,
+      "agg": 360.8,
+      "accept": null
+     }
+    ],
+    "TensorFold": [
+     {
+      "n": 1,
+      "user": 78.7,
+      "agg": 78.7,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 63.8,
+      "agg": 124.8,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 41.4,
+      "agg": 165.8,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 29.2,
+      "agg": 223.0,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 17.7,
+      "agg": 265.2,
+      "accept": null
+     }
+    ],
+    "Flare": [
+     {
+      "n": 1,
+      "user": 81.9,
+      "agg": 81.9,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 64.8,
+      "agg": 128.4,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 48.6,
+      "agg": 191.3,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 36.1,
+      "agg": 277.7,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 21.3,
+      "agg": 331.2,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 11.7,
+      "agg": 358.4,
+      "accept": null
+     }
+    ]
+   }
+  },
+  "Nemotron-3.5-Super": {
+   "8k": {
+    "Sharar": [
+     {
+      "n": 1,
+      "user": 117.7,
+      "agg": 117.7,
+      "accept": "6.94"
+     },
+     {
+      "n": 2,
+      "user": 77.5,
+      "agg": 153.6,
+      "accept": "6.0"
+     },
+     {
+      "n": 4,
+      "user": 54.5,
+      "agg": 215.5,
+      "accept": "5.37"
+     },
+     {
+      "n": 8,
+      "user": 39.6,
+      "agg": 311.9,
+      "accept": "5.28"
+     },
+     {
+      "n": 16,
+      "user": 23.5,
+      "agg": 372.3,
+      "accept": "3.82"
+     },
+     {
+      "n": 32,
+      "user": 18.5,
+      "agg": 574.0,
+      "accept": "6.56"
+     },
+     {
+      "n": 64,
+      "user": 12.2,
+      "agg": 771.4,
+      "accept": "6.69"
+     }
+    ],
+    "vLLM": [
+     {
+      "n": 1,
+      "user": 38.6,
+      "agg": 38.6,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 29.0,
+      "agg": 57.3,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 20.0,
+      "agg": 78.3,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 13.6,
+      "agg": 107.9,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 9.9,
+      "agg": 162.3,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 7.2,
+      "agg": 246.3,
+      "accept": null
+     }
+    ],
+    "TensorFold": [
+     {
+      "n": 1,
+      "user": 47.8,
+      "agg": 47.8,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 31.7,
+      "agg": 60.0,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 20.8,
+      "agg": 81.2,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 12.8,
+      "agg": 104.1,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 6.6,
+      "agg": 100.4,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 3.3,
+      "agg": 102.1,
+      "accept": null
+     }
+    ]
+   },
+   "16k": {
+    "Sharar": [
+     {
+      "n": 1,
+      "user": 114.9,
+      "agg": 114.9,
+      "accept": "6.82"
+     },
+     {
+      "n": 2,
+      "user": 76.4,
+      "agg": 151.1,
+      "accept": "5.97"
+     },
+     {
+      "n": 4,
+      "user": 53.1,
+      "agg": 209.9,
+      "accept": "5.3"
+     },
+     {
+      "n": 8,
+      "user": 38.6,
+      "agg": 304.3,
+      "accept": "5.31"
+     },
+     {
+      "n": 16,
+      "user": 22.6,
+      "agg": 360.7,
+      "accept": "3.8"
+     },
+     {
+      "n": 32,
+      "user": 17.1,
+      "agg": 536.3,
+      "accept": "6.52"
+     },
+     {
+      "n": 64,
+      "user": 11.5,
+      "agg": 716.2,
+      "accept": "6.64"
+     }
+    ],
+    "vLLM": [
+     {
+      "n": 1,
+      "user": 37.1,
+      "agg": 37.1,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 27.3,
+      "agg": 53.7,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 19.1,
+      "agg": 75.4,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 13.3,
+      "agg": 105.5,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 9.5,
+      "agg": 156.1,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 7.0,
+      "agg": 237.4,
+      "accept": null
+     }
+    ],
+    "TensorFold": [
+     {
+      "n": 1,
+      "user": 49.0,
+      "agg": 49.0,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 32.2,
+      "agg": 60.7,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 20.3,
+      "agg": 80.7,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 12.2,
+      "agg": 96.2,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 6.5,
+      "agg": 98.2,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 3.2,
+      "agg": 98.2,
+      "accept": null
+     }
+    ],
+    "llama.cpp": [
+     {
+      "n": 1,
+      "user": 29.6,
+      "agg": 29.6,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 16.7,
+      "agg": 32.7,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 9.0,
+      "agg": 35.6,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 4.6,
+      "agg": 36.8,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 1.6,
+      "agg": 26.0,
+      "accept": null
+     }
+    ],
+    "Flare": [
+     {
+      "n": 1,
+      "user": 37.5,
+      "agg": 37.5,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 26.9,
+      "agg": 51.9,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 17.1,
+      "agg": 65.5,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 11.4,
+      "agg": 89.1,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 9.0,
+      "agg": 139.9,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 4.5,
+      "agg": 138.1,
+      "accept": null
+     }
+    ]
+   },
+   "32k": {
+    "Sharar": [
+     {
+      "n": 1,
+      "user": 111.6,
+      "agg": 111.6,
+      "accept": "6.81"
+     },
+     {
+      "n": 2,
+      "user": 74.3,
+      "agg": 147.4,
+      "accept": "5.93"
+     },
+     {
+      "n": 4,
+      "user": 50.6,
+      "agg": 201.0,
+      "accept": "5.32"
+     },
+     {
+      "n": 8,
+      "user": 36.4,
+      "agg": 289.0,
+      "accept": "5.31"
+     },
+     {
+      "n": 16,
+      "user": 21.2,
+      "agg": 336.8,
+      "accept": "3.81"
+     },
+     {
+      "n": 32,
+      "user": 14.7,
+      "agg": 468.2,
+      "accept": "6.43"
+     },
+     {
+      "n": 64,
+      "user": 10.4,
+      "agg": 653.4,
+      "accept": "6.69"
+     }
+    ],
+    "vLLM": [
+     {
+      "n": 1,
+      "user": 36.9,
+      "agg": 36.9,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 26.9,
+      "agg": 53.3,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 19.1,
+      "agg": 74.8,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 13.0,
+      "agg": 102.7,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 9.4,
+      "agg": 150.9,
+      "accept": null
+     },
+     {
+      "n": 32,
+      "user": 6.9,
+      "agg": 228.6,
+      "accept": null
+     }
+    ],
+    "TensorFold": [
+     {
+      "n": 1,
+      "user": 46.2,
+      "agg": 46.2,
+      "accept": null
+     },
+     {
+      "n": 2,
+      "user": 29.2,
+      "agg": 56.9,
+      "accept": null
+     },
+     {
+      "n": 4,
+      "user": 19.8,
+      "agg": 77.1,
+      "accept": null
+     },
+     {
+      "n": 8,
+      "user": 12.5,
+      "agg": 94.5,
+      "accept": null
+     },
+     {
+      "n": 16,
+      "user": 6.1,
+      "agg": 95.9,
+      "accept": null
+     }
+    ]
+   }
+  }
+ },
+ "agents": {
+  "qwen3.8-27b": {
+   "vllm": [
+    [
+     1,
+     20.0
+    ],
+    [
+     8,
+     41.0
+    ],
+    [
+     16,
+     59.0
+    ],
+    [
+     32,
+     76.0
+    ]
+   ],
+   "sharar": [
+    [
+     1,
+     42.0
+    ],
+    [
+     8,
+     91.0
+    ],
+    [
+     16,
+     108.0
+    ],
+    [
+     32,
+     116.0
+    ]
+   ],
+   "tensorfold": [
+    [
+     1,
+     26.0
+    ],
+    [
+     8,
+     46.0
+    ],
+    [
+     16,
+     46.0
+    ],
+    [
+     32,
+     43.0
+    ]
+   ],
+   "llamacpp": [
+    [
+     1,
+     22.0
+    ],
+    [
+     8,
+     22.0
+    ],
+    [
+     16,
+     15.0
+    ],
+    [
+     32,
+     8.0
+    ]
+   ],
+   "flare": [
+    [
+     1,
+     19.6
+    ],
+    [
+     8,
+     25.1
+    ],
+    [
+     16,
+     33.1
+    ],
+    [
+     32,
+     35.9
+    ]
+   ]
+  },
+  "nemotron-3.5-bolt": {
+   "vllm": [
+    [
+     1,
+     51.0
+    ],
+    [
+     8,
+     72.0
+    ],
+    [
+     16,
+     75.0
+    ],
+    [
+     32,
+     81.0
+    ]
+   ],
+   "tensorfold": [
+    [
+     1,
+     35.0
+    ],
+    [
+     8,
+     33.0
+    ],
+    [
+     16,
+     35.0
+    ],
+    [
+     32,
+     36.0
+    ]
+   ],
+   "llamacpp": [
+    [
+     1,
+     50.0
+    ],
+    [
+     8,
+     49.0
+    ],
+    [
+     16,
+     42.0
+    ],
+    [
+     32,
+     29.8
+    ]
+   ],
+   "sharar": [
+    [
+     1,
+     84.0
+    ],
+    [
+     8,
+     126.0
+    ],
+    [
+     16,
+     137.0
+    ],
+    [
+     32,
+     135.0
+    ]
+   ],
+   "flare": [
+    [
+     1,
+     43.5
+    ],
+    [
+     8,
+     45.2
+    ],
+    [
+     16,
+     41.7
+    ],
+    [
+     32,
+     42.6
+    ]
+   ]
+  },
+  "nemotron-3.5-super": {
+   "vllm": [
+    [
+     1,
+     28.0
+    ],
+    [
+     8,
+     51.0
+    ],
+    [
+     16,
+     67.0
+    ],
+    [
+     32,
+     82.0
+    ]
+   ],
+   "sharar": [
+    [
+     1,
+     77.0
+    ],
+    [
+     8,
+     114.0
+    ],
+    [
+     16,
+     130.0
+    ],
+    [
+     32,
+     154.0
+    ]
+   ],
+   "tensorfold": [
+    [
+     1,
+     28.0
+    ],
+    [
+     8,
+     30.0
+    ],
+    [
+     16,
+     33.0
+    ],
+    [
+     32,
+     33.0
+    ]
+   ],
+   "llamacpp": [
+    [
+     1,
+     22.0
+    ],
+    [
+     8,
+     18.0
+    ],
+    [
+     16,
+     16.0
+    ],
+    [
+     32,
+     6.2
+    ]
+   ],
+   "flare": [
+    [
+     1,
+     19.8
+    ],
+    [
+     8,
+     28.4
+    ],
+    [
+     16,
+     28.7
+    ],
+    [
+     32,
+     33.0
+    ]
+   ]
+  },
+  "qwen3.8-flash-next": {
+   "tensorfold": [
+    [
+     1,
+     26.0
+    ],
+    [
+     8,
+     32.0
+    ],
+    [
+     16,
+     34.0
+    ],
+    [
+     32,
+     26.0
+    ]
+   ],
+   "sharar": [
+    [
+     1,
+     74.0
+    ],
+    [
+     8,
+     127.0
+    ],
+    [
+     16,
+     150.0
+    ],
+    [
+     32,
+     168.0
+    ]
+   ],
+   "vllm": [
+    [
+     1,
+     28.0
+    ],
+    [
+     8,
+     43.0
+    ],
+    [
+     16,
+     49.0
+    ],
+    [
+     32,
+     29.0
+    ]
+   ],
+   "llamacpp": [
+    [
+     1,
+     29.0
+    ],
+    [
+     8,
+     33.0
+    ],
+    [
+     16,
+     29.0
+    ],
+    [
+     32,
+     5.6
+    ]
+   ],
+   "flare": [
+    [
+     1,
+     25.4
+    ],
+    [
+     8,
+     37.0
+    ],
+    [
+     16,
+     36.9
+    ],
+    [
+     32,
+     36.8
+    ]
+   ]
+  }
+ }
+}</script>
+<script id="burst-data" type="application/json">{"kv_mtok": 1.58, "open_ctx": [[0, 0.006], [24, 0.123], [48, 0.239], [72, 0.356], [96, 0.472], [120, 0.589], [144, 0.705], [168, 0.822], [192, 0.936], [216, 0.98], [240, 1.031], [264, 1.074], [288, 1.118], [312, 1.161], [336, 1.204], [360, 1.252], [384, 1.29], [408, 1.326], [432, 1.373], [456, 1.42], [480, 1.463], [504, 1.51], [528, 1.546], [552, 1.579], [576, 1.603], [600, 1.636], [624, 1.662], [648, 1.689], [672, 1.713], [696, 1.737], [720, 1.759], [744, 1.78], [768, 1.81], [792, 1.837], [816, 1.862], [840, 1.871], [864, 1.869], [888, 1.826], [912, 1.781], [936, 1.778], [960, 1.769], [984, 1.763], [1008, 1.776], [1032, 1.802], [1056, 1.819], [1080, 1.865], [1104, 1.899], [1128, 1.927], [1152, 1.945], [1176, 1.961], [1200, 1.979], [1224, 2.002], [1248, 2.028], [1272, 2.06], [1296, 2.093], [1320, 2.126], [1344, 2.152], [1368, 2.174], [1392, 2.197], [1416, 2.219], [1440, 2.24], [1464, 2.259], [1488, 2.28], [1512, 2.307], [1536, 2.333], [1560, 2.363], [1584, 2.394], [1608, 2.413], [1632, 2.435], [1656, 2.454], [1680, 2.473], [1704, 2.493], [1728, 2.516], [1752, 2.486], [1776, 2.435], [1800, 2.327], [1824, 2.308], [1848, 2.316], [1872, 2.331], [1896, 2.245], [1920, 2.196], [1944, 2.235], [1968, 2.212], [1992, 2.238], [2016, 2.233], [2040, 2.26], [2064, 2.29], [2088, 2.312], [2112, 2.337], [2136, 2.366], [2160, 2.395], [2184, 2.419], [2208, 2.448], [2232, 2.474], [2256, 2.497], [2280, 2.533], [2304, 2.566], [2328, 2.602], [2352, 2.646], [2376, 2.683], [2400, 2.714], [2424, 2.748], [2448, 2.803], [2472, 2.854], [2496, 2.911], [2520, 2.962], [2544, 3.019], [2568, 3.053], [2592, 3.124], [2616, 3.17], [2640, 3.218], [2664, 3.246], [2688, 3.254], [2712, 3.262], [2736, 3.267], [2760, 3.266], [2784, 2.955], [2808, 2.509], [2832, 2.248], [2856, 2.036], [2880, 1.922], [2904, 1.641], [2928, 1.592], [2952, 1.376], [2976, 1.218], [3000, 1.115], [3024, 1.07], [3048, 1.079], [3072, 1.085], [3096, 1.091], [3120, 1.102], [3144, 1.114], [3168, 1.121], [3192, 1.126], [3216, 1.131], [3240, 1.139], [3264, 1.144], [3288, 1.08], [3312, 0.996], [3336, 0.943], [3360, 0.823], [3384, 0.82], [3408, 0.828], [3432, 0.84], [3456, 0.85], [3480, 0.855], [3504, 0.86], [3528, 0.868], [3552, 0.877], [3576, 0.885], [3600, 0.89], [3624, 0.892], [3648, 0.897], [3672, 0.903], [3696, 0.909], [3720, 0.915], [3744, 0.921], [3768, 0.928], [3792, 0.879], [3816, 0.886], [3840, 0.893], [3864, 0.896], [3888, 0.909], [3912, 0.738], [3936, 0.59], [3960, 0.474], [3984, 0.44], [4008, 0.152]], "runs": {"Sharar": [[100, 26.9, 2.391], [120, 33.8, 2.613], [140, 39.5, 2.391], [160, 44.1, 2.643], [180, 48.5, 2.643], [200, 52.4, 2.609], [220, 54.3, 2.579], [240, 58.3, 2.678], [260, 60.0, 2.489], [280, 62.5, 2.549], [300, 64.1, 2.398], [320, 64.7, 2.306], [340, 65.4, 2.45], [360, 65.7, 2.177], [380, 65.8, 2.169], [400, 66.3, 2.158], [420, 67.3, 2.489], [440, 68.0, 2.364], [460, 69.1, 2.711], [480, 70.6, 2.399], [500, 72.2, 2.711], [520, 74.0, 2.388], [540, 74.9, 2.385], [560, 76.3, 2.381], [580, 77.9, 2.554], [600, 79.5, 2.93], [620, 80.6, 2.72], [640, 81.3, 2.857], [660, 81.3, 2.72], [680, 81.9, 2.944], [700, 82.5, 3.126], [720, 82.4, 3.807], [740, 82.8, 4.344], [760, 83.1, 5.154], [780, 83.5, 5.489], [800, 83.6, 5.66], [820, 83.2, 5.546], [840, 83.0, 5.428], [860, 84.1, 5.559], [880, 83.9, 6.032], [900, 83.4, 6.339], [920, 83.0, 4.905], [940, 82.8, 3.936], [960, 82.5, 3.453], [980, 81.7, 3.14], [1000, 80.5, 2.788], [1020, 80.9, 2.873], [1040, 81.3, 2.786], [1060, 80.9, 2.572], [1080, 80.5, 2.291], [1100, 81.0, 2.136], [1120, 80.2, 2.089], [1140, 80.5, 2.065], [1160, 80.0, 1.869], [1180, 80.2, 1.846], [1200, 80.5, 1.847], [1220, 80.1, 1.845], [1240, 79.6, 2.071], [1260, 80.8, 2.082], [1280, 82.2, 1.779], [1300, 83.2, 1.826], [1320, 85.0, 2.084], [1340, 86.0, 2.086], [1360, 87.3, 2.116], [1380, 88.6, 2.503], [1400, 90.0, 2.583], [1420, 90.9, 3.043], [1440, 91.9, 3.239], [1460, 91.7, 3.818], [1480, 91.5, 4.042], [1500, 91.3, 4.626], [1520, 91.4, 4.73], [1540, 91.7, 4.892], [1560, 92.1, 4.643], [1580, 92.2, 4.464], [1600, 92.6, 4.451], [1620, 93.0, 4.266], [1640, 93.3, 4.069], [1660, 93.6, 3.87], [1680, 93.7, 3.828], [1700, 93.8, 3.765], [1720, 93.5, 3.34], [1740, 93.2, 2.956], [1760, 92.7, 3.165], [1780, 92.4, 3.378], [1800, 92.3, 3.819], [1820, 92.1, 3.793], [1840, 91.9, 3.819], [1860, 91.7, 4.622], [1880, 91.8, 4.633], [1900, 92.0, 4.723], [1920, 92.3, 5.316], [1940, 92.6, 5.947], [1960, 93.0, 5.86], [1980, 93.3, 5.412], [2000, 93.5, 4.939], [2020, 93.6, 4.763], [2040, 94.0, 4.639], [2060, 94.2, 4.808], [2080, 94.4, 5.187], [2100, 94.5, 5.921], [2120, 94.6, 4.773], [2140, 94.6, 4.318], [2160, 94.8, 4.0], [2180, 94.7, 3.473], [2200, 94.7, 3.655], [2220, 94.6, 3.953], [2240, 94.6, 5.075], [2260, 94.3, 5.037], [2280, 94.2, 5.075], [2300, 94.0, 5.075], [2320, 93.8, 5.231], [2340, 93.7, 9.713], [2360, 93.6, 12.079], [2380, 93.6, 13.402], [2400, 93.6, 12.697], [2420, 93.4, 12.23], [2440, 93.2, 12.118], [2460, 93.3, 11.201], [2480, 93.5, 6.721], [2500, 94.1, 5.457], [2520, 94.4, 3.074], [2540, 94.8, 3.441], [2560, 95.1, 3.441], [2580, 94.9, 3.623], [2600, 94.8, 5.982], [2620, 95.0, 7.207], [2640, 95.2, 6.019], [2660, 95.3, 8.559], [2680, 95.6, 8.559], [2700, 95.4, 8.469], [2720, 95.6, 8.202], [2740, 95.6, 5.545], [2760, 95.7, 3.659], [2780, 96.0, 3.496], [2800, 96.5, 3.452], [2820, 96.5, 4.155], [2840, 96.7, 6.084], [2860, 96.9, 6.551], [2880, 97.0, 6.643], [2900, 97.0, 6.009], [2920, 96.9, 6.001], [2940, 96.8, 5.959], [2960, 96.7, 4.814], [2980, 96.9, 3.011], [3000, 97.1, 1.848], [3020, 97.1, 1.384], [3040, 97.0, 1.137], [3060, 96.9, 0.914], [3080, 96.8, 0.87], [3100, 96.7, 0.864], [3120, 96.4, 0.861], [3140, 96.5, 0.861], [3160, 96.5, 0.829], [3180, 96.7, 0.817], [3200, 96.7, 0.842], [3220, 96.8, 0.876], [3240, 96.7, 0.916], [3260, 96.6, 0.96], [3280, 96.6, 0.958], [3300, 96.7, 0.95], [3320, 96.9, 0.933], [3340, 96.9, 0.927], [3360, 96.9, 0.938], [3380, 96.8, 0.952], [3400, 96.9, 0.966], [3420, 97.0, 0.92], [3440, 97.2, 0.929], [3460, 97.5, 0.902], [3480, 97.5, 0.847], [3500, 97.6, 0.768], [3520, 97.6, 0.77], [3540, 97.8, 0.8], [3560, 97.8, 0.859], [3580, 97.9, 0.871], [3600, 97.9, 0.905], [3620, 97.9, 0.909], [3640, 97.9, 0.907], [3660, 98.0, 0.892], [3680, 98.0, 0.937], [3700, 98.0, 0.937], [3720, 98.0, 0.891], [3740, 98.0, 0.86], [3760, 97.9, 0.875], [3780, 97.9, 0.881], [3800, 97.9, 0.846], [3820, 97.7, 0.786], [3840, 97.6, 0.783], [3860, 97.5, 0.817], [3880, 97.6, 0.824], [3900, 97.5, 0.857], [3920, 97.5, 0.87]], "Sharar w/o SSD tier": [[100, 23.9, 2.732], [120, 26.8, 2.732], [140, 25.5, 2.725], [160, 26.2, 2.743], [180, 25.2, 2.749], [200, 25.2, 2.743], [220, 26.7, 2.772], [240, 25.5, 2.811], [260, 25.8, 2.85], [280, 25.8, 2.838], [300, 25.1, 2.81], [320, 24.6, 2.773], [340, 24.3, 2.81], [360, 23.1, 2.828], [380, 21.5, 2.855], [400, 20.8, 3.037], [420, 18.5, 2.939], [440, 19.0, 3.136], [460, 17.5, 3.143], [480, 18.7, 3.143], [500, 20.2, 3.238], [520, 21.2, 3.197], [540, 22.3, 3.361], [560, 24.2, 3.38], [580, 26.4, 3.46], [600, 27.9, 4.334], [620, 30.0, 4.361], [640, 30.0, 4.196], [660, 32.1, 3.969], [680, 32.3, 4.171], [700, 33.4, 4.277], [720, 33.7, 4.518], [740, 35.1, 5.079], [760, 35.4, 7.054], [780, 35.6, 8.529], [800, 36.8, 8.424], [820, 36.8, 8.338], [840, 37.2, 8.37], [860, 36.5, 8.547], [880, 35.9, 8.548], [900, 34.9, 8.574], [920, 34.8, 8.422], [940, 33.6, 7.233], [960, 32.9, 5.717], [980, 31.4, 4.604], [1000, 29.5, 4.528], [1020, 28.0, 4.538], [1040, 26.7, 4.574], [1060, 25.9, 4.337], [1080, 25.5, 4.03], [1100, 25.0, 3.109], [1120, 24.0, 2.995], [1140, 23.2, 2.964], [1160, 22.7, 2.808], [1180, 22.4, 2.636], [1200, 22.7, 2.485], [1220, 22.9, 2.46], [1240, 23.0, 2.474], [1260, 22.6, 2.603], [1280, 22.0, 2.741], [1300, 21.5, 2.893], [1320, 21.5, 2.97], [1340, 21.4, 3.047], [1360, 21.1, 4.127], [1380, 19.7, 4.448], [1400, 17.9, 6.039], [1420, 16.4, 15.414], [1440, 14.9, 15.765], [1460, 13.4, 16.134], [1480, 12.2, 16.279], [1500, 10.8, 16.473], [1520, 9.5, 16.474], [1540, 8.8, 16.731], [1560, 8.1, 16.719], [1580, 8.3, 16.576], [1600, 8.5, 16.39], [1620, 8.5, 16.192], [1640, 8.5, 16.151], [1660, 8.9, 16.173], [1680, 8.8, 16.363], [1700, 8.9, 16.394], [1720, 8.6, 16.698], [1740, 8.4, 16.621], [1760, 8.1, 16.639], [1780, 8.2, 17.112], [1800, 8.0, 17.606], [1820, 8.2, 20.732], [1840, 8.4, 22.127], [1860, 7.8, 22.11], [1880, 7.7, 22.127], [1900, 7.7, 22.127], [1920, 7.8, 22.513], [1940, 7.5, 22.699], [1960, 6.9, 22.757], [1980, 5.9, 22.722], [2000, 5.6, 22.756], [2020, 4.9, 22.8], [2040, 4.2, 22.756], [2060, 4.3, 22.744], [2080, 4.5, 22.757], [2100, 4.2, 22.783], [2120, 3.8, 22.783], [2140, 3.7, 22.794], [2160, 3.6, 22.904], [2180, 3.5, 22.928], [2200, 3.3, 22.975], [2220, 3.3, 23.035], [2240, 3.2, 23.074], [2260, 3.2, 23.214], [2280, 2.6, 23.213], [2300, 2.4, 23.305], [2320, 2.4, 23.324], [2340, 2.3, 23.344], [2360, 2.3, 23.4], [2380, 2.5, 23.486], [2400, 2.4, 23.497], [2420, 2.2, 23.515], [2440, 2.3, 23.584], [2460, 2.1, 23.454], [2480, 2.4, 23.347], [2500, 2.4, 23.22], [2520, 2.9, 22.496], [2540, 3.4, 10.446], [2560, 4.1, 7.813], [2580, 4.6, 5.796], [2600, 5.2, 5.597], [2620, 6.0, 5.475], [2640, 6.9, 5.479], [2660, 7.3, 5.498], [2680, 7.5, 5.876], [2700, 7.7, 7.105], [2720, 7.6, 8.629], [2740, 7.2, 10.469], [2760, 6.7, 17.227], [2780, 5.9, 23.11], [2800, 5.4, 23.812], [2820, 4.7, 24.111], [2840, 3.8, 24.874], [2860, 3.7, 26.449], [2880, 3.3, 30.81], [2900, 3.6, 31.776], [2920, 3.2, 31.199], [2940, 3.2, 30.982], [2960, 3.1, 31.21], [2980, 3.0, 31.579], [3000, 2.9, 32.559], [3020, 2.9, 33.253], [3040, 2.8, 32.996], [3060, 2.5, 32.053], [3080, 2.3, 31.579], [3100, 1.9, 31.21], [3120, 1.8, 31.622], [3140, 1.6, 31.853], [3160, 1.5, 31.623], [3180, 1.5, 31.633], [3200, 1.5, 31.627], [3220, 1.6, 31.718], [3240, 1.6, 32.381], [3260, 1.6, 33.487], [3280, 1.6, 33.887], [3300, 1.6, 34.8], [3320, 1.7, 34.568], [3340, 1.7, 34.568], [3360, 1.8, 35.627], [3380, 1.9, 37.152], [3400, 10.7, 36.89], [3420, 20.3, 35.566], [3440, 30.3, 32.518], [3460, 41.4, 31.213], [3480, 50.6, 29.207], [3500, 59.9, 8.721], [3520, 69.0, 2.676], [3540, 78.1, 0.943], [3560, 87.3, 0.9], [3580, 97.5, 0.846], [3600, 98.0, 0.824], [3620, 98.0, 0.752], [3640, 98.0, 0.786], [3660, 98.0, 0.781], [3680, 98.1, 0.76], [3700, 98.2, 0.748], [3720, 98.2, 0.745], [3740, 98.1, 0.748], [3760, 98.1, 0.734], [3780, 98.1, 0.729], [3800, 98.0, 0.718], [3820, 97.9, 0.72], [3840, 97.7, 0.734], [3860, 97.6, 0.758], [3880, 97.7, 0.787], [3900, 97.6, 0.807], [3920, 97.5, 0.813]], "vLLM": [[100, 19.0, 23.442], [120, 19.2, 24.096], [140, 19.6, 24.175], [160, 19.4, 25.021], [180, 19.9, 26.188], [200, 19.3, 28.751], [220, 19.8, 30.14], [240, 19.9, 31.806], [260, 20.2, 32.776], [280, 19.6, 33.569], [300, 19.5, 34.147], [320, 19.3, 34.571], [340, 19.8, 34.949], [360, 19.3, 36.209], [380, 18.6, 37.377], [400, 18.5, 38.033], [420, 18.0, 41.47], [440, 17.3, 42.685], [460, 17.0, 43.837], [480, 16.7, 45.103], [500, 17.8, 46.445], [520, 17.4, 47.338], [540, 17.2, 48.332], [560, 16.8, 49.719], [580, 17.3, 51.229], [600, 16.9, 53.853], [620, 17.3, 55.098], [640, 17.5, 56.682], [660, 16.8, 57.824], [680, 17.0, 59.886], [700, 15.9, 61.622], [720, 16.4, 63.662], [740, 15.8, 65.735], [760, 16.4, 70.851], [780, 15.5, 74.135], [800, 15.7, 76.23], [820, 15.1, 76.258], [840, 15.0, 76.258], [860, 15.1, 76.95], [880, 14.9, 79.921], [900, 15.1, 80.784], [920, 13.9, 79.921], [940, 13.9, 79.596], [960, 13.2, 80.784], [980, 13.7, 84.308], [1000, 13.7, 89.19], [1020, 13.1, 93.363], [1040, 12.4, 95.285], [1060, 11.5, 96.336], [1080, 11.0, 95.894], [1100, 10.1, 97.185], [1120, 10.3, 99.26], [1140, 10.4, 101.715], [1160, 9.7, 101.08], [1180, 8.2, 100.246], [1200, 6.8, 101.965], [1220, 6.5, 103.108], [1240, 6.8, 106.401], [1260, 7.5, 109.679], [1280, 7.7, 112.645], [1300, 7.4, 112.914], [1320, 7.1, 113.663], [1340, 6.8, 116.272], [1360, 7.3, 118.628], [1380, 7.9, 122.121], [1400, 8.2, 127.312], [1420, 8.5, 132.815], [1440, 7.8, 133.819], [1460, 7.1, 144.672], [1480, 7.0, 154.035], [1500, 7.4, 156.649], [1520, 7.8, 158.535], [1540, 7.6, 158.535], [1560, 7.3, 160.32], [1580, 7.1, 156.951], [1600, 7.1, 156.181], [1620, 6.6, 155.338], [1640, 7.3, 154.127], [1660, 7.4, 152.66], [1680, 7.4, 151.19], [1700, 6.9, 151.493], [1720, 6.2, 153.59], [1740, 5.5, 159.821], [1760, 5.4, 162.743], [1780, 5.5, 167.676], [1800, 6.0, 168.915], [1820, 6.3, 173.613], [1840, 5.9, 178.494], [1860, 6.4, 184.156], [1880, 6.2, 190.372], [1900, 6.5, 196.561], [1920, 6.9, 199.098], [1940, 7.1, 200.624], [1960, 7.1, 203.206], [1980, 7.0, 205.825], [2000, 6.9, 207.261], [2020, 7.1, 207.943], [2040, 7.1, 207.521], [2060, 6.7, 206.659], [2080, 6.3, 207.818], [2100, 5.8, 207.465], [2120, 5.5, 205.941], [2140, 5.4, 203.854], [2160, 5.1, 200.182], [2180, 4.7, 194.319], [2200, 4.4, 197.558], [2220, 4.3, 198.55], [2240, 4.2, 208.401], [2260, 4.4, 211.273], [2280, 4.5, 216.204], [2300, 4.8, 226.085], [2320, 5.0, 235.081], [2340, 5.2, 241.223], [2360, 5.3, 248.656], [2380, 5.5, 260.271], [2400, 5.6, 270.251], [2420, 5.4, 272.373], [2440, 5.5, 275.957], [2460, 5.2, 281.601], [2480, 5.2, 282.597], [2500, 5.2, 283.34], [2520, 4.7, 282.041], [2540, 4.1, 281.199], [2560, 4.7, 278.949], [2580, 4.5, 279.066], [2600, 4.4, 276.854], [2620, 4.2, 275.957], [2640, 4.4, 267.653], [2660, 4.3, 260.07], [2680, 3.7, 274.162], [2700, 3.2, 303.753], [2720, 3.2, 285.067], [2740, 3.5, 271.827], [2760, 3.3, 240.355], [2780, 2.8, 233.754], [2800, 2.4, 235.688], [2820, 2.3, 234.195], [2840, 1.6, 232.618], [2860, 1.4, 213.013], [2880, 1.6, 208.565], [2900, 1.6, 206.501], [2920, 1.7, 200.341], [2940, 1.5, 200.341], [2960, 0.7, 188.784], [2980, 0.8, 178.879], [3000, 1.0, 171.946], [3020, 0.9, 157.68], [3040, 1.0, 146.424], [3060, 1.0, 138.588], [3080, 1.1, 134.974], [3100, 1.1, 125.842], [3120, 1.1, 123.0], [3140, 1.1, 119.776]], "TensorFold": [[100, 2.0, 89.905], [120, 2.3, 92.383], [140, 3.5, 92.364], [160, 7.8, 91.476], [180, 9.8, 89.722], [200, 11.4, 86.192], [220, 13.8, 83.834], [240, 15.6, 81.382], [260, 16.9, 81.382], [280, 17.6, 80.461], [300, 18.0, 81.382], [320, 19.1, 81.663], [340, 18.5, 82.124], [360, 16.1, 89.597], [380, 16.3, 93.196], [400, 16.1, 95.129], [420, 14.7, 98.331], [440, 13.7, 102.633], [460, 13.1, 106.465], [480, 13.1, 108.014], [500, 12.4, 110.367], [520, 11.7, 111.923], [540, 11.9, 113.948], [560, 12.2, 114.269], [580, 12.1, 114.971], [600, 11.7, 115.35], [620, 12.8, 115.559], [640, 13.1, 115.13], [660, 13.2, 115.924], [680, 13.7, 118.239], [700, 14.4, 121.292], [720, 14.0, 123.633], [740, 13.2, 128.778], [760, 13.7, 129.627], [780, 13.8, 130.728], [800, 13.3, 131.158], [820, 13.6, 130.728], [840, 13.0, 131.276], [860, 13.1, 133.804], [880, 12.6, 134.05], [900, 11.6, 135.877], [920, 11.6, 138.402], [940, 11.5, 138.754], [960, 10.5, 138.754], [980, 10.3, 141.801], [1000, 11.0, 143.247], [1020, 10.3, 141.666], [1040, 10.6, 138.541], [1060, 9.4, 137.663], [1080, 8.7, 137.089], [1100, 8.5, 134.002], [1120, 7.7, 130.449], [1140, 7.3, 131.495], [1160, 6.6, 132.774], [1180, 5.5, 138.244], [1200, 4.8, 143.002], [1220, 4.1, 152.117], [1240, 3.6, 159.645], [1260, 3.5, 164.953], [1280, 3.7, 174.112], [1300, 3.7, 182.539], [1320, 4.1, 191.458], [1340, 4.5, 197.144], [1360, 4.5, 198.045], [1380, 4.4, 198.045], [1400, 4.2, 203.62], [1420, 3.9, 207.894], [1440, 3.9, 217.666], [1460, 4.3, 218.37], [1480, 4.3, 219.506], [1500, 4.4, 216.982], [1520, 4.5, 215.816], [1540, 4.9, 215.816], [1560, 5.1, 215.816], [1580, 5.1, 220.269], [1600, 5.0, 216.982], [1620, 5.3, 216.072], [1640, 5.4, 208.322], [1660, 5.1, 206.502], [1680, 5.3, 210.64], [1700, 4.9, 213.047], [1720, 4.9, 213.047], [1740, 4.2, 211.548], [1760, 4.3, 210.812], [1780, 4.8, 211.106], [1800, 4.9, 213.436], [1820, 5.0, 217.085], [1840, 5.4, 220.409], [1860, 5.6, 216.605], [1880, 5.5, 213.477], [1900, 5.6, 216.5], [1920, 5.6, 226.343], [1940, 5.8, 232.243], [1960, 5.8, 237.65], [1980, 5.4, 231.717], [2000, 5.3, 226.102], [2020, 5.2, 226.102], [2040, 5.0, 242.757], [2060, 5.0, 246.15], [2080, 5.2, 248.414], [2100, 5.2, 245.974], [2120, 5.2, 235.439], [2140, 4.9, 239.083], [2160, 4.9, 247.077], [2180, 4.9, 253.881], [2200, 4.8, 257.523], [2220, 4.8, 252.957], [2240, 4.7, 246.556], [2260, 4.3, 247.056], [2280, 4.4, 258.81], [2300, 4.2, 267.661], [2320, 4.1, 288.817], [2340, 4.1, 275.364], [2360, 3.9, 261.304], [2380, 3.9, 261.994], [2400, 4.1, 285.947], [2420, 4.2, 300.493], [2440, 4.1, 302.418], [2460, 4.2, 297.811], [2480, 3.9, 288.674], [2500, 4.1, 288.385], [2520, 4.2, 295.02], [2540, 4.4, 299.506], [2560, 4.4, 306.167], [2580, 4.4, 295.02], [2600, 4.1, 269.435], [2620, 3.4, 265.319], [2640, 3.1, 260.902], [2660, 2.7, 287.49], [2680, 2.5, 283.072], [2700, 2.0, 265.319], [2720, 1.5, 244.81], [2740, 0.8, 238.227], [2760, 0.5, 237.244], [2780, 0.3, 243.822], [2800, 0.3, 246.57], [2820, 0.3, 233.466], [2840, 0.3, 226.586], [2860, 0.3, 217.539], [2880, 0.3, 224.796], [2900, 0.3, 230.443], [2920, 0.3, 231.61], [2940, 0.3, 234.469], [2960, 0.3, 233.4], [2980, 0.1, 233.144], [3000, 0.0, 237.097], [3020, 0.0, 239.676], [3040, 0.0, 238.828], [3060, 0.0, 237.222], [3080, 0.0, 233.407], [3100, 0.0, 229.56], [3120, 0.0, 229.012], [3140, 0.0, 225.591], [3160, 0.0, 221.124], [3180, 0.0, 217.325], [3200, 0.0, 212.216]]}}</script>
+<script>
+(() => {
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const txt = (parent, x, y, s, attrs = {}) => { const t = el("text", { x, y, ...attrs }, parent); t.textContent = s; return t; };
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const ENGINE_VAR = { "Sharar": "--accent", "vLLM": "--e-vllm", "Flare": "--e-flare", "TensorFold": "--e-tf", "llama.cpp": "--e-llama", "Sharar w/o SSD tier": "--e-nossd" };
+const col = e => `var(${ENGINE_VAR[e]})`;
+function tipFor(box) { let t = box.querySelector(".tip"); if (!t) { t = document.createElement("div"); t.className = "tip"; t.hidden = true; box.appendChild(t); } return t; }
+function showTip(box, svg, x, y, s) { const t = tipFor(box), r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal; t.textContent = s; t.style.left = (x / vb.width * r.width) + "px"; t.style.top = (y / vb.height * r.height) + "px"; t.hidden = false; }
+function hideTip(box) { tipFor(box).hidden = true; }
+
+/* ---------------- hero: the hill climb ---------------- */
+const STEPS = [
+  ["No spec.", "No speculation", 27.9, ["baseline"], "Sharar's runtime decoding one token per forward pass. Every token streams the whole active model through about 258 GB/s of memory bandwidth."],
+  ["+ MTP", "+ Multi-token prediction", 54.9, ["exact", "speculation"], "The model's own MTP head drafts several tokens; the target verifies them in one pass and keeps the accepted prefix. Same outputs, about twice the speed."],
+  ["+ 3-bit weights", "+ 3-bit weights", 78.7, ["lossy · calibrated", "model surgery"], "Dense projections and routed experts in 3.25 bits per weight: an 8-entry FP8 codebook, GPTQ-style calibration, and kernels that expand codes straight into FP8 tensor-core operands."],
+  ["+ 2-bit draft head", "+ 2-bit draft head", 80.9, ["draft only", "model surgery"], "The drafter's vocabulary head drops to 2 bits with top-16 rescoring. It agrees with the FP8 head on 99.76% of tokens, and only the drafter reads it."],
+  ["+ Relaxed verif.", "+ Relaxed verification", 82.1, ["lossy · optional", "speculation"], "A drafted token survives if it sits in the target's top-k within a logit margin of the best, instead of having to equal the argmax. Acceptance still stops at the first failure."],
+  ["+ Expert sharing", "+ Expert sharing", 108.5, ["lossy · optional", "speculation"], "The verify batch shares a budget of routed experts: top choices are guaranteed, the rest come from the experts with the most routing mass. Fewer distinct experts, fewer bytes per round."],
+  ["+ Adaptive drafting", "+ Adaptive drafting", 113.9, ["exact", "speculation"], "Draft depth follows each request's observed acceptance, so cheap confident stretches draft deep and uncertain ones stop early."],
+  ["Fast", "Fast profile", 119.6, ["default profile"], "The remaining settings of Sharar's default fast profile. 4.3× the starting point, on the same Spark and the same model."],
+];
+const climbSvg = $("climb-svg");
+const W = 620, H = 330, L = 44, R = 12, T = 26, B = 58, YMAX = 140;
+const n = STEPS.length, cw = (W - L - R) / n;
+const xs = i => L + i * cw, ys = v => T + (H - T - B) * (1 - v / YMAX);
+const ax = el("g", { class: "axis" }, climbSvg);
+for (const t of [0, 25, 50, 75, 100, 125]) { el("line", { x1: L, x2: W - R, y1: ys(t), y2: ys(t), class: "gridl" }, ax); txt(ax, L - 8, ys(t) + 4, t, { "text-anchor": "end" }); }
+txt(ax, 12, (T + H - B) / 2, "tokens/s", { transform: `rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor": "middle" });
+const area = el("path", { fill: "var(--accent)", "fill-opacity": 0.08 }, climbSvg);
+const line = el("path", { fill: "none", stroke: "var(--accent)", "stroke-width": 2.5, "stroke-linejoin": "round" }, climbSvg);
+const labels = STEPS.map((s, i) => {
+  const g = el("g", { class: "bar-step" }, climbSvg);
+  const v = txt(g, xs(i) + cw / 2, ys(s[2]) - 18, s[2].toFixed(1), { "text-anchor": "middle", "font-size": 12, "font-weight": 600, fill: "var(--ink)", class: "num" });
+  const d = i ? txt(g, xs(i) + cw / 2, ys(s[2]) - 5, `+${Math.round(100 * (s[2] / STEPS[i - 1][2] - 1))}%`, { "text-anchor": "middle", "font-size": 10, fill: "var(--ink-3)" }) : null;
+  const words = s[0].replace("+ ", "+\u00a0").split(" ");
+  const lab = el("text", { x: xs(i) + cw / 2, y: H - B + 18, "text-anchor": "middle", "font-size": 10.5, fill: "var(--ink-2)" }, climbSvg);
+  const half = Math.ceil(words.length / 2);
+  [words.slice(0, half).join(" "), words.slice(half).join(" ")].filter(Boolean).forEach((w, k) => { const ts = el("tspan", { x: xs(i) + cw / 2, dy: k ? 13 : 0 }, lab); ts.textContent = w; });
+  const hit = el("rect", { x: xs(i), y: T, width: cw, height: H - T - B + 40, fill: "transparent", style: "cursor:pointer" }, climbSvg);
+  hit.addEventListener("click", () => { stop(); show(i, true); });
+  return { g, lab };
+});
+const gain = el("g", {}, climbSvg);
+const chips = STEPS.map((s, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = s[0]; b.setAttribute("aria-pressed", "false"); b.onclick = () => { stop(); show(i, true); }; $("climb-chips").appendChild(b); return b; });
+let cur = -1, shown = 0, timer = null, playing = false, anim = null;
+function pathFor(k, frac) { // stairs through step k, the last tread rising by frac
+  let d = "", a = "";
+  for (let i = 0; i <= k; i++) {
+    const v = i === k && i > 0 ? STEPS[i - 1][2] + (STEPS[i][2] - STEPS[i - 1][2]) * frac : STEPS[i][2];
+    d += (i ? `L${xs(i)},${ys(v)}` : `M${xs(0)},${ys(v)}`) + `L${xs(i + 1)},${ys(v)}`;
+  }
+  a = d.replace(/^M/, `M${xs(0)},${ys(0)}L`) + `L${xs(k + 1)},${ys(0)}Z`;
+  return [d, a];
+}
+function draw(k, frac) { const [d, a] = pathFor(k, frac); line.setAttribute("d", d); area.setAttribute("d", a); }
+function show(k, jump) {
+  cur = k;
+  labels.forEach((l, i) => { l.g.style.opacity = i <= k ? 1 : 0; l.lab.setAttribute("fill", i === k ? "var(--accent)" : "var(--ink-2)"); l.lab.setAttribute("font-weight", i === k ? 700 : 400); });
+  chips.forEach((c, i) => c.setAttribute("aria-pressed", String(i === k)));
+  cancelAnimationFrame(anim);
+  if (jump || reduce || k === 0) draw(k, 1);
+  else { const t0 = performance.now(); const tick = t => { const f = Math.min(1, (t - t0) / 450); draw(k, 1 - Math.pow(1 - f, 3)); if (f < 1) anim = requestAnimationFrame(tick); }; anim = requestAnimationFrame(tick); }
+  const s = STEPS[k];
+  $("climb-lead").textContent = `${s[2].toFixed(1)} tokens/s`;
+  $("note-idx").textContent = `STEP ${k + 1} / ${n}`;
+  $("note-title").textContent = s[1];
+  $("note-val").innerHTML = `${s[2].toFixed(1)}<small>tok/s${k ? ` · ${(s[2] / STEPS[0][2]).toFixed(1)}× start` : ""}</small>`;
+  $("note-tags").innerHTML = s[3].map(t => `<span class="tag ${t.startsWith("exact") ? "exact" : t.startsWith("lossy") ? "lossy" : ""}">${t}</span>`).join("");
+  $("note-body").textContent = s[4];
+  gain.innerHTML = "";
+  if (k === n - 1) {
+    const gx = xs(n - 1) + cw / 2;
+    el("line", { x1: xs(1), x2: gx, y1: ys(STEPS[0][2]), y2: ys(STEPS[0][2]), stroke: "var(--accent)", "stroke-dasharray": "2 3", "stroke-width": 1 }, gain);
+    el("line", { x1: gx, x2: gx, y1: ys(STEPS[0][2]), y2: ys(STEPS[n - 1][2]) + 26, stroke: "var(--accent)", "stroke-width": 1.4 }, gain);
+    el("path", { d: `M${gx - 4},${ys(STEPS[n - 1][2]) + 32}L${gx},${ys(STEPS[n - 1][2]) + 24}L${gx + 4},${ys(STEPS[n - 1][2]) + 32}Z`, fill: "var(--accent)" }, gain);
+    txt(gain, gx - 8, (ys(STEPS[0][2]) + ys(STEPS[n - 1][2])) / 2 + 10, "4.3×", { "text-anchor": "end", "font-size": 18, "font-weight": 800, fill: "var(--accent)", "font-family": "var(--f-display)" });
+  }
+}
+function stop() { playing = false; clearInterval(timer); $("climb-play").textContent = "Play"; }
+function play(from) { playing = true; $("climb-play").textContent = "Pause"; let k = from; show(k); clearInterval(timer); timer = setInterval(() => { if (k >= n - 1) { stop(); return; } show(++k); }, 1700); }
+$("climb-play").onclick = () => playing ? stop() : play(cur >= n - 1 ? 0 : cur + 1);
+$("climb-replay").onclick = () => play(0);
+if (reduce) { show(n - 1, true); stop(); } else play(0);
+
+/* ---------------- expert sharing ---------------- */
+const TOK = [ // [top1, top2, next]
+  [1, 6, 3], [3, 9, 1], [1, 11, 7], [7, 2, 3], [3, 9, 7], [7, 5, 1]];
+const FILL = [9, 2, 5, 6, 11]; // after the guarantees, by remaining routing mass (E9 0.8, then 0.4 each)
+let moeMode = "shared";
+const moeSvg = $("moe-svg");
+function drawMoe() {
+  const B = +$("moe-b").value; $("moe-b-out").textContent = B;
+  moeSvg.innerHTML = "";
+  const gx = 46, gy = 34, cs = 34, rh = 36;
+  let set, pairs;
+  if (moeMode === "topk") { set = new Set(TOK.flatMap(t => [t[0], t[1]])); pairs = TOK.map(t => [t[0], t[1]]); }
+  else {
+    set = new Set([1, 3, 7]); for (const e of FILL) { if (set.size >= B) break; set.add(e); }
+    pairs = TOK.map(t => [t[0], set.has(t[1]) ? t[1] : t[2]]);
+  }
+  for (let e = 1; e <= 12; e++) {
+    const x = gx + (e - 1) * cs;
+    if (set.has(e)) el("rect", { x: x + 1, y: gy - 22, width: cs - 2, height: rh * 6 + 26, rx: 4, fill: "var(--accent-soft)" }, moeSvg);
+    txt(moeSvg, x + cs / 2, gy - 8, `E${e}`, { "text-anchor": "middle", "font-size": 11, fill: set.has(e) ? "var(--accent)" : "var(--ink-3)", "font-weight": set.has(e) ? 700 : 400 });
+  }
+  TOK.forEach((t, r) => {
+    const y = gy + r * rh;
+    txt(moeSvg, gx - 10, y + rh / 2 + 4, `t${r + 1}`, { "text-anchor": "end", "font-size": 11, fill: "var(--ink-2)" });
+    for (let e = 1; e <= 12; e++) {
+      const x = gx + (e - 1) * cs;
+      const kind = e === pairs[r][0] ? 1 : e === pairs[r][1] ? 2 : 0;
+      el("rect", { x: x + 5, y: y + 5, width: cs - 10, height: rh - 10, rx: 3, fill: kind === 1 ? "var(--accent)" : kind === 2 ? "var(--e-nossd)" : "var(--sunk)", stroke: kind === 0 ? "var(--rule)" : "none" }, moeSvg);
+      if (moeMode === "shared" && kind === 2 && pairs[r][1] !== t[1]) txt(moeSvg, x + cs / 2, y + rh / 2 + 4, "↺", { "text-anchor": "middle", "font-size": 12, fill: "var(--ink)" });
+    }
+  });
+  txt(moeSvg, gx, gy + rh * 6 + 26, moeMode === "topk" ? "Each token loads its own two experts" : "↺ second choice replaced from inside the shared set", { "font-size": 11, fill: "var(--ink-3)" });
+  const keep = pairs.filter((p, r) => p[1] === TOK[r][1]).length;
+  // routing mass kept: top choice 0.6 always, own second 0.4, a substitute (its third choice) counted as 0
+  const mass = TOK.reduce((s, t, r) => s + 0.6 + (pairs[r][1] === t[1] ? 0.4 : 0), 0) / TOK.length;
+  $("moe-loaded").textContent = `${set.size} / 12`;
+  $("moe-bytes").textContent = `${Math.round(100 * set.size / 8)}%`;
+  $("moe-keep").textContent = `${keep} / 6`;
+  $("moe-mass").textContent = moeMode === "topk" ? "100%" : `≥ ${Math.round(100 * mass)}%`;
+  $("moe-budget-ctrl").style.opacity = moeMode === "topk" ? .4 : 1;
+  $("moe-b").disabled = moeMode === "topk";
+}
+$("moe-topk").onclick = () => { moeMode = "topk"; $("moe-topk").setAttribute("aria-pressed", "true"); $("moe-shared").setAttribute("aria-pressed", "false"); drawMoe(); };
+$("moe-shared").onclick = () => { moeMode = "shared"; $("moe-shared").setAttribute("aria-pressed", "true"); $("moe-topk").setAttribute("aria-pressed", "false"); drawMoe(); };
+$("moe-b").oninput = drawMoe;
+drawMoe();
+
+/* ---------------- adaptive depth ---------------- */
+const depthSvg = $("depth-svg");
+function rate(q, c, d) { let s = 0; for (let j = 0; j <= d; j++) s += Math.pow(q, j); return [s, s / (1 + c * (d - 1))]; }
+function drawDepth() {
+  const q = +$("dq").value, c = +$("dc").value, dmax = +$("dmax").value;
+  $("dq-out").textContent = q.toFixed(2); $("dc-out").textContent = c.toFixed(2); $("dmax-out").textContent = dmax;
+  const ds = Array.from({ length: 10 }, (_, i) => i + 1), r = ds.map(d => rate(q, c, d)[1]);
+  let best = 1; for (let d = 1; d <= dmax; d++) if (r[d - 1] > r[best - 1]) best = d;
+  depthSvg.innerHTML = "";
+  const L = 40, R = 8, T = 16, B = 40, W = 470, H = 280, ymax = Math.max(4, Math.ceil(Math.max(...r) + 0.5));
+  const bw = (W - L - R) / 10, y = v => T + (H - T - B) * (1 - v / ymax);
+  const ax = el("g", { class: "axis" }, depthSvg);
+  for (let t = 0; t <= ymax; t += ymax > 6 ? 2 : 1) { el("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "gridl" }, ax); txt(ax, L - 6, y(t) + 4, t, { "text-anchor": "end" }); }
+  ds.forEach((d, i) => {
+    const x = L + i * bw, v = r[i], over = d > dmax;
+    el("rect", { x: x + bw * 0.18, y: y(v), width: bw * 0.64, height: y(0) - y(v), rx: 2, fill: d === best ? "var(--accent)" : over ? "var(--sunk)" : "var(--e-tf)", stroke: over ? "var(--rule)" : "none" }, depthSvg);
+    txt(depthSvg, x + bw / 2, H - B + 16, d, { "text-anchor": "middle", "font-size": 11, fill: d === best ? "var(--accent)" : "var(--ink-3)", "font-weight": d === best ? 700 : 400 });
+    if (d === best) txt(depthSvg, x + bw / 2, y(v) - 6, v.toFixed(2), { "text-anchor": "middle", "font-size": 11, "font-weight": 700, fill: "var(--accent)" });
+  });
+  txt(depthSvg, (L + W - R) / 2, H - 6, "draft depth d (bars past the cap are unavailable)", { "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  txt(depthSvg, 10, (T + H - B) / 2, "tokens per unit time", { transform: `rotate(-90 10 ${(T + H - B) / 2})`, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  const [tok, rb] = rate(q, c, best);
+  $("d-star").textContent = best;
+  $("d-tok").textContent = tok.toFixed(2);
+  $("d-speed").textContent = `${rb.toFixed(2)}×`;
+  const f = rate(q, c, Math.min(8, dmax))[1];
+  $("d-fixed").textContent = `${(rb / f).toFixed(2)}×`;
+}
+["dq", "dc", "dmax"].forEach(id => $(id).oninput = drawDepth);
+drawDepth();
+
+/* ---------------- draft head ---------------- */
+const ENT = [0.0007, 0.0026, 0.019, 0.11, 0.40, 0.90, 1.39, 2.27, 4.22];
+const DH = [
+  { name: "2-bit + top-16 rescore (served) · 99.76%", v: [100, 100, 100, 100, 100, 100, 100, 100, 97.5], c: "var(--accent)", on: true },
+  { name: "3-bit + top-8 rescore · 99.96%", v: [100, 100, 100, 100, 100, 100, 100, 100, 99.6], c: "var(--e-vllm)", on: true, dash: "2 4" },
+  { name: "2-bit, no rescore · 85.60%", v: [100, 100, 100, 99.3, 95.2, 80.4, 70.2, 61.4, 48.8], c: "var(--e-tf)", on: true, dash: "7 4" }];
+function legend(box, items, redraw) {
+  box.innerHTML = "";
+  items.forEach(it => { const b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-pressed", String(it.on)); b.innerHTML = `<i style="background:${it.c}"></i>${it.name}`; b.onclick = () => { it.on = !it.on; b.setAttribute("aria-pressed", String(it.on)); redraw(); }; box.appendChild(b); });
+}
+const dhSvg = $("dh-svg");
+function drawDH() {
+  dhSvg.innerHTML = "";
+  const L = 46, R = 16, T = 14, B = 40, W = 900, H = 300, lx = v => Math.log10(v), x0 = lx(0.0005), x1 = lx(6);
+  const x = v => L + (W - L - R) * (lx(v) - x0) / (x1 - x0), y = v => T + (H - T - B) * (1 - (v - 40) / 62);
+  const ax = el("g", { class: "axis" }, dhSvg);
+  for (const t of [40, 60, 80, 100]) { el("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "gridl" }, ax); txt(ax, L - 8, y(t) + 4, `${t}%`, { "text-anchor": "end" }); }
+  for (const t of [0.001, 0.01, 0.1, 1]) txt(ax, x(t), H - B + 18, t, { "text-anchor": "middle" });
+  txt(ax, (L + W) / 2, H - 4, "FP8 head entropy (bits, log scale)", { "text-anchor": "middle" });
+  const box = $("dh-chart");
+  DH.filter(s => s.on).forEach(s => {
+    el("polyline", { points: s.v.map((v, i) => `${x(ENT[i])},${y(v)}`).join(" "), fill: "none", stroke: s.c, "stroke-width": 2.2, "stroke-dasharray": s.dash || "none" }, dhSvg);
+    s.v.forEach((v, i) => { const p = el("circle", { cx: x(ENT[i]), cy: y(v), r: 4, fill: s.c, stroke: "var(--surface)", "stroke-width": 1.5 }, dhSvg);
+      p.addEventListener("pointerenter", () => showTip(box, dhSvg, x(ENT[i]), y(v), `entropy ${ENT[i]} · ${v}%`)); p.addEventListener("pointerleave", () => hideTip(box)); });
+  });
+}
+legend($("dh-legend"), DH, drawDH); drawDH();
+
+/* ---------------- burst ---------------- */
+const BURST = JSON.parse($("burst-data").textContent);
+const BRUNS = ["Sharar", "Sharar w/o SSD tier", "vLLM", "TensorFold"].map(n => ({ name: n, c: col(n), on: true, dash: n.includes("w/o") ? "6 4" : "none" }));
+let bMetric = "ttft";
+const bSvg = $("burst-svg");
+function drawBurst() {
+  bSvg.innerHTML = "";
+  const L = 52, R = 14, W = 900, XMAX = 4032, x = v => L + (W - L - R) * v / XMAX;
+  const T1 = 22, H1 = 80, T2 = 128, H2 = 192;
+  const oc = BURST.open_ctx, over = oc.filter(p => p[1] > BURST.kv_mtok);
+  const b0 = over.length ? over[0][0] : 0, b1 = over.length ? over[over.length - 1][0] : 0;
+  el("rect", { x: x(b0), y: T1 - 22, width: x(b1) - x(b0), height: T2 + H2 - T1 + 22, fill: "var(--sunk)" }, bSvg);
+  txt(bSvg, (x(b0) + x(b1)) / 2, T1 - 8, "context burst", { "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  const y1 = v => T1 + H1 * (1 - v / 3.5);
+  const ax = el("g", { class: "axis" }, bSvg);
+  for (const t of [0, 1, 2, 3]) { el("line", { x1: L, x2: W - R, y1: y1(t), y2: y1(t), class: "gridl" }, ax); txt(ax, L - 8, y1(t) + 4, `${t}M`, { "text-anchor": "end" }); }
+  el("line", { x1: L, x2: W - R, y1: y1(BURST.kv_mtok), y2: y1(BURST.kv_mtok), stroke: "var(--ink-2)", "stroke-dasharray": "3 3" }, bSvg);
+  txt(bSvg, W - R, y1(BURST.kv_mtok) - 5, "GPU KV capacity", { "text-anchor": "end", "font-size": 10.5, fill: "var(--ink-3)" });
+  el("polyline", { points: oc.map(p => `${x(p[0])},${y1(p[1])}`).join(" "), fill: "none", stroke: "var(--ink)", "stroke-width": 1.6 }, bSvg);
+  txt(bSvg, 12, T1 + H1 / 2, "open ctx", { transform: `rotate(-90 12 ${T1 + H1 / 2})`, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  let y2, ticks, fmt;
+  if (bMetric === "ttft") { const lo = Math.log10(0.5), hi = Math.log10(600); y2 = v => T2 + H2 * (1 - (Math.log10(Math.max(v, 0.5)) - lo) / (hi - lo)); ticks = [1, 10, 100]; fmt = t => `${t} s`; }
+  else { y2 = v => T2 + H2 * (1 - v / 100); ticks = [0, 50, 100]; fmt = t => `${t}%`; }
+  for (const t of ticks) { el("line", { x1: L, x2: W - R, y1: y2(t), y2: y2(t), class: "gridl" }, ax); txt(ax, L - 8, y2(t) + 4, fmt(t), { "text-anchor": "end" }); }
+  for (const t of [0, 1000, 2000, 3000, 4000]) txt(ax, x(t), T2 + H2 + 18, t ? `${t / 1000}k` : "0", { "text-anchor": "middle" });
+  txt(ax, (L + W) / 2, T2 + H2 + 36, "requests served", { "text-anchor": "middle" });
+  txt(bSvg, 12, T2 + H2 / 2, bMetric === "ttft" ? "median TTFT" : "prompt from cache", { transform: `rotate(-90 12 ${T2 + H2 / 2})`, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  const box = $("burst-chart");
+  [...BRUNS].reverse().filter(r => r.on).forEach(r => {
+    const pts = BURST.runs[r.name];
+    el("polyline", { points: pts.map(p => `${x(p[0])},${y2(bMetric === "ttft" ? p[2] : p[1])}`).join(" "), fill: "none", stroke: r.c, "stroke-width": r.name === "Sharar" ? 2.6 : 1.8, "stroke-dasharray": r.dash, "stroke-linejoin": "round" }, bSvg);
+  });
+  const hover = el("rect", { x: L, y: T1, width: W - L - R, height: T2 + H2 - T1, fill: "transparent" }, bSvg);
+  const guide = el("line", { y1: T1, y2: T2 + H2, stroke: "var(--ink-3)", "stroke-width": 1, visibility: "hidden" }, bSvg);
+  hover.addEventListener("pointermove", ev => {
+    const r = bSvg.getBoundingClientRect(), vx = (ev.clientX - r.left) / r.width * W, req = (vx - L) / (W - L - R) * XMAX;
+    guide.setAttribute("x1", vx); guide.setAttribute("x2", vx); guide.setAttribute("visibility", "visible");
+    const parts = BRUNS.filter(b => b.on).map(b => { const p = BURST.runs[b.name].reduce((a, q) => Math.abs(q[0] - req) < Math.abs(a[0] - req) ? q : a); return `${b.name.replace(" w/o SSD tier", " no-SSD")} ${bMetric === "ttft" ? p[2].toFixed(1) + " s" : p[1].toFixed(0) + "%"}`; });
+    showTip(box, bSvg, vx, T2 + 10, `req ${Math.round(req)} · ` + parts.join(" · "));
+  });
+  hover.addEventListener("pointerleave", () => { guide.setAttribute("visibility", "hidden"); hideTip(box); });
+}
+legend($("burst-legend"), BRUNS, drawBurst);
+$("b-ttft").onclick = () => { bMetric = "ttft"; $("b-ttft").setAttribute("aria-pressed", "true"); $("b-hit").setAttribute("aria-pressed", "false"); drawBurst(); };
+$("b-hit").onclick = () => { bMetric = "hit"; $("b-hit").setAttribute("aria-pressed", "true"); $("b-ttft").setAttribute("aria-pressed", "false"); drawBurst(); };
+drawBurst();
+
+/* ---------------- results explorer ---------------- */
+const RES = JSON.parse($("results-data").textContent);
+const RENG = ["Sharar", "vLLM", "Flare", "TensorFold", "llama.cpp"].map(n => ({ name: n === "Sharar" ? "Sharar (ours)" : n, key: n, c: col(n), on: true }));
+const AKEY = { Sharar: "sharar", vLLM: "vllm", Flare: "flare", TensorFold: "tensorfold", "llama.cpp": "llamacpp" };
+let rModel = "Qwen3.8-Flash-Next", rCtx = "16k";
+function seg(box, opts, get, set) {
+  box.innerHTML = "";
+  opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.textContent = o; b.setAttribute("aria-pressed", String(o === get())); b.onclick = () => { set(o); [...box.children].forEach(c => c.setAttribute("aria-pressed", String(c.textContent === o))); drawResults(); }; box.appendChild(b); });
+}
+seg($("r-model"), RES.models, () => rModel, v => rModel = v);
+seg($("r-ctx"), ["8k", "16k", "32k"], () => rCtx, v => rCtx = v);
+legend($("r-legend"), RENG, drawResults);
+function drawResults() {
+  // warm decode, log-log; axes fixed per model across contexts so switching prompt length is comparable
+  const svg = $("warm-svg"), box = $("warm-chart"); svg.innerHTML = "";
+  const L = 50, R = 14, T = 26, B = 44, W = 470, H = 330;
+  const all = Object.values(RES.warm[rModel]).flatMap(c => Object.values(c).flat());
+  const xlo = Math.log10(Math.min(...all.map(p => p.user)) / 1.2), xhi = Math.log10(Math.max(...all.map(p => p.user)) * 1.2);
+  const ylo = Math.log10(Math.min(...all.map(p => p.agg)) / 1.3), yhi = Math.log10(Math.max(...all.map(p => p.agg)) * 1.3);
+  const x = v => L + (W - L - R) * (Math.log10(v) - xlo) / (xhi - xlo), y = v => T + (H - T - B) * (1 - (Math.log10(v) - ylo) / (yhi - ylo));
+  const ax = el("g", { class: "axis" }, svg);
+  for (const t of [1, 2, 5, 10, 20, 50, 100, 200]) if (Math.log10(t) >= xlo && Math.log10(t) <= xhi) { el("line", { x1: x(t), x2: x(t), y1: T, y2: H - B, class: "gridl" }, ax); txt(ax, x(t), H - B + 16, t, { "text-anchor": "middle" }); }
+  for (const t of [10, 20, 50, 100, 200, 500, 1000]) if (Math.log10(t) >= ylo && Math.log10(t) <= yhi) { el("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "gridl" }, ax); txt(ax, L - 6, y(t) + 4, t >= 1000 ? "1k" : t, { "text-anchor": "end" }); }
+  txt(ax, (L + W) / 2, H - 8, "per-user speed (tokens/s/user)", { "text-anchor": "middle" });
+  txt(ax, 12, (T + H - B) / 2, "output throughput (tokens/s)", { transform: `rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor": "middle" });
+  txt(svg, L, 14, `SPEED-Bench, ${rCtx} prompts`, { "font-size": 12.5, "font-weight": 600, fill: "var(--ink)" });
+  const cells = RES.warm[rModel][rCtx] || {};
+  [...RENG].reverse().filter(e => e.on && cells[e.key]).forEach(e => {
+    const pts = cells[e.key];
+    el("polyline", { points: pts.map(p => `${x(p.user)},${y(p.agg)}`).join(" "), fill: "none", stroke: e.c, "stroke-width": e.key === "Sharar" ? 2.8 : 2, "stroke-linejoin": "round" }, svg);
+    pts.forEach(p => { const c = el("circle", { cx: x(p.user), cy: y(p.agg), r: e.key === "Sharar" ? 4.5 : 3.6, fill: e.c, stroke: "var(--surface)", "stroke-width": 1.5, style: "cursor:default" }, svg);
+      c.addEventListener("pointerenter", () => showTip(box, svg, x(p.user), y(p.agg), `${e.key} · ${p.n} req · ${p.user} tok/s/user · ${p.agg} tok/s${p.accept ? ` · accept ${p.accept}` : ""}`));
+      c.addEventListener("pointerleave", () => hideTip(box)); });
+  });
+  const missing = RENG.filter(e => e.on && !cells[e.key]).map(e => e.key);
+  if (missing.length) txt(svg, W - R, 14, `not measured here: ${missing.join(", ")}`, { "text-anchor": "end", "font-size": 10.5, fill: "var(--ink-3)" });
+
+  // agents
+  const as = $("agent-svg"), abox = $("agent-chart"); as.innerHTML = "";
+  const AX = [1, 8, 16, 32], ax_ = v => L + (W - L - R) * (Math.log2(v) - Math.log2(0.8)) / (Math.log2(40) - Math.log2(0.8)), ay = v => T + (H - T - B) * (1 - v / 200);
+  const g2 = el("g", { class: "axis" }, as);
+  for (const t of [0, 50, 100, 150, 200]) { el("line", { x1: L, x2: W - R, y1: ay(t), y2: ay(t), class: "gridl" }, g2); txt(g2, L - 6, ay(t) + 4, t, { "text-anchor": "end" }); }
+  for (const t of AX) txt(g2, ax_(t), H - B + 16, t, { "text-anchor": "middle" });
+  txt(g2, (L + W) / 2, H - 8, "concurrent agents", { "text-anchor": "middle" });
+  txt(g2, 12, (T + H - B) / 2, "tasks per hour", { transform: `rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor": "middle" });
+  txt(as, L, 14, "AgentPerf-Local, all prompt lengths", { "font-size": 12.5, "font-weight": 600, fill: "var(--ink)" });
+  const am = RES.agents[rModel.toLowerCase()] || {};
+  [...RENG].reverse().filter(e => e.on && am[AKEY[e.key]]).forEach(e => {
+    const pts = am[AKEY[e.key]];
+    el("polyline", { points: pts.map(p => `${ax_(p[0])},${ay(p[1])}`).join(" "), fill: "none", stroke: e.c, "stroke-width": e.key === "Sharar" ? 2.8 : 2 }, as);
+    pts.forEach(p => { const c = el("circle", { cx: ax_(p[0]), cy: ay(p[1]), r: e.key === "Sharar" ? 4.5 : 3.6, fill: e.c, stroke: "var(--surface)", "stroke-width": 1.5 }, as);
+      c.addEventListener("pointerenter", () => showTip(abox, as, ax_(p[0]), ay(p[1]), `${e.key} · ${p[0]} agents · ${p[1]} tasks/h`));
+      c.addEventListener("pointerleave", () => hideTip(abox)); });
+  });
+}
+drawResults();
+
+/* copy buttons */
+document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => {
+  const pre = $(b.dataset.copy), s = pre.innerText;
+  const done = () => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1400); };
+  try { navigator.clipboard.writeText(s).then(done, () => { getSelection().selectAllChildren(pre); b.textContent = "Selected"; }); }
+  catch { getSelection().selectAllChildren(pre); b.textContent = "Selected"; }
+}));
+})();
+</script>
