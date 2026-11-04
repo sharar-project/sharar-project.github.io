@@ -96,22 +96,19 @@ svg text { font-family: var(--f-body); }
 .tag.lossy { color: var(--warn); }
 .stepchips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 14px; }
 .fig-cap { margin-top: 12px; text-align: center; }
-.tldr { text-align: center; max-width: 70ch; margin: 18px auto 0; color: var(--ink-2); }
-.tldr b { color: var(--ink); font-weight: 600; }
 .bar-step { transition: opacity .35s ease; }
 
 /* stats */
-.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-block: 1px solid var(--rule); margin-top: 28px; }
-.stat { padding: 18px 16px; display: grid; gap: 4px; }
-.stat + .stat { border-left: 1px solid var(--rule); }
-.stat .big { font-family: var(--f-display); font-size: var(--step-3); font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.stat .big span { color: var(--accent); }
-.stat .what { font-size: var(--step--1); color: var(--ink-2); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 56px; text-align: center; }
+.stat { display: grid; gap: 6px; }
+.stat .big { font-family: var(--f-display); font-size: clamp(2.75rem, 6vw, 4rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat .what { font-size: var(--step-0); color: var(--ink-2); }
+.stats-note { text-align: center; margin-top: 18px; }
 
 /* sections */
 section.block { padding-block: 64px 0; display: grid; gap: 22px; }
 .thesis { font-family: var(--f-display); font-weight: 600; letter-spacing: -0.028em; font-size: clamp(1.5rem, 3.4vw, 2.3rem); line-height: 1.18; letter-spacing: -0.02em; max-width: 30ch; margin: 72px auto 0; text-align: center; text-wrap: balance; }
-.thesis span { color: var(--accent); }
+.thesis span { color: inherit; }
 .sec-head { display: grid; gap: 8px; }
 .sec-head h2 { font-size: var(--step-3); }
 .pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--ink); }
@@ -178,8 +175,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
   .step-note { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 16px; }
   .pillars { grid-template-columns: minmax(0, 1fr); }
   .pillar + .pillar { padding-left: 0; border-left: 0; border-top: 1px solid var(--rule); }
-  .stats { grid-template-columns: minmax(0, 1fr); }
-  .stat + .stat { border-left: 0; border-top: 1px solid var(--rule); }
+  .stats { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .card { padding: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -229,13 +225,12 @@ footer b { color: var(--ink); font-family: var(--f-display); }
     <div class="stepchips" id="climb-chips"></div>
     <figcaption class="cap fig-cap">Qwen3.8-Flash-Next, one request, one DGX Spark. Click a step to jump to it.</figcaption>
   </figure>
-  <p class="tldr">On a single DGX Spark serving Qwen and Nemotron models of up to 125B parameters, Sharar completes up to <b>3.1× more agentic tasks per hour</b> and delivers up to <b>4.3× higher decoding throughput</b> than vLLM, llama.cpp, and TensorFold.</p>
-
   <div class="stats">
-    <div class="stat"><div class="big num">103 <span>tok/s</span></div><div class="what">Single-user decode, Qwen3.8-Flash-Next, SPEED-Bench 16k. TensorFold 49, vLLM 38, llama.cpp 33.</div></div>
-    <div class="stat"><div class="big num">794 <span>tok/s</span></div><div class="what">Peak decode throughput at 64 requests, 4.3× TensorFold (184 at 16 requests, its stream limit).</div></div>
-    <div class="stat"><div class="big num">150 <span>tasks/h</span></div><div class="what">Agentic tasks per hour with 16 agents on AgentPerf-Local, 3.1× vLLM (49). 168 at 32 agents.</div></div>
+    <div class="stat"><div class="big num">4.3×</div><div class="what">higher decoding throughput</div></div>
+    <div class="stat"><div class="big num">3.1×</div><div class="what">more agentic tasks per hour</div></div>
+    <div class="stat"><div class="big num">2.1×</div><div class="what">faster for a single user</div></div>
   </div>
+  <p class="cap stats-note">Qwen3.8-Flash-Next on one DGX Spark, against the fastest of vLLM, llama.cpp, and TensorFold.</p>
 
   <p class="thesis">On a unified-memory device, the model and every agent's history share <span>one memory</span>.</p>
 
