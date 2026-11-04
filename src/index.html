@@ -39,6 +39,7 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 .qs-opts button:hover:not(:disabled) { border-color: var(--ink-3); }
 .qs-opts button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #ffffff; }
 .qs-opts button:disabled { color: var(--ink-3); cursor: not-allowed; background: transparent; border-style: dashed; }
+.qs-opts button small { font-size: 0.7rem; font-weight: 500; margin-left: 4px; color: var(--ink-3); }
 .qs-cmdhead { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--rule); padding-top: 16px; margin-top: 4px; font-weight: 600; font-size: 0.9375rem; }
 .qs-copy { font: 500 0.8rem/1 var(--f-body); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink-2); cursor: pointer; }
 .qs-cmd { margin: 0; background: var(--bg); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; font: 0.875rem/1.75 var(--f-mono); color: var(--ink); overflow-x: auto; white-space: pre; }
@@ -104,8 +105,8 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
     <div class="qs-panel">
       <div class="qs-row"><span class="qs-k">Device</span><div class="qs-opts" id="qs-device">
         <button type="button" data-v="spark" aria-pressed="true">DGX Spark</button>
-        <button type="button" data-v="mac" disabled title="Not supported yet">Mac</button>
-        <button type="button" data-v="strix" disabled title="Not supported yet">Strix Halo</button>
+        <button type="button" data-v="mac" disabled title="Coming soon">Mac <small>coming soon</small></button>
+        <button type="button" data-v="strix" disabled title="Coming soon">Strix Halo <small>coming soon</small></button>
       </div></div>
       <div class="qs-row"><span class="qs-k">Model</span><div class="qs-opts" id="qs-model">
         <button type="button" data-v="27b" aria-pressed="false">Qwen3.8-27B</button>
