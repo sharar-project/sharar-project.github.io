@@ -1,6 +1,6 @@
 <title>Sharar</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Sharar: fast agentic inference via language model surgery for unified-memory devices.">
+<meta name="description" content="Sharar: fast agentic inference on unified-memory devices.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -65,7 +65,8 @@ nav.top a:hover { color: var(--accent); }
 .hero h1 .bar { color: var(--accent); }
 .subtitle { font-family: var(--f-display); font-size: clamp(1.15rem, 2.6vw, 1.6rem); font-weight: 500; color: var(--ink-2); max-width: 34ch; line-height: 1.25; text-wrap: balance; }
 .subtitle em { font-style: normal; color: var(--accent); }
-.authors { font-size: var(--step-0); color: var(--ink); }
+.authors { font-size: var(--step-0); color: var(--ink); max-width: 62ch; text-wrap: balance; }
+.authors sup, .affil sup { font-size: 0.68em; color: var(--ink-3); margin-left: 1px; }
 .affil { font-size: var(--step--1); color: var(--ink-3); margin-top: -10px; }
 .links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; font: 500 var(--step--1)/1 var(--f-body); text-decoration: none; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); cursor: pointer; }
@@ -149,6 +150,14 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font: 500 0.75rem/1.4 var(--f-mono); padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
 .chart { position: relative; }
 
+.tablewrap { overflow-x: auto; }
+table.acc { border-collapse: collapse; width: 100%; min-width: 560px; font-variant-numeric: tabular-nums; font-size: 0.92rem; }
+table.acc th { font: 500 0.75rem var(--f-mono); color: var(--ink-3); text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--ink); letter-spacing: .04em; }
+table.acc td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--rule); }
+table.acc td:first-child, table.acc th:first-child { text-align: left; }
+table.acc td i { font-style: normal; font-size: 0.72rem; color: var(--warn); margin-left: 5px; }
+table.acc tr.ours td { color: var(--accent); font-weight: 600; }
+table.acc tr.ours td i { font-weight: 400; }
 pre.code { background: var(--sunk); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font: 0.86rem/1.65 var(--f-mono); color: var(--ink); margin: 0; }
 pre.code .c { color: var(--ink-3); }
 .copyrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -175,9 +184,9 @@ footer b { color: var(--ink); font-family: var(--f-display); }
 
   <header class="hero">
     <h1>Sharar</h1>
-    <p class="subtitle">Fast agentic inference via <em>language model surgery</em> for unified-memory devices</p>
-    <p class="authors">Authors to be announced</p>
-    <p class="affil">Cornell University</p>
+    <p class="subtitle">Fast agentic inference on <em>unified-memory</em> devices</p>
+    <p class="authors">Yahya Emara<sup>1*</sup> · Chi-Chih Chang<sup>1*</sup> · Anthony Fei<sup>1</sup> · Ahmed F. AbouElhamayed<sup>1</sup> · Chong-Yan Chen<sup>2</sup> · Hung-Yueh Chiang<sup>3</sup> · Kai-Chiang Wu<sup>4</sup> · Mohamed S. Abdelfattah<sup>1</sup></p>
+    <p class="affil"><sup>1</sup>Cornell University · <sup>2</sup>University of Illinois Urbana-Champaign · <sup>3</sup>Independent researcher · <sup>4</sup>National Yang Ming Chiao Tung University<br><sup>*</sup>Equal contribution</p>
     <div class="links">
       <span class="btn ghost" title="The paper is in preparation">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
@@ -209,14 +218,14 @@ footer b { color: var(--ink); font-family: var(--f-display); }
       </div>
     </div>
     <div class="stepchips" id="climb-chips"></div>
-    <figcaption class="cap fig-cap">Qwen3.8-Flash-Next (125B MoE) · one DGX Spark · one request (batch size 1) · decode tokens/s after each technique is added. Click a step to jump to it.</figcaption>
+    <figcaption class="cap fig-cap">Decode throughput on Qwen3.8-Flash-Next (125B MoE) at one request on one DGX Spark as each optimization is added; percentages are the change from the previous step. Click a step to jump to it.</figcaption>
   </figure>
-  <p class="tldr">On one DGX Spark, Sharar decodes Qwen3.8-Flash-Next on 16k prompts at <b>103 tokens/s</b> for one user, <b>2.1×</b> the fastest baseline engine, peaks at <b>794 tokens/s</b> across 64 requests (3.9× the best baseline), and finishes <b>150 agentic tasks per hour</b> with 16 agents, <b>3.1×</b> vLLM.</p>
+  <p class="tldr">On a single DGX Spark serving Qwen and Nemotron models of up to 125B parameters, Sharar completes up to <b>3.1× more agentic tasks per hour</b> and delivers up to <b>4.3× higher decoding throughput</b> than vLLM, llama.cpp, and TensorFold.</p>
 
   <div class="stats">
-    <div class="stat"><div class="big num">103 <span>tok/s</span></div><div class="what">Single-user decode, Flash-Next, 16k prompts. TensorFold 49, Flare 42, vLLM 38, llama.cpp 33.</div></div>
-    <div class="stat"><div class="big num">794 <span>tok/s</span></div><div class="what">Peak decode throughput at 64 requests, 16k prompts. Best baseline: Flare, 205 at 32 requests.</div></div>
-    <div class="stat"><div class="big num">150 <span>tasks/h</span></div><div class="what">Agentic tasks with 16 concurrent agents (AgentPerf-Local). vLLM 49, Flare 37, TensorFold 34.</div></div>
+    <div class="stat"><div class="big num">103 <span>tok/s</span></div><div class="what">Single-user decode, Qwen3.8-Flash-Next, SPEED-Bench 16k. TensorFold 49, vLLM 38, llama.cpp 33.</div></div>
+    <div class="stat"><div class="big num">794 <span>tok/s</span></div><div class="what">Peak decode throughput at 64 requests, 4.3× TensorFold (184 at 16 requests, its stream limit).</div></div>
+    <div class="stat"><div class="big num">150 <span>tasks/h</span></div><div class="what">Agentic tasks per hour with 16 agents on AgentPerf-Local, 3.1× vLLM (49). 168 at 32 agents.</div></div>
   </div>
 
   <p class="thesis">Local agents keep extending long histories in the <span>same memory</span> that holds the model. Sharar decides what stays resident, what survives between turns, and what each accepted token costs.</p>
@@ -224,36 +233,36 @@ footer b { color: var(--ink); font-family: var(--f-display); }
   <!-- techniques -->
   <section class="block" id="techniques">
     <div class="sec-head">
-      <span class="eyebrow">Three surgeries</span>
-      <h2>Move fewer bytes, keep finished work, verify cheaper</h2>
+      <span class="eyebrow">Three co-designed techniques</span>
+      <h2>Read fewer bytes, keep each agent's state, accept more per read</h2>
     </div>
     <div class="pillars">
       <div class="pillar">
         <span class="res">bytes read per token ↓</span>
         <h3>Model surgery</h3>
-        <p>Calibrated 3-bit weights for dense projections and routed experts, packed so FP8 tensor cores consume them directly.</p>
-        <ul><li>3.25 bits/weight: 8-entry FP8 codebook, scale per 32 weights</li><li>NVFP4 KV cache, INT8 recurrent state</li><li>2-bit draft head with top-16 rescoring</li></ul>
+        <p>Editing a trained model's architecture to suit its hardware, so each token reads fewer bytes and the model takes less memory.</p>
+        <ul><li>Experts and dense-layer decode copies as 3-bit FP8-codebook indices, run on FP8 tensor cores</li><li>Recurrent states quantized to INT8</li><li>A 2-bit output head shortlists candidates, then FP8 rescores them</li></ul>
       </div>
       <div class="pillar">
         <span class="res">work kept across turns ↑</span>
-        <h3>Unified-memory hierarchy</h3>
-        <p>Evicted conversations are demoted to the SSD instead of discarded, so an agent's next turn resumes rather than recomputes.</p>
-        <ul><li>Whole continuations: KV pages, recurrent snapshots, draft state</li><li>One ledger for GPU pools, staging buffers and page cache</li><li>Sparse lookup tables (PLE) served from NVMe</li></ul>
+        <h3>Unified-memory management</h3>
+        <p>Each agent's state survives across turns, so a long-running agent resumes instantly instead of recomputing its context.</p>
+        <ul><li>SSD session cache: KV, recurrent and draft state, through a small fixed staging buffer</li><li>Engram offloading: large embedding tables served from the SSD</li></ul>
       </div>
       <div class="pillar">
         <span class="res">work per accepted token ↓</span>
         <h3>Adaptive speculation</h3>
-        <p>Each draft-verify round is sized and priced: draft as deep as acceptance pays for, and keep verify batches cheap.</p>
-        <ul><li>Adaptive draft depth from observed acceptance</li><li>Optional relaxed verification (top-k, logit margin)</li><li>Shared routed-expert budget in verify batches</li></ul>
+        <p>More accepted tokens per weight read, by making each draft-verify round cheaper and longer where it pays.</p>
+        <ul><li>Expert sharing across the tokens of a verify batch</li><li>Draft lengths adapted to acceptance rates; diffusion prefixes verified selectively</li><li>Optional acceptance of near-miss tokens</li></ul>
       </div>
     </div>
-    <p class="cap">Sharar serves three profiles. <span class="mono">exact</span> keeps the model's own outputs; <span class="mono">fast</span> (default) and <span class="mono">throughput</span> add named lossy approximations. The tags in the figure above say which steps are which.</p>
+    <p class="cap">The <span class="mono">exact</span> profile serves the original model with exact verification; the <span class="mono">fast</span> profile, used for every result here, enables all optimizations. The tags in the figure above mark which steps change outputs.</p>
   </section>
 
   <!-- expert sharing -->
   <section class="block" id="experts">
     <div class="sec-head">
-      <span class="eyebrow">Try it · expert sharing</span>
+      <span class="eyebrow">Try it · adaptive speculation · expert sharing</span>
       <h2>A verify batch reads the union of every token's experts</h2>
     </div>
     <div class="prose"><p>In an MoE layer each token picks its own top-k experts, and verifying a batch of draft tokens must load every expert any of them chose. Sharar gives the batch a <strong>shared budget</strong>: each token's top choice is guaranteed, the remaining slots go to the experts with the most routing mass, and every token's second choice is taken from inside that set. Fewer distinct experts means fewer weight bytes per round.</p></div>
@@ -282,7 +291,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
   <!-- adaptive depth -->
   <section class="block" id="depth">
     <div class="sec-head">
-      <span class="eyebrow">Try it · adaptive drafting</span>
+      <span class="eyebrow">Try it · adaptive speculation · adaptive drafting</span>
       <h2>Draft only as deep as acceptance pays for</h2>
     </div>
     <div class="prose"><p>Each extra draft token costs one more draft step and one more verification row. Sharar keeps a per-request estimate <span class="mono">q</span> of how often a drafted position is accepted, and picks the depth that maximizes expected tokens per unit of round time:</p>
@@ -322,10 +331,11 @@ footer b { color: var(--ink); font-family: var(--f-display); }
   <!-- ssd tier -->
   <section class="block" id="ssd">
     <div class="sec-head">
-      <span class="eyebrow">Unified-memory hierarchy · SSD tier</span>
-      <h2>When open context outgrows the GPU, demote it to the SSD</h2>
+      <span class="eyebrow">Unified-memory management · SSD session cache</span>
+      <h2>When agent sessions outgrow GPU memory, keep them on the SSD</h2>
     </div>
-    <div class="prose"><p>192 agent conversations open at once, 32 running. Once their contexts exceed the KV that fits beside the weights, other engines drop prefixes and recompute them on the agent's next turn. Sharar writes complete continuations to NVMe and reads them back, so turns keep starting from cache. During the burst, median time to first token is <strong>4.0 s on Sharar against 167 s on vLLM</strong>, 42× lower.</p></div>
+    <div class="prose"><p>192 AgentPerf-Local conversations replayed at once, so their combined context grows to about twice Sharar's GPU KV capacity. About 130 turns pass before a conversation returns, so without a second tier each one is evicted first and recomputes most of its context. The baselines keep the saved state of only 16 to 32 conversations and stay below 20% cache hits; Sharar without the SSD tier stays below about 35%.</p>
+    <p>Sharar writes each evicted conversation to the SSD and reads it back on its next turn. Its hit rate climbs to <strong>80–98%</strong>, each turn recomputes about 600 tokens instead of 11,000, and median TTFT stays at a few seconds. The baselines' TTFT exceeds 100 s, <strong>up to 42× Sharar's</strong>.</p></div>
     <div class="card">
       <div class="card-head">
         <div class="legend" id="burst-legend"></div>
@@ -335,17 +345,17 @@ footer b { color: var(--ink); font-family: var(--f-display); }
         </div>
       </div>
       <div class="chart" id="burst-chart"><svg id="burst-svg" viewBox="0 0 900 360" role="img" aria-label="Open context, and TTFT or cache hit, over requests served"></svg></div>
-      <p class="cap" style="margin-top:8px">Qwen3.8-Flash-Next, AA-AgentPerf traces, thinking-off setting, 192 conversations, 32 agents. Top strip: open context in millions of tokens; the dashed line is Sharar's GPU KV capacity (1.58 M tokens) and the shaded span is where open context exceeds it. Rolling windows over requests served.</p>
+      <p class="cap" style="margin-top:8px">Qwen3.8-Flash-Next serving 192 agent conversations. Top: live session context, the tokens of all unfinished conversations; the dashed line is Sharar's GPU KV capacity (1.58 M tokens). Below: median TTFT (log scale) or the share of each prompt served from cache. 32 agents send turns back to back, thinking off, no tool time. Rolling medians; baseline runs were stopped after about 3.3k turns.</p>
     </div>
   </section>
 
   <!-- results explorer -->
   <section class="block" id="results">
     <div class="sec-head">
-      <span class="eyebrow">Results · four models, five engines, 16k prompts</span>
+      <span class="eyebrow">Results · four models, SPEED-Bench 16k and AgentPerf-Local</span>
       <h2>Faster for one user, and for many</h2>
     </div>
-    <div class="prose"><p>Warm-cache decode on SPEED-Bench 16k prompts, as in the paper's main results: each point is one concurrency level, plotted as per-user speed against total output throughput. Up and to the right is better. Each engine runs its fastest measured setting with its own speculation enabled. Hover a point for its request count.</p></div>
+    <div class="prose"><p>Left, SPEED-Bench throughput on one DGX Spark as concurrency grows: each point is one concurrency level, per-user speed against total output throughput, so up and to the right is better. Sharar reaches higher throughput than every baseline at every concurrency level on all four models and scales to 64 requests; the baselines run out of memory for KV caches and recurrent states sooner. Right, agentic tasks per hour on AgentPerf-Local replay: at each system's best concurrency Sharar completes <strong>1.5–3.4×</strong> more tasks per hour than the fastest baseline. Hover a point for its numbers.</p></div>
     <div class="card" style="display:grid;gap:14px">
       <div class="card-head" style="margin:0">
         <div class="seg" role="group" aria-label="Model" id="r-model"></div>
@@ -355,7 +365,28 @@ footer b { color: var(--ink); font-family: var(--f-display); }
         <div class="chart" id="warm-chart"><svg id="warm-svg" viewBox="0 0 470 330" role="img" aria-label="Output throughput against per-user speed"></svg></div>
         <div class="chart" id="agent-chart"><svg id="agent-svg" viewBox="0 0 470 330" role="img" aria-label="Agentic tasks per hour against concurrent agents"></svg></div>
       </div>
-      <p class="cap">Left: SPEED-Bench, 16k prompts, warm cache, log–log; llama.cpp points slower than every other engine's slowest are left out, as in the paper. Right: agentic tasks per hour on AgentPerf-Local traces against concurrent agents (thinking-off setting). One DGX Spark per engine. TensorFold serves at most 16 streams; the rest queue.</p>
+      <p class="cap">The data of the paper's main results figure. SPEED-Bench with reasoning enabled, 16k prompts, log–log. Baselines run NVFP4 weights with their fastest drafter (DFlash2 for Qwen3.8-27B, the model's MTP head otherwise). Missing points are configurations a baseline could not run; TensorFold serves at most 16 streams.</p>
+    </div>
+  </section>
+
+  <!-- accuracy -->
+  <section class="block" id="accuracy">
+    <div class="sec-head">
+      <span class="eyebrow">Accuracy of the lossy optimizations</span>
+      <h2>Within 3.6 points of the exact model</h2>
+    </div>
+    <div class="prose"><p>Three-bit weights, expert sharing, and relaxed verification can change outputs. Added one at a time on Qwen3.8-Flash-Next, three-bit weights cost up to 2.3 points, expert sharing leaves every score unchanged, and relaxed verification costs up to 1.6 more. The full fast recipe stays within 3.6 points of the exact baseline on every benchmark.</p></div>
+    <div class="card tablewrap">
+      <table class="acc">
+        <thead><tr><th></th><th>GPQA</th><th>LCB</th><th>IFBench</th><th>AIME25</th><th>AIME26</th></tr></thead>
+        <tbody>
+          <tr><td>Exact</td><td>90.7</td><td>87.7</td><td>85.3</td><td>100.0</td><td>100.0</td></tr>
+          <tr><td>+ 3-bit weights</td><td>90.4<i>−0.3</i></td><td>85.4<i>−2.3</i></td><td>83.3<i>−2.0</i></td><td>99.2<i>−0.8</i></td><td>99.2<i>−0.8</i></td></tr>
+          <tr><td>+ Expert sharing</td><td>90.4<i>−0.3</i></td><td>85.4<i>−2.3</i></td><td>83.3<i>−2.0</i></td><td>99.2<i>−0.8</i></td><td>99.2<i>−0.8</i></td></tr>
+          <tr class="ours"><td>+ Relaxed verif. (fast)</td><td>89.1<i>−1.6</i></td><td>84.6<i>−3.1</i></td><td>81.7<i>−3.6</i></td><td>99.2<i>−0.8</i></td><td>99.2<i>−0.8</i></td></tr>
+        </tbody>
+      </table>
+      <p class="cap" style="margin-top:10px">Task accuracy (%) on Qwen3.8-Flash-Next; small numbers are the change from the exact baseline. The last row is the full fast recipe, which also enables the NVFP4 KV cache. Relaxed verification at s = 0.5.</p>
     </div>
   </section>
 
@@ -377,17 +408,19 @@ uv run sharar launch claude      <span class="c"># point a coding agent at it</s
 
   <section class="block" id="cite">
     <div class="copyrow"><h2 style="font-size:var(--step-2)">Citation</h2><button class="chip" type="button" data-copy="bib">Copy</button></div>
-    <pre class="code" id="bib">@misc{sharar2026,
-  title  = {Sharar: Fast Agentic Inference via Language Model Surgery
-            for Unified-Memory Devices},
-  author = {TBD},
-  year   = {2026}
+    <pre class="code" id="bib">@misc{emara2026sharar,
+  title  = {Sharar: Fast Agentic Inference on Unified-Memory Devices},
+  author = {Emara, Yahya and Chang, Chi-Chih and Fei, Anthony and
+            AbouElhamayed, Ahmed F. and Chen, Chong-Yan and Chiang, Hung-Yueh and
+            Wu, Kai-Chiang and Abdelfattah, Mohamed S.},
+  year   = {2026},
+  note   = {Preprint}
 }</pre>
   </section>
 
   <footer>
     <span><b>Sharar</b> · Abdelfattah Lab, Cornell University</span>
-    <span>Numbers from the paper draft, November 2026. Measured on NVIDIA DGX Spark (GB10).</span>
+    <span>Numbers from the preprint, November 2026. Measured on one NVIDIA DGX Spark (GB10).</span>
   </footer>
 </div>
 
@@ -1527,14 +1560,14 @@ function hideTip(box) { tipFor(box).hidden = true; }
 
 /* ---------------- hero: the hill climb ---------------- */
 const STEPS = [
-  ["No spec.", "No speculation", 27.9, ["baseline"], "Sharar's runtime decoding one token per forward pass. Every token streams the whole active model through about 258 GB/s of memory bandwidth."],
-  ["+ MTP", "+ Multi-token prediction", 54.9, ["exact", "speculation"], "The model's own MTP head drafts several tokens; the target verifies them in one pass and keeps the accepted prefix. Same outputs, about twice the speed."],
-  ["+ 3-bit weights", "+ 3-bit weights", 78.7, ["lossy · calibrated", "model surgery"], "Dense projections and routed experts in 3.25 bits per weight: an 8-entry FP8 codebook, GPTQ-style calibration, and kernels that expand codes straight into FP8 tensor-core operands."],
-  ["+ 2-bit draft head", "+ 2-bit draft head", 80.9, ["draft only", "model surgery"], "The drafter's vocabulary head drops to 2 bits with top-16 rescoring. It agrees with the FP8 head on 99.76% of tokens, and only the drafter reads it."],
-  ["+ Relaxed verif.", "+ Relaxed verification", 82.1, ["lossy · optional", "speculation"], "A drafted token survives if it sits in the target's top-k within a logit margin of the best, instead of having to equal the argmax. Acceptance still stops at the first failure."],
-  ["+ Expert sharing", "+ Expert sharing", 108.5, ["lossy · optional", "speculation"], "The verify batch shares a budget of routed experts: top choices are guaranteed, the rest come from the experts with the most routing mass. Fewer distinct experts, fewer bytes per round."],
-  ["+ Adaptive drafting", "+ Adaptive drafting", 113.9, ["exact", "speculation"], "Draft depth follows each request's observed acceptance, so cheap confident stretches draft deep and uncertain ones stop early."],
-  ["Fast", "Fast profile", 119.6, ["default profile"], "The remaining settings of Sharar's default fast profile. 4.3× the starting point, on the same Spark and the same model."],
+  ["No spec.", "No speculation", 27.9, ["baseline"], "NVFP4 experts, one token per forward pass. Every token streams the active weights through about 258 GB/s of unified-memory bandwidth."],
+  ["+ MTP", "+ Multi-token prediction", 54.9, ["exact", "speculation"], "The model's own MTP head drafts 4 tokens; the target verifies them in one pass and keeps the accepted prefix. +97%, the largest single step."],
+  ["+ 3-bit weights", "+ 3-bit weights", 78.7, ["lossy · calibrated", "model surgery"], "Experts and dense-layer decode copies as 3-bit indices into an FP8 codebook (3.25 bits per weight), expanded in registers straight into FP8 tensor-core operands."],
+  ["+ 2-bit draft head", "+ 2-bit draft head", 80.9, ["draft only", "model surgery"], "A 2-bit output head shortlists 16 candidate tokens, then FP8 rescores them. It agrees with the FP8 head on 99.76% of tokens."],
+  ["+ Relaxed verif.", "+ Relaxed verification", 82.1, ["lossy · optional", "speculation"], "Near-miss drafts can be accepted: a draft in the target's top 2 and within 1.0 logit of its top token passes with probability min(1, e^s·p(y)), s = 0.5. Other drafts get the exact test."],
+  ["+ Expert sharing", "+ Expert sharing", 108.5, ["lossy · optional", "speculation"], "The tokens in a verify batch share a budget of routed experts: top choices are guaranteed, the rest go to the experts with the most routing mass. +32%, and no accuracy change on any benchmark."],
+  ["+ Adaptive drafting", "+ Adaptive drafting", 113.9, ["exact", "speculation"], "Draft length follows each request's observed acceptance rate, so confident stretches draft deep and uncertain ones stop early."],
+  ["Fast", "+ NVFP4 KV cache = fast profile", 119.6, ["fast profile"], "The last step adds an NVFP4 KV cache, completing the fast profile: 27.9 to 119.6 tokens/s, 4.3× on the same Spark and model."],
 ];
 const climbSvg = $("climb-svg");
 const W = 620, H = 330, L = 44, R = 12, T = 26, B = 58, YMAX = 140;
@@ -1717,14 +1750,14 @@ function drawBurst() {
   const oc = BURST.open_ctx, over = oc.filter(p => p[1] > BURST.kv_mtok);
   const b0 = over.length ? over[0][0] : 0, b1 = over.length ? over[over.length - 1][0] : 0;
   el("rect", { x: x(b0), y: T1 - 22, width: x(b1) - x(b0), height: T2 + H2 - T1 + 22, fill: "var(--sunk)" }, bSvg);
-  txt(bSvg, (x(b0) + x(b1)) / 2, T1 - 8, "context burst", { "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  txt(bSvg, (x(b0) + x(b1)) / 2, T1 - 8, "above GPU KV capacity", { "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
   const y1 = v => T1 + H1 * (1 - v / 3.5);
   const ax = el("g", { class: "axis" }, bSvg);
   for (const t of [0, 1, 2, 3]) { el("line", { x1: L, x2: W - R, y1: y1(t), y2: y1(t), class: "gridl" }, ax); txt(ax, L - 8, y1(t) + 4, `${t}M`, { "text-anchor": "end" }); }
   el("line", { x1: L, x2: W - R, y1: y1(BURST.kv_mtok), y2: y1(BURST.kv_mtok), stroke: "var(--ink-2)", "stroke-dasharray": "3 3" }, bSvg);
   txt(bSvg, W - R, y1(BURST.kv_mtok) - 5, "GPU KV capacity", { "text-anchor": "end", "font-size": 10.5, fill: "var(--ink-3)" });
   el("polyline", { points: oc.map(p => `${x(p[0])},${y1(p[1])}`).join(" "), fill: "none", stroke: "var(--ink)", "stroke-width": 1.6 }, bSvg);
-  txt(bSvg, 12, T1 + H1 / 2, "open ctx", { transform: `rotate(-90 12 ${T1 + H1 / 2})`, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  txt(bSvg, 12, T1 + H1 / 2, "live ctx", { transform: `rotate(-90 12 ${T1 + H1 / 2})`, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
   let y2, ticks, fmt;
   if (bMetric === "ttft") { const lo = Math.log10(0.5), hi = Math.log10(600); y2 = v => T2 + H2 * (1 - (Math.log10(Math.max(v, 0.5)) - lo) / (hi - lo)); ticks = [1, 10, 100]; fmt = t => `${t} s`; }
   else { y2 = v => T2 + H2 * (1 - v / 100); ticks = [0, 50, 100]; fmt = t => `${t}%`; }
@@ -1796,7 +1829,7 @@ function drawResults() {
   for (const t of AX) txt(g2, ax_(t), H - B + 16, t, { "text-anchor": "middle" });
   txt(g2, (L + W) / 2, H - 8, "concurrent agents", { "text-anchor": "middle" });
   txt(g2, 12, (T + H - B) / 2, "tasks per hour", { transform: `rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor": "middle" });
-  txt(as, L, 14, "AgentPerf-Local, all prompt lengths", { "font-size": 12.5, "font-weight": 600, fill: "var(--ink)" });
+  txt(as, L, 14, "AgentPerf-Local", { "font-size": 12.5, "font-weight": 600, fill: "var(--ink)" });
   const am = RES.agents[rModel.toLowerCase()] || {};
   [...RENG].reverse().filter(e => e.on && am[AKEY[e.key]]).forEach(e => {
     const pts = am[AKEY[e.key]];
