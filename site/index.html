@@ -118,7 +118,7 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 .dv-credit a { color: inherit; }
 @media (max-width: 760px) { .dv-cards { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
 .projects { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
-.project { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: center; background: var(--surface); border-radius: var(--radius); padding: 30px; text-decoration: none; transition: background .2s; }
+.project { display: grid; gap: 0; align-content: start; background: var(--surface); border-radius: var(--radius); padding: 30px; text-decoration: none; transition: background .2s; }
 .project:hover { background: var(--sunk); }
 .project .tagline { font-size: 0.8125rem; font-weight: 600; color: var(--ink-3); }
 .project h3 { font-size: clamp(1.8rem, 3.6vw, 2.4rem); font-weight: 700; letter-spacing: -0.03em; color: var(--accent); margin-top: 4px; }
@@ -134,7 +134,6 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 .next { border: 1.5px dashed var(--rule); border-radius: var(--radius); padding: 22px 26px; color: var(--ink-3); }
 .next b { color: var(--ink-2); font-weight: 600; }
 @media (max-width: 760px) {
-  .project { grid-template-columns: minmax(0, 1fr); }
   .hero { padding-top: 52px; }
 }
 </style>
@@ -202,19 +201,10 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
     </header>
     <div class="projects">
       <a class="project" href="projects/sharar/index.html">
-        <div>
-          <span class="tagline">NVIDIA DGX Spark · Qwen3.8 and Nemotron 3.5</span>
-          <h3>Sharar</h3>
-          <p class="what">Fast local inference for AI agents on a single DGX Spark.</p>
-          <div class="facts"><span>4 models up to 125B</span><span>OpenAI and Anthropic APIs</span><span>SSD session cache</span><span>Apache 2.0</span></div>
-          <span class="go">Explore Sharar →</span>
-        </div>
-        <div class="nums">
-          <div><b>4.3×</b><span>higher decoding throughput</span></div>
-          <div><b>3.1×</b><span>more agentic tasks per hour</span></div>
-          <div><b>2.1×</b><span>faster for a single user</span></div>
-          <p class="fine">Qwen3.8-Flash-Next, against the fastest of vLLM, llama.cpp, and TensorFold.</p>
-        </div>
+        <span class="tagline">NVIDIA DGX Spark · Qwen3.8 and Nemotron 3.5</span>
+        <h3>Sharar</h3>
+        <p class="what">Fast local inference for AI agents on a single DGX Spark.</p>
+        <span class="go">Explore Sharar →</span>
       </a>
       <div class="next"><b>More projects coming.</b> Next model and hardware targets will be listed here.</div>
     </div>
