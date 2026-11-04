@@ -14,7 +14,7 @@ import json
 import re
 from pathlib import Path
 
-SITE = "MSI"  # the umbrella site's name; one place to change it
+SITE = "Sharar"  # the umbrella site's name; one place to change it
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
 PARTS = {p.name: p.read_text() for p in (SRC / "partials").iterdir()}
