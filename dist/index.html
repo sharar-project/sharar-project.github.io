@@ -92,11 +92,17 @@ section.band { margin-top: 80px; display: grid; gap: 22px; scroll-margin-top: 72
 section.band > header { display: grid; gap: 8px; max-width: 64ch; }
 section.band h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
 section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
-.msi { margin: 8px 0 0; display: grid; gap: 14px; }
-.msi-scroll { overflow-x: auto; background: var(--bg); border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px 24px 16px; }
-.msi-svg { display: block; width: 100%; min-width: 760px; height: auto; }
-.msi figcaption { font-size: 0.9375rem; color: var(--ink-2); max-width: 80ch; margin: 0 auto; text-align: center; }
-.msi figcaption b { color: var(--ink); font-weight: 600; }
+.fitfig { margin: 8px 0 0; display: grid; gap: 14px; }
+.ff-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ff-q { font-size: 1.0625rem; font-weight: 600; }
+.seg { display: inline-flex; border-radius: 999px; padding: 2px; background: var(--sunk); }
+.seg button { font: 500 0.82rem/1 var(--f-body); border: 0; background: none; color: var(--ink-2); padding: 8px 14px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 12%); }
+.ff-box { background: var(--surface); border-radius: var(--radius); padding: 18px 20px; overflow-x: auto; }
+#ff-svg { display: block; width: 100%; min-width: 600px; height: auto; }
+#ff-svg text { font-family: var(--f-body); }
+.fitfig figcaption { font-size: 0.9375rem; color: var(--ink-2); max-width: 80ch; }
+.fitfig figcaption b { color: var(--ink); font-weight: 600; }
 .map { background: var(--surface); border-radius: var(--radius); padding: 26px 30px; display: grid; gap: 12px; }
 .map-head { display: grid; grid-template-columns: minmax(0, 1fr) 80px minmax(0, 1fr); font-size: 0.8125rem; font-weight: 600; color: var(--ink-3); }
 .map-head span:last-child { color: var(--accent); }
@@ -160,78 +166,16 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
     </div>
   </header>
 
-  <figure class="msi" id="msi">
-    <div class="msi-scroll">
-      <svg class="msi-svg" viewBox="0 0 1000 400" role="img" aria-label="Generic serving puts one framework between every model and every device; MSI builds one engine per model family and device, sitting directly on that device.">
-      <text x="20" y="30" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="21" font-weight="700" fill="#1d1d1f">Generic serving today</text>
-      <text x="20" y="52" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" fill="#6e6e73">One framework for every model and device.</text>
-      <text x="580" y="30" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="21" font-weight="700" fill="#1d1d1f">MSI</text>
-      <text x="580" y="52" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" fill="#6e6e73">One engine per model family and device, built on that device.</text>
-      <line x1="500" y1="70" x2="500" y2="380" stroke="#d2d2d7" stroke-width="1.5" stroke-dasharray="3 5"/>
-      <text x="500" y="128" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="11.5" font-weight="600" letter-spacing="1.2" fill="#86868b" paint-order="stroke" stroke="#ffffff" stroke-width="6">MODELS</text>
-      <text x="500" y="238" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="11.5" font-weight="600" letter-spacing="1.2" fill="#86868b" paint-order="stroke" stroke="#ffffff" stroke-width="6">SERVING</text>
-      <text x="500" y="256" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="11.5" font-weight="600" letter-spacing="1.2" fill="#86868b" paint-order="stroke" stroke="#ffffff" stroke-width="6">ENGINE</text>
-      <text x="500" y="352" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="11.5" font-weight="600" letter-spacing="1.2" fill="#86868b" paint-order="stroke" stroke="#ffffff" stroke-width="6">HARDWARE</text>
-      <rect x="20" y="90" width="74" height="72" rx="6" fill="#ece4f3" stroke="#a58fc0" stroke-width="1.5"/>
-      <text x="57.0" y="122" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1d1d1f">Qwen3.8</text>
-      <text x="57.0" y="138" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" fill="#1d1d1f">27B</text>
-      <rect x="104" y="90" width="74" height="72" rx="6" fill="#f3e2e3" stroke="#c49196" stroke-width="1.5"/>
-      <text x="141.0" y="130" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1d1d1f">Flash-Next</text>
-      <rect x="188" y="90" width="74" height="72" rx="6" fill="#f2ead9" stroke="#bfa477" stroke-width="1.5"/>
-      <text x="225.0" y="122" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1d1d1f">Nemotron</text>
-      <text x="225.0" y="138" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" fill="#1d1d1f">Super</text>
-      <rect x="272" y="90" width="74" height="72" rx="6" fill="#e7efdc" stroke="#9fb47f" stroke-width="1.5"/>
-      <text x="309.0" y="122" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1d1d1f">Nemotron</text>
-      <text x="309.0" y="138" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" fill="#1d1d1f">Bolt</text>
-      <rect x="356" y="90" width="74" height="72" rx="6" fill="#e0eeee" stroke="#86b3b2" stroke-width="1.5"/>
-      <text x="393.0" y="130" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1d1d1f">Model …</text>
-      <rect x="20" y="190" width="410" height="96" rx="8" fill="#f5f5f7" stroke="#b8b8bf" stroke-width="1.5"/>
-      <text x="225" y="236" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="15" font-weight="600" fill="#1d1d1f">Generic framework</text>
-      <text x="225" y="256" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#6e6e73">same kernels, formats, and cache for all</text>
-      <rect x="20" y="322" width="126" height="52" rx="6" fill="#e8e8ed" stroke="#8e8e93" stroke-width="1.5"/>
-      <text x="83" y="353" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">DGX Spark</text>
-      <rect x="162" y="322" width="126" height="52" rx="6" fill="#e8e8ed" stroke="#8e8e93" stroke-width="1.5"/>
-      <text x="225" y="353" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">Device Y</text>
-      <rect x="304" y="322" width="126" height="52" rx="6" fill="#e8e8ed" stroke="#8e8e93" stroke-width="1.5"/>
-      <text x="367" y="353" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">Device Z</text>
-      <rect x="580.0" y="90" width="43.0" height="72" rx="6" fill="#ece4f3" stroke="#a58fc0" stroke-width="1.5"/>
-      <text x="601.5" y="126" text-anchor="middle" transform="rotate(-90 601.5 126)" dy="4" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#1d1d1f">27B</text>
-      <rect x="629.0" y="90" width="43.0" height="72" rx="6" fill="#f3e2e3" stroke="#c49196" stroke-width="1.5"/>
-      <text x="650.5" y="126" text-anchor="middle" transform="rotate(-90 650.5 126)" dy="4" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#1d1d1f">Flash-Next</text>
-      <rect x="678.0" y="90" width="43.0" height="72" rx="6" fill="#f2ead9" stroke="#bfa477" stroke-width="1.5"/>
-      <text x="699.5" y="126" text-anchor="middle" transform="rotate(-90 699.5 126)" dy="4" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#1d1d1f">Super</text>
-      <rect x="727.0" y="90" width="43.0" height="72" rx="6" fill="#e7efdc" stroke="#9fb47f" stroke-width="1.5"/>
-      <text x="748.5" y="126" text-anchor="middle" transform="rotate(-90 748.5 126)" dy="4" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#1d1d1f">Bolt</text>
-      <rect x="580" y="190" width="190" height="184" rx="8" fill="#ffffff" stroke="#a31f34" stroke-width="2"/>
-      <path d="M580 322 H770" stroke="#a31f34" stroke-width="1.2"/>
-      <rect x="581" y="191" width="188" height="130" rx="7" fill="#f8e9ec"/>
-      <text x="675.0" y="222" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="17" font-weight="700" fill="#a31f34">Sharar</text>
-      <text x="675.0" y="248" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#515154">3-bit weights</text>
-      <text x="675.0" y="268" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#515154">SSD session cache</text>
-      <text x="675.0" y="288" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#515154">adaptive speculation</text>
-      <rect x="581" y="323" width="188" height="50" rx="7" fill="#e8e8ed"/>
-      <text x="675.0" y="353" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">DGX Spark</text>
-      <rect x="790" y="90" width="95" height="72" rx="6" fill="#ffffff" stroke="#c7c7cc" stroke-width="1.5" stroke-dasharray="4 4"/>
-      <text x="837.5" y="130" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" fill="#86868b">models …</text>
-      <rect x="790" y="190" width="95" height="184" rx="8" fill="#ffffff" stroke="#8e8e93" stroke-width="1.5"/>
-      <rect x="791" y="191" width="93" height="130" rx="7" fill="#ffffff" stroke="#c7c7cc" stroke-dasharray="4 4"/>
-      <text x="837.5" y="250" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#86868b">next</text>
-      <text x="837.5" y="266" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#86868b">engine</text>
-      <path d="M790 322 H885" stroke="#8e8e93" stroke-width="1.2"/>
-      <rect x="791" y="323" width="93" height="50" rx="7" fill="#e8e8ed"/>
-      <text x="837.5" y="353" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">Device Y</text>
-      <rect x="900" y="90" width="95" height="72" rx="6" fill="#ffffff" stroke="#c7c7cc" stroke-width="1.5" stroke-dasharray="4 4"/>
-      <text x="947.5" y="130" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" fill="#86868b">models …</text>
-      <rect x="900" y="190" width="95" height="184" rx="8" fill="#ffffff" stroke="#8e8e93" stroke-width="1.5"/>
-      <rect x="901" y="191" width="93" height="130" rx="7" fill="#ffffff" stroke="#c7c7cc" stroke-dasharray="4 4"/>
-      <text x="947.5" y="250" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#86868b">next</text>
-      <text x="947.5" y="266" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#86868b">engine</text>
-      <path d="M900 322 H995" stroke="#8e8e93" stroke-width="1.2"/>
-      <rect x="901" y="323" width="93" height="50" rx="7" fill="#e8e8ed"/>
-      <text x="947.5" y="353" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">Device Z</text>
-      </svg>
+  <figure class="fitfig" id="msi">
+    <div class="ff-top">
+      <p class="ff-q" id="ff-q">Each device gets an engine shaped to it.</p>
+      <div class="seg" role="group" aria-label="Engine">
+        <button type="button" id="ff-generic" aria-pressed="false">Generic engine</button>
+        <button type="button" id="ff-msi" aria-pressed="true">Fitted engines</button>
+      </div>
     </div>
-    <figcaption><b>One engine per model family and device.</b> A generic framework puts the same layer between every model and every device. Each MSI engine is built on its device, for the models it serves.</figcaption>
+    <div class="ff-box"><svg id="ff-svg" viewBox="0 58 900 240" role="img" aria-label="Three devices with differently shaped limits: one flat generic engine leaves gaps on each, fitted engines fill them"></svg></div>
+    <figcaption><b>Fit the engine to the device.</b> Every device has a different shape of limits. One generic design leaves gaps on each; an engine fitted to one device fills them.</figcaption>
   </figure>
 
   <section class="band" id="approach">
@@ -319,4 +263,62 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
     <span><a href="index.html">Home</a> · <a href="index.html#projects">Projects</a> · <a href="blog/index.html">Blog</a></span>
   </div>
 </footer>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg", svg = document.getElementById("ff-svg");
+  const el = (t, a, p = svg) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+  const tx = (x, y, str, a = {}, p = svg) => { const e = el("text", { x, y, ...a }, p); e.textContent = str; return e; };
+  // three devices, each an abstract profile of limits (illustrative shapes, not specs)
+  const DEV = [
+    { name: "NVIDIA DGX Spark", x: 30, tops: [190, 150, 205, 170] },
+    { name: "Apple Mac", x: 330, tops: [160, 200, 150, 185] },
+    { name: "AMD Strix Halo", x: 630, tops: [200, 165, 180, 145] }];
+  const W = 240, TOPY = 34, BASE = 262, ENGH = 72;
+  function draw(f) {
+    svg.innerHTML = "";
+    const defs = el("defs", {});
+    const pat = el("pattern", { id: "ff-hatch", width: 7, height: 7, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
+    el("rect", { width: 7, height: 7, fill: "#ffffff" }, pat); el("line", { x1: 0, y1: 0, x2: 0, y2: 7, stroke: "#d2d2d7", "stroke-width": 3 }, pat);
+    const fitted = f > 0.5;
+    DEV.forEach(dv => {
+      const n = dv.tops.length, cw = W / n, flat = Math.min(...dv.tops);
+      // device silhouette
+      let d = `M${dv.x},${BASE}`;
+      dv.tops.forEach((t, i) => { d += ` L${dv.x + i * cw},${t} L${dv.x + (i + 1) * cw},${t}`; });
+      d += ` L${dv.x + W},${BASE} Z`;
+      el("path", { d, fill: "#e3e3e8" });
+      tx(dv.x + W / 2, BASE + 26, dv.name, { "text-anchor": "middle", "font-size": 14, "font-weight": 600, fill: "#1d1d1f" });
+      // engine lower edge: flat at the device's highest point, or following its profile
+      const bot = dv.tops.map(t => flat + (t - flat) * f);
+      dv.tops.forEach((t, i) => {
+        const h = t - bot[i];
+        if (h > 2) el("rect", { x: dv.x + i * cw + 1, y: bot[i], width: cw - 2, height: h, fill: "url(#ff-hatch)", opacity: Math.min(1, h / 16) });
+      });
+      const top = flat - ENGH;
+      let e = `M${dv.x},${top + 12} Q${dv.x},${top} ${dv.x + 12},${top} L${dv.x + W - 12},${top} Q${dv.x + W},${top} ${dv.x + W},${top + 12}`;
+      for (let i = n - 1; i >= 0; i--) e += ` L${dv.x + (i + 1) * cw},${bot[i]} L${dv.x + i * cw},${bot[i]}`;
+      e += " Z";
+      el("path", { d: e, fill: fitted ? "#a31f34" : "#ffffff", stroke: fitted ? "#a31f34" : "#86868b", "stroke-width": 1.5 });
+      tx(dv.x + W / 2, top + 42, fitted ? "fitted engine" : "generic engine", { "text-anchor": "middle", "font-size": 15, "font-weight": 600, fill: fitted ? "#ffffff" : "#515154" });
+    });
+  }
+  const q = document.getElementById("ff-q"), g = document.getElementById("ff-generic"), m = document.getElementById("ff-msi");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let f = 1, anim = null, timer = null;
+  function go(to) {
+    g.setAttribute("aria-pressed", String(to === 0)); m.setAttribute("aria-pressed", String(to === 1));
+    q.textContent = to ? "Each device gets an engine shaped to it." : "One generic design leaves gaps on every device.";
+    cancelAnimationFrame(anim);
+    if (reduce) { f = to; draw(f); return; }
+    const from = f, t0 = performance.now();
+    const tick = t => { const k = Math.min(1, (t - t0) / 900); f = from + (to - from) * (1 - Math.pow(1 - k, 3)); draw(f); if (k < 1) anim = requestAnimationFrame(tick); };
+    anim = requestAnimationFrame(tick);
+  }
+  g.onclick = () => { clearInterval(timer); go(0); };
+  m.onclick = () => { clearInterval(timer); go(1); };
+  if (reduce) draw(1);
+  else { f = 0; draw(0); go(0); setTimeout(() => go(1), 1300); timer = setInterval(() => go(f > 0.5 ? 0 : 1), 4500); }
+})();
+</script>
 
