@@ -48,17 +48,10 @@ p { margin: 0; }
 .wordmark.site { color: var(--ink); display: inline-flex; align-items: center; gap: 7px; font-style: italic; font-weight: 800; letter-spacing: -0.03em; }
 .logo { display: block; flex: none; }
 .foot-brand { display: inline-flex; align-items: center; gap: 6px; }
-/* project sub-navigation, under the site nav */
-.subnav { background: var(--surface); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.subnav-inner { max-width: 1048px; margin: 0 auto; display: flex; align-items: center; gap: 24px; min-height: 46px; }
-.subnav .proj { font-family: var(--f-display); font-weight: 800; font-style: italic; color: var(--accent); text-decoration: none; flex: none; display: inline-flex; align-items: center; gap: 6px; }
-.subnav-links { display: flex; gap: 20px; font-size: 0.875rem; overflow-x: auto; scrollbar-width: none; }
-.subnav-links a, .subnav-links span { color: var(--ink-2); text-decoration: none; white-space: nowrap; padding-block: 12px; }
-.subnav-links a:hover, .subnav-links a[aria-current="page"] { color: var(--ink); font-weight: 600; }
-.subnav-links .soon { color: var(--ink-3); }
 .nav-links { display: flex; gap: 24px; font-size: 0.875rem; overflow-x: auto; scrollbar-width: none; align-items: center; }
 .nav-links a, .nav-links span { color: var(--ink-2); text-decoration: none; white-space: nowrap; padding-block: 14px; }
 .nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--accent); }
+.nav-links .soon { color: var(--ink-3); }
 
 /* buttons */
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 999px; font: 500 0.9375rem/1 var(--f-body); text-decoration: none; border: 1px solid var(--ink); background: var(--ink); color: #ffffff; }
@@ -105,8 +98,12 @@ footer.site a:hover { color: var(--accent); }
   <div class="nav-inner">
     <a class="wordmark site" href="../index.html"><svg class="logo" width="24" height="24" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="lg-nav" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#a31f34" stop-opacity="0.1"/><stop offset="0.7" stop-color="#a31f34" stop-opacity="0.9"/></linearGradient></defs><path d="M56 24 L6 94 L78 46 Z" fill="url(#lg-nav)"/><path d="M70.5 10.4 L73.9 28.4 L91.7 32.4 L75.7 41.2 L77.4 59.4 L64.1 46.8 L47.3 54.1 L55.1 37.5 L43.0 23.8 L61.2 26.1 Z" fill="#a31f34" stroke="#a31f34" stroke-width="7" stroke-linejoin="round"/></svg><span>Sharar</span></a>
     <div class="nav-links">
-      <a href="../index.html#projects">Projects</a>
+      <a href="../projects/sharar/index.html">Overview</a>
+      <a href="../projects/sharar/models/index.html">Models</a>
+      <a href="../index.html#start">Get started</a>
+      <a href="../blog/sharar-paper/index.html">Paper</a>
       <a href="../blog/index.html" aria-current="page">Blog</a>
+      <span class="soon" title="The repository opens with the paper">GitHub (soon)</span>
     </div>
   </div>
 </nav>

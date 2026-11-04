@@ -22,10 +22,10 @@ HEAD = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
         '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}'
         'body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>\n</head>\n<body>\n')
-PAGES = [  # (source, output, path back to the site root, current site-nav item, current Sharar sub-nav item)
+PAGES = [  # (source, output, path back to the site root, current nav item, unused)
     ("index.html", "index.html", "", "", ""),
-    ("sharar.html", "projects/sharar/index.html", "../../", "projects", "overview"),
-    ("models.html", "projects/sharar/models/index.html", "../../../", "projects", "models"),
+    ("sharar.html", "projects/sharar/index.html", "../../", "overview", ""),
+    ("models.html", "projects/sharar/models/index.html", "../../../", "models", ""),
     ("blog.html", "blog/index.html", "../", "blog", ""),
     ("posts/sharar-paper.html", "blog/sharar-paper/index.html", "../../", "blog", ""),
 ]
@@ -70,14 +70,11 @@ FILL, CMP_ROWS = model_numbers()
 
 def render(src, root, current, sub):
     page = (SRC / src).read_text()
-    nav, subnav = PARTS["nav.html"], PARTS["sharar-nav.html"]
-    for item in ("projects", "blog"):
+    nav = PARTS["nav.html"]
+    for item in ("overview", "models", "blog"):
         nav = nav.replace(f" {{{{CUR_{item}}}}}", ' aria-current="page"' if item == current else "")
-    for item in ("overview", "models"):
-        subnav = subnav.replace(f" {{{{SUB_{item}}}}}", ' aria-current="page"' if item == sub else "")
     page = (page.replace("/*__SITE_CSS__*/", PARTS["site.css"])
                 .replace("<!--__NAV__-->", nav)
-                .replace("<!--__SHARAR_NAV__-->", subnav)
                 .replace("<!--__FOOTER__-->", PARTS["footer.html"])
                 .replace("<!--__POST_CARD__-->", PARTS["post-card.html"])
                 .replace("<!--__CMP_ROWS__-->", CMP_ROWS)
