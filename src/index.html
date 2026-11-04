@@ -164,6 +164,36 @@ table.acc tr.ours td i { font-weight: 400; }
 .ss-flash { position: absolute; right: 12px; top: 8px; font-size: 0.8rem; font-weight: 600; }
 .ss-read { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 760px) { .ss-read { grid-template-columns: minmax(0, 1fr); } }
+/* SpecPilot-style document layout */
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgb(255 255 255 / 92%); backdrop-filter: saturate(180%) blur(14px); border-bottom: 1px solid var(--rule); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.nav-inner { max-width: 1000px; margin: 0 auto; min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.wordmark { font-family: var(--f-display); font-weight: 700; font-size: 1.125rem; letter-spacing: -0.02em; color: var(--accent); text-decoration: none; flex: none; }
+.nav-links { display: flex; gap: 22px; font-size: 0.875rem; overflow-x: auto; scrollbar-width: none; }
+.nav-links a { color: var(--ink-2); text-decoration: none; white-space: nowrap; padding-block: 14px; }
+.nav-links a:hover { color: var(--accent); }
+.wrap { max-width: 1000px; }
+.hero { padding-block: 48px 30px; gap: 16px; }
+.hero h1 { font-size: clamp(1.9rem, 4.2vw, 2.75rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; max-width: 22ch; }
+.hero h1 .brand { color: var(--accent); }
+.summary { max-width: 60ch; font-size: 1.1875rem; line-height: 1.55; color: var(--ink); text-wrap: pretty; }
+.affil { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin-top: -6px; }
+.btn { background: var(--ink); border-color: var(--ink); color: #ffffff; }
+.btn.ghost { color: var(--ink-2); }
+.hero-fig { margin: 0; }
+.figcap { font-size: 0.9375rem; color: var(--ink-2); line-height: 1.5; margin-top: 12px; max-width: 80ch; }
+.figcap b { color: var(--ink); font-weight: 600; }
+section { padding-block: 44px 0; display: grid; gap: 16px; border-top: 1px solid var(--rule); margin-top: 44px; }
+section > h2 { font-size: clamp(1.6rem, 3vw, 2rem); }
+section > h3 { font-size: 1.25rem; margin-top: 18px; }
+section > p { max-width: 70ch; color: var(--ink); }
+section > .figcap { margin-top: -4px; }
+.callout { border-left: 3px solid var(--accent); padding: 4px 0 4px 20px; display: grid; gap: 10px; max-width: 70ch; }
+.callout b { font-weight: 600; }
+.copyrow h2 { font-size: clamp(1.6rem, 3vw, 2rem); }
+.stats { margin-top: 48px; }
+@media (max-width: 760px) { .nav-links { gap: 16px; } .nav-inner { gap: 14px; } }
 pre.code { background: var(--surface); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font: 0.86rem/1.65 var(--f-mono); color: var(--ink); margin: 0; }
 pre.code .c { color: var(--ink-3); }
 .copyrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -181,30 +211,33 @@ footer b { color: var(--ink); font-family: var(--f-display); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 
-<div class="wrap">
-  <nav class="top">
-    <a href="https://github.com/abdelfattah-lab">Abdelfattah Lab · Cornell</a>
-    <span class="mono">DGX Spark · GB10 · 128 GB unified memory</span>
-  </nav>
-
+<nav class="nav" aria-label="Sections">
+  <div class="nav-inner">
+    <a class="wordmark" href="#top">Sharar</a>
+    <div class="nav-links">
+      <a href="#idea">Idea</a><a href="#surgery">Model surgery</a><a href="#memory">Memory</a><a href="#speculation">Speculation</a><a href="#results">Results</a><a href="#bibtex">BibTeX</a>
+    </div>
+  </div>
+</nav>
+<div class="wrap" id="top">
   <header class="hero">
-    <h1>Sharar</h1>
-    <p class="subtitle">Fast agentic inference on <em>unified-memory</em> devices</p>
-    <p class="authors">Yahya Emara<sup>1*</sup> · Chi-Chih Chang<sup>1*</sup> · Anthony Fei<sup>1</sup> · Ahmed F. AbouElhamayed<sup>1</sup> · Chong-Yan Chen<sup>2</sup> · Hung-Yueh Chiang<sup>3</sup> · Kai-Chiang Wu<sup>4</sup> · Mohamed S. Abdelfattah<sup>1</sup></p>
-    <p class="affil"><sup>1</sup>Cornell University · <sup>2</sup>University of Illinois Urbana-Champaign · <sup>3</sup>Independent researcher · <sup>4</sup>National Yang Ming Chiao Tung University<br><sup>*</sup>Equal contribution</p>
+    <h1><span class="brand">Sharar</span>: Fast Agentic Inference on Unified-Memory Devices</h1>
+    <p class="summary">On a unified-memory device, the model and every agent's history share one memory. Sharar co-designs the model, its memory, and its decoding so many agents run fast on a single DGX Spark.</p>
+    <p class="authors">Yahya Emara<sup>1*</sup>, Chi-Chih Chang<sup>1*</sup>, Anthony Fei<sup>1</sup>, Ahmed F. AbouElhamayed<sup>1</sup>, Chong-Yan Chen<sup>2</sup>, Hung-Yueh Chiang<sup>3</sup>, Kai-Chiang Wu<sup>4</sup>, Mohamed S. Abdelfattah<sup>1</sup></p>
+    <p class="affil"><span><sup>1</sup>Cornell University</span><span><sup>2</sup>University of Illinois Urbana-Champaign</span><span><sup>3</sup>Independent researcher</span><span><sup>4</sup>National Yang Ming Chiao Tung University</span><span><sup>*</sup>Equal contribution</span></p>
     <div class="links">
       <span class="btn ghost" title="The paper is in preparation">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
-        Paper · coming soon</span>
+        Paper (soon)</span>
       <span class="btn ghost" title="The repository is private for now">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
-        Code · coming soon</span>
-      <a class="btn" href="#techniques">Explore the techniques ↓</a>
+        Code (soon)</span>
+      <a class="btn" href="#bibtex">BibTeX</a>
     </div>
   </header>
 
-  <!-- hero: the speed hill climb -->
-  <figure class="card" id="climb-card" style="margin:0">
+  <figure class="hero-fig" id="climb-card">
+    <div class="card">
     <div class="card-head">
       <p class="lead">Building Sharar · <b id="climb-lead">27.9 tokens/s</b></p>
       <div class="tools">
@@ -223,8 +256,10 @@ footer b { color: var(--ink); font-family: var(--f-display); }
       </div>
     </div>
     <div class="stepchips" id="climb-chips"></div>
-    <figcaption class="cap fig-cap">Qwen3.8-Flash-Next, one request, one DGX Spark. Click a step to jump to it.</figcaption>
+    </div>
+    <figcaption class="figcap"><b>Each idea adds speed.</b> Decode throughput on Qwen3.8-Flash-Next at one request on one DGX Spark, as each optimization is added. Click a step to jump to it.</figcaption>
   </figure>
+
   <div class="stats">
     <div class="stat"><div class="big num">4.3×</div><div class="what">higher decoding throughput</div></div>
     <div class="stat"><div class="big num">3.1×</div><div class="what">more agentic tasks per hour</div></div>
@@ -232,40 +267,21 @@ footer b { color: var(--ink); font-family: var(--f-display); }
   </div>
   <p class="cap stats-note">Qwen3.8-Flash-Next on one DGX Spark, against the fastest of vLLM, llama.cpp, and TensorFold.</p>
 
-  <p class="thesis">On a unified-memory device, the model and every agent's history share <span>one memory</span>.</p>
-
-  <!-- techniques -->
-  <section class="block" id="techniques">
-    <div class="sec-head">
-      <span class="eyebrow">How it works</span>
-      <h2>Three ideas, designed together</h2>
-    </div>
-    <div class="pillars">
-      <div class="pillar">
-        <span class="res">Fewer bytes per token</span>
-        <h3>Model surgery</h3>
-        <p>Edit the trained model to fit the hardware: 3-bit weights, INT8 recurrent state, a 2-bit draft head.</p>
-      </div>
-      <div class="pillar">
-        <span class="res">No recomputation between turns</span>
-        <h3>Unified-memory management</h3>
-        <p>Keep every agent's state across turns, spilling it to the SSD when GPU memory runs out.</p>
-      </div>
-      <div class="pillar">
-        <span class="res">More tokens per weight read</span>
-        <h3>Adaptive speculation</h3>
-        <p>Share experts across drafted tokens, and draft only as far as acceptance pays for.</p>
-      </div>
+  <section id="idea">
+    <h2>The idea in a minute</h2>
+    <p>Local agents extend long histories, pause for tools, and run side by side. On a unified-memory device such as the DGX Spark, the weights, the active requests, and every saved history share one 128 GB pool, and every generated token streams the weights through limited bandwidth. Sharar attacks both limits at once.</p>
+    <div class="callout">
+      <p><b>Model surgery.</b> Edit the trained model to fit the hardware: 3-bit weights, INT8 recurrent state, and a 2-bit draft head, so each token reads fewer bytes.</p>
+      <p><b>Unified-memory management.</b> Keep every agent's state across turns, spilling it to the SSD when GPU memory runs out, so a returning agent resumes instead of recomputing.</p>
+      <p><b>Adaptive speculation.</b> Share experts across drafted tokens and draft only as far as acceptance pays for, so each weight read yields more tokens.</p>
     </div>
   </section>
 
-  <!-- 3-bit codebook -->
-  <section class="block" id="codebook">
-    <div class="sec-head">
-      <span class="eyebrow">Model surgery · 3-bit weights</span>
-      <h2>Eight values per group, three bits per weight</h2>
-    </div>
-    <div class="prose"><p>Each group of 32 weights snaps to an 8-entry FP8 codebook, so each weight is stored as a 3-bit index. The kernel looks up the codes and feeds FP8 tensor cores directly.</p></div>
+  <section id="surgery">
+    <h2>Model surgery</h2>
+    <p>Decoding one request is bound by memory bandwidth, so the fastest token is the one that reads the fewest bytes.</p>
+    <h3>Three-bit weights</h3>
+    <p>Each group of 32 weights snaps to an 8-entry FP8 codebook, so each weight is stored as a 3-bit index. The kernel looks up the codes and feeds FP8 tensor cores directly.</p>
     <div class="card two">
       <div class="chart"><svg id="cb-svg" viewBox="0 0 470 250" role="img" aria-label="32 weights snapping to 8 codebook values"></svg></div>
       <div style="display:grid;gap:16px;min-width:0">
@@ -277,18 +293,12 @@ footer b { color: var(--ink); font-family: var(--f-display); }
           <div><div class="k">Bits per weight</div><div class="v acc num" id="cb-bits">8</div></div>
           <div><div class="k">Bytes vs FP8</div><div class="v num" id="cb-bytes">100%</div></div>
         </div>
-        <p class="cap">3 bits per index plus one 8-bit scale per 32 weights: 3 + 8/32 = 3.25 bits. Codebook values here are fitted to the group for illustration.</p>
       </div>
     </div>
-  </section>
+    <p class="figcap"><b>Eight values per group, three bits per weight.</b> Codes take 3 bits and each group of 32 adds one 8-bit scale: 3 + 8/32 = 3.25 bits per weight. The codebook here is fitted to the group for illustration.</p>
 
-  <!-- 2-bit draft head -->
-  <section class="block" id="drafthead">
-    <div class="sec-head">
-      <span class="eyebrow">Model surgery · 2-bit draft head</span>
-      <h2>Shortlist in 2 bits, decide in FP8</h2>
-    </div>
-    <div class="prose"><p>The drafter's output head scores every token in the vocabulary, and it is the largest matrix the drafter reads. A 2-bit copy is cheap but noisy, so Sharar uses it only to shortlist, then rescores the shortlist in FP8.</p></div>
+    <h3>Two-bit draft head</h3>
+    <p>The drafter's output head scores every token in the vocabulary and is the largest matrix the drafter reads. A 2-bit copy is cheap but noisy, so Sharar uses it only to shortlist candidates, then rescores the shortlist in FP8.</p>
     <div class="card" style="display:grid;gap:14px">
       <div class="card-head" style="margin:0">
         <div class="seg" role="group" aria-label="Example">
@@ -309,17 +319,16 @@ footer b { color: var(--ink); font-family: var(--f-display); }
         </div>
       </div>
       <div class="stepchips" id="dh-chips" style="margin:0"></div>
-      <p class="cap">Context: <span class="mono">for i in range(</span>. The served head shortlists 16 of a vocabulary of over 100,000 tokens and agrees with the FP8 head on 99.76% of tokens.</p>
     </div>
+    <p class="figcap"><b>Shortlist in 2 bits, decide in FP8.</b> Context: <span class="mono">for i in range(</span>. The served head shortlists 16 of over 100,000 tokens and agrees with the FP8 head on 99.76% of tokens.</p>
+
   </section>
 
-  <!-- SSD session cache -->
-  <section class="block" id="ssd">
-    <div class="sec-head">
-      <span class="eyebrow">Unified-memory management · SSD session cache</span>
-      <h2>Agents take turns. Keep their state on the SSD.</h2>
-    </div>
-    <div class="prose"><p>Here 8 agents take turns, but GPU memory holds the state of only 4. Each agent's state is evicted before its next turn. Discard it and the turn recomputes the whole context; spill it to the SSD and the turn reads it back.</p></div>
+  <section id="memory">
+    <h2>Unified-memory management</h2>
+    <p>Agents take turns. By the time an agent returns, other agents have usually pushed its state out of GPU memory.</p>
+    <h3>SSD session cache</h3>
+    <p>Discard an evicted agent's state and its next turn recomputes the whole context. Sharar spills the KV cache, recurrent state, and draft state to the SSD instead, and reads them back when the agent returns.</p>
     <div class="card" style="display:grid;gap:16px">
       <div class="card-head" style="margin:0">
         <div class="seg" role="group" aria-label="On eviction">
@@ -338,17 +347,16 @@ footer b { color: var(--ink); font-family: var(--f-display); }
         <div><div class="k">Resumed from cache</div><div class="v acc num" id="ss-hit">0%</div></div>
         <div><div class="k">Prefill work per turn</div><div class="v num" id="ss-work">…</div></div>
       </div>
-      <p class="cap">Illustration. On Qwen3.8-Flash-Next with 192 conversations, the SSD tier lifts cache hits to 80–98% and cuts time to first token by up to 42× against the baselines.</p>
     </div>
+    <p class="figcap"><b>Spill, don't discard.</b> Illustration with 8 agents and room for 4 in GPU memory. On Qwen3.8-Flash-Next with 192 conversations, the SSD tier lifts cache hits to 80–98% and cuts time to first token by up to 42× against the baselines.</p>
+
   </section>
 
-  <!-- expert sharing -->
-  <section class="block" id="experts">
-    <div class="sec-head">
-      <span class="eyebrow">Adaptive speculation · expert sharing</span>
-      <h2>Share experts across drafted tokens</h2>
-    </div>
-    <div class="prose"><p>Verifying drafted tokens loads every expert any of them picked. Sharar gives the batch a <strong>shared expert budget</strong> instead, so it reads fewer weights per round.</p></div>
+  <section id="speculation">
+    <h2>Adaptive speculation</h2>
+    <p>A drafter proposes several tokens and the target checks them in one pass. Sharar makes each of these rounds cheaper and sizes it to what will be accepted.</p>
+    <h3>Expert sharing</h3>
+    <p>In a mixture-of-experts layer, verifying drafted tokens loads every expert any of them picked. Sharar gives the round a shared expert budget, so it reads fewer weights.</p>
     <div class="card two">
       <div class="chart"><svg id="moe-svg" viewBox="0 0 470 300" role="img" aria-label="Token by expert routing grid"></svg></div>
       <div style="display:grid;gap:16px;min-width:0">
@@ -366,18 +374,12 @@ footer b { color: var(--ink); font-family: var(--f-display); }
           <div><div class="k">Tokens keeping own top-2</div><div class="v num" id="moe-keep">2 / 6</div></div>
           <div><div class="k">Routing mass kept</div><div class="v num" id="moe-mass">…</div></div>
         </div>
-        <p class="cap">Toy example: 6 tokens, 12 experts, top-2 routing. Shaded columns are the experts read from memory; ↺ marks a second choice swapped for one inside the budget.</p>
       </div>
     </div>
-  </section>
+    <p class="figcap"><b>Fewer experts per round.</b> Toy example: 6 tokens, 12 experts, top-2 routing. Shaded columns are the experts read from memory; ↺ marks a second choice replaced by one inside the budget.</p>
 
-  <!-- adaptive depth -->
-  <section class="block" id="depth">
-    <div class="sec-head">
-      <span class="eyebrow">Adaptive speculation · adaptive drafting</span>
-      <h2>Draft only as far as acceptance pays for</h2>
-    </div>
-    <div class="prose"><p>A longer draft can yield more tokens per round, but each extra draft token costs time to draft and verify. Sharar picks the draft length that maximizes <strong>expected tokens per unit time</strong>.</p></div>
+    <h3>Adaptive draft length</h3>
+    <p>A longer draft can yield more tokens per round, but each extra draft token costs time to draft and verify. Sharar picks the draft length that maximizes expected tokens per unit time:</p>
     <div class="math" role="group" aria-label="Adaptive draft length">
       <math display="block">
         <mrow>
@@ -416,18 +418,16 @@ footer b { color: var(--ink); font-family: var(--f-display); }
           <div><div class="k">Speed vs no drafting</div><div class="v num" id="d-speed">…</div></div>
           <div><div class="k">vs. always 8</div><div class="v num" id="d-fixed">…</div></div>
         </div>
-        <p class="cap">Idealized model. Bars show E[N<sub>d</sub>] / T(d) for each draft length; the red bar is d*.</p>
       </div>
     </div>
+    <p class="figcap"><b>Draft only as far as acceptance pays for.</b> Idealized model. Bars show E[N<sub>d</sub>] / T(d) for each draft length; the red bar is d*. High acceptance earns long drafts.</p>
+
   </section>
 
-  <!-- results explorer -->
-  <section class="block" id="results">
-    <div class="sec-head">
-      <span class="eyebrow">Results · four models, SPEED-Bench 16k and AgentPerf-Local</span>
-      <h2>Faster for one user, and for many</h2>
-    </div>
-    <div class="prose"><p>Higher throughput than every baseline at every concurrency level, on all four models. Hover a point for its numbers.</p></div>
+  <section id="results">
+    <h2>Results</h2>
+    <p>Four models on one DGX Spark against vLLM, Flare, TensorFold, and llama.cpp.</p>
+    <h3>Speed and agentic throughput</h3>
     <div class="card" style="display:grid;gap:14px">
       <div class="card-head" style="margin:0">
         <div class="seg" role="group" aria-label="Model" id="r-model"></div>
@@ -437,17 +437,10 @@ footer b { color: var(--ink); font-family: var(--f-display); }
         <div class="chart" id="warm-chart"><svg id="warm-svg" viewBox="0 0 470 330" role="img" aria-label="Output throughput against per-user speed"></svg></div>
         <div class="chart" id="agent-chart"><svg id="agent-svg" viewBox="0 0 470 330" role="img" aria-label="Agentic tasks per hour against concurrent agents"></svg></div>
       </div>
-      <p class="cap">One DGX Spark. Left: SPEED-Bench, 16k prompts; up and to the right is better. Right: AgentPerf-Local agent replay.</p>
     </div>
-  </section>
+    <p class="figcap"><b>Faster for one user, and for many.</b> Left: SPEED-Bench with 16k prompts, one point per concurrency level; up and to the right is better. Right: AgentPerf-Local agent replay. Hover a point for its numbers.</p>
 
-  <!-- accuracy -->
-  <section class="block" id="accuracy">
-    <div class="sec-head">
-      <span class="eyebrow">Accuracy of the lossy optimizations</span>
-      <h2>Within 3.6 points of the exact model</h2>
-    </div>
-    
+    <h3>Accuracy</h3>
     <div class="card tablewrap">
       <table class="acc">
         <thead><tr><th></th><th>GPQA</th><th>LCB</th><th>IFBench</th><th>AIME25</th><th>AIME26</th></tr></thead>
@@ -458,16 +451,13 @@ footer b { color: var(--ink); font-family: var(--f-display); }
           <tr class="ours"><td>+ Relaxed verif. (fast)</td><td>89.1<i>−1.6</i></td><td>84.6<i>−3.1</i></td><td>81.7<i>−3.6</i></td><td>99.2<i>−0.8</i></td><td>99.2<i>−0.8</i></td></tr>
         </tbody>
       </table>
-      <p class="cap" style="margin-top:10px">Task accuracy (%) on Qwen3.8-Flash-Next as each lossy step is added; small numbers are the drop from exact.</p>
     </div>
+    <p class="figcap"><b>Within 3.6 points of the exact model.</b> Task accuracy (%) on Qwen3.8-Flash-Next as each lossy optimization is added; small numbers are the drop from the exact model.</p>
+
   </section>
 
-  <!-- quick start -->
-  <section class="block" id="start">
-    <div class="sec-head">
-      <span class="eyebrow">Quick start</span>
-      <h2>Serve a model on one Spark</h2>
-    </div>
+  <section id="start">
+    <h2>Quick start</h2>
     <div class="copyrow"><p class="cap">Install uv, then:</p><button class="chip" type="button" data-copy="qs">Copy</button></div>
     <pre class="code" id="qs"><span class="c"># the repository opens with the paper</span>
 git clone https://github.com/abdelfattah-lab/sharar && cd sharar
@@ -478,8 +468,8 @@ uv run sharar launch claude      <span class="c"># point a coding agent at it</s
     <p class="cap">OpenAI- and Anthropic-compatible APIs, 262K context, one Spark or two over ConnectX. Add <span class="mono">--exact</span> for the model's own outputs.</p>
   </section>
 
-  <section class="block" id="cite">
-    <div class="copyrow"><h2 style="font-size:var(--step-2)">Citation</h2><button class="chip" type="button" data-copy="bib">Copy</button></div>
+  <section id="bibtex">
+    <div class="copyrow"><h2>BibTeX</h2><button class="chip" type="button" data-copy="bib">Copy</button></div>
     <pre class="code" id="bib">@misc{emara2026sharar,
   title  = {Sharar: Fast Agentic Inference on Unified-Memory Devices},
   author = {Emara, Yahya and Chang, Chi-Chih and Fei, Anthony and
@@ -520,7 +510,7 @@ const STEPS = [
   ["+ Relaxed verif.", "+ Relaxed verification", 82.1, ["lossy · optional", "speculation"], "Near-miss drafts can be accepted."],
   ["+ Expert sharing", "+ Expert sharing", 108.5, ["lossy · optional", "speculation"], "Drafted tokens share one budget of experts."],
   ["+ Adaptive drafting", "+ Adaptive drafting", 113.9, ["exact", "speculation"], "Draft length follows the acceptance rate."],
-  ["Fast", "+ NVFP4 KV cache = fast profile", 119.6, ["fast profile"], "Adds an NVFP4 KV cache: the full fast profile."],
+  ["Fast", "+ NVFP4 KV cache", 119.6, ["fast profile"], "Adds an NVFP4 KV cache: the full fast profile."],
 ];
 const climbSvg = $("climb-svg");
 const W = 620, H = 330, L = 44, R = 12, T = 26, B = 58, YMAX = 140;
