@@ -1,91 +1,81 @@
 <title>Sharar</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Sharar: fast agentic inference on unified-memory devices.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Noto+Sans+Math&display=swap">
 <style>
-/* Layout: one 1040px column; full-width figure cards for the interactive pieces, prose held to ~66ch inside it. */
+/* Layout: one 1040px column on plain white; figures sit in soft gray panels, Apple-product-page style; prose ~60ch. */
+/* Single light theme by request: white page, every color set explicitly. */
 :root {
-  --bg: #f7f6f6;          /* paper, a hair of red in the gray */
-  --surface: #ffffff;
-  --sunk: #efeded;
-  --ink: #1b1718;
-  --ink-2: #5c5557;
-  --ink-3: #8f8789;
-  --rule: #e2dedf;
+  --bg: #ffffff;
+  --surface: #f5f5f7;     /* figure panels */
+  --sunk: #e8e8ed;
+  --ink: #1d1d1f;
+  --ink-2: #515154;
+  --ink-3: #86868b;
+  --rule: #d2d2d7;
   --accent: #a31f34;      /* Sharar red, the paper figures' color */
-  --accent-soft: #f4e3e6;
+  --accent-soft: #f6e4e7;
   --accent-ink: #ffffff;
-  --e-vllm: #1b1718;
+  --e-vllm: #1d1d1f;
   --e-flare: #5a6a7e;
-  --e-tf: #9a9a9a;
-  --e-llama: #c9c6c7;
+  --e-tf: #9a9a9e;
+  --e-llama: #c7c7cc;
   --e-nossd: #d98c98;
-  --good: #2f7a4f;
-  --warn: #9a6a12;
-  --f-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
-  --f-body: "Public Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
-  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --step--1: 0.8125rem; --step-0: 1rem; --step-1: 1.1875rem; --step-2: 1.5rem; --step-3: 2.125rem; --step-4: clamp(3.25rem, 9vw, 6rem);
-  --radius: 10px;
-}
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #141112; --surface: #1d191a; --sunk: #262122; --ink: #f1eced; --ink-2: #b8afb1; --ink-3: #847b7d; --rule: #352e30;
-  --accent: #e0566c; --accent-soft: #3a1e24; --accent-ink: #160a0d;
-  --e-vllm: #ece6e7; --e-flare: #8ea2bb; --e-tf: #8a8385; --e-llama: #534b4d; --e-nossd: #8f4352;
-  --good: #6cc394; --warn: #e0b25a; color-scheme: dark;
-} }
-:root[data-theme="dark"] {
-  --bg: #141112; --surface: #1d191a; --sunk: #262122; --ink: #f1eced; --ink-2: #b8afb1; --ink-3: #847b7d; --rule: #352e30;
-  --accent: #e0566c; --accent-soft: #3a1e24; --accent-ink: #160a0d;
-  --e-vllm: #ece6e7; --e-flare: #8ea2bb; --e-tf: #8a8385; --e-llama: #534b4d; --e-nossd: #8f4352;
-  --good: #6cc394; --warn: #e0b25a; color-scheme: dark;
+  --good: #1f7a45;
+  --warn: #9a5b00;
+  --f-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --f-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --f-math: "STIX Two Math", "Cambria Math", "Noto Sans Math", math, serif;
+  --step--1: 0.8125rem; --step-0: 1.0625rem; --step-1: 1.1875rem; --step-2: 1.5rem; --step-3: clamp(1.75rem, 3.6vw, 2.5rem); --step-4: clamp(3.5rem, 10vw, 6.5rem);
+  --radius: 18px;
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: var(--step-0); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: var(--step-0); line-height: 1.55; letter-spacing: -0.011em; -webkit-font-smoothing: antialiased; }
 .wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
-h1, h2, h3 { font-family: var(--f-display); font-weight: 700; line-height: 1.1; text-wrap: balance; margin: 0; letter-spacing: -0.015em; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; line-height: 1.1; text-wrap: balance; margin: 0; letter-spacing: -0.022em; }
 p { margin: 0; }
-.prose { max-width: 66ch; display: grid; gap: 1em; color: var(--ink-2); }
+.prose { max-width: 60ch; display: grid; gap: 1em; color: var(--ink-2); }
 .prose strong { color: var(--ink); font-weight: 600; }
 .mono { font-family: var(--f-mono); }
 .num { font-variant-numeric: tabular-nums; }
-.eyebrow { font-family: var(--f-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.eyebrow { font-family: var(--f-body); font-size: 0.875rem; font-weight: 600; letter-spacing: -0.01em; color: var(--accent); }
 .cap { font-size: var(--step--1); color: var(--ink-3); }
 
 /* nav + hero */
 nav.top { display: flex; justify-content: space-between; align-items: center; padding-block: 20px; font-size: var(--step--1); color: var(--ink-2); gap: 12px; flex-wrap: wrap; }
 nav.top a { text-decoration: none; }
+nav.top .mono { font-family: var(--f-body); }
 nav.top a:hover { color: var(--accent); }
 .hero { padding-block: 40px 28px; display: grid; gap: 18px; justify-items: center; text-align: center; }
-.hero h1 { font-size: var(--step-4); font-weight: 800; letter-spacing: -0.035em; line-height: 0.95; }
+.hero h1 { font-size: var(--step-4); font-weight: 700; letter-spacing: -0.04em; line-height: 0.95; }
 .hero h1 .bar { color: var(--accent); }
-.subtitle { font-family: var(--f-display); font-size: clamp(1.15rem, 2.6vw, 1.6rem); font-weight: 500; color: var(--ink-2); max-width: 34ch; line-height: 1.25; text-wrap: balance; }
+.subtitle { font-family: var(--f-display); font-size: clamp(1.25rem, 2.8vw, 1.75rem); font-weight: 600; color: var(--ink-2); max-width: 34ch; line-height: 1.25; text-wrap: balance; }
 .subtitle em { font-style: normal; color: var(--accent); }
 .authors { font-size: var(--step-0); color: var(--ink); max-width: 62ch; text-wrap: balance; }
 .authors sup, .affil sup { font-size: 0.68em; color: var(--ink-3); margin-left: 1px; }
 .affil { font-size: var(--step--1); color: var(--ink-3); margin-top: -10px; }
 .links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
-.btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; font: 500 var(--step--1)/1 var(--f-body); text-decoration: none; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); cursor: pointer; }
-.btn:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.btn.ghost { background: transparent; color: var(--ink-3); border-color: var(--rule); cursor: default; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; font: 500 0.875rem/1 var(--f-body); text-decoration: none; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+.btn:hover { filter: brightness(1.1); }
+.btn.ghost { background: transparent; color: var(--ink-3); border-color: var(--rule); cursor: default; filter: none; }
 .btn svg { width: 15px; height: 15px; }
 
 /* figure cards */
-.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px; }
+.card { background: var(--surface); border-radius: var(--radius); padding: 26px; }
 .card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
 .card-head .lead { font-size: var(--step--1); color: var(--ink-2); }
 .card-head .lead b { color: var(--accent); font-variant-numeric: tabular-nums; }
 .tools { display: flex; gap: 8px; flex-wrap: wrap; }
-.chip { font: 500 0.75rem/1 var(--f-body); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.chip { font: 500 0.78rem/1 var(--f-body); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink-2); cursor: pointer; white-space: nowrap; }
 .chip:hover { border-color: var(--ink-3); color: var(--ink); }
 .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; padding: 2px; background: var(--sunk); flex-wrap: wrap; }
+.seg { display: inline-flex; border-radius: 999px; padding: 2px; background: var(--sunk); flex-wrap: wrap; }
 .seg button { font: 500 0.78rem/1 var(--f-body); border: 0; background: none; color: var(--ink-2); padding: 7px 12px; border-radius: 999px; cursor: pointer; }
-.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
 svg text { font-family: var(--f-body); }
 .axis text { fill: var(--ink-3); font-size: 11px; }
 .axis line, .axis path { stroke: var(--rule); }
@@ -97,11 +87,11 @@ svg text { font-family: var(--f-body); }
 .step-note { border-left: 1px solid var(--rule); padding-left: 22px; display: grid; align-content: start; gap: 10px; min-width: 0; }
 .step-note .idx { font-family: var(--f-mono); font-size: 0.75rem; color: var(--ink-3); }
 .step-note h3 { font-size: var(--step-2); }
-.step-note .val { font-family: var(--f-display); font-size: 2.6rem; font-weight: 800; color: var(--accent); line-height: 1; font-variant-numeric: tabular-nums; }
+.step-note .val { font-family: var(--f-display); font-size: 2.6rem; font-weight: 700; color: var(--accent); line-height: 1; font-variant-numeric: tabular-nums; }
 .step-note .val small { font: 500 var(--step--1) var(--f-body); color: var(--ink-3); margin-left: 4px; }
 .step-note p { color: var(--ink-2); font-size: 0.94rem; }
 .tags { display: flex; gap: 6px; flex-wrap: wrap; }
-.tag { font: 500 0.7rem/1 var(--f-mono); padding: 5px 8px; border-radius: 4px; background: var(--sunk); color: var(--ink-2); letter-spacing: 0.02em; }
+.tag { font: 500 0.72rem/1 var(--f-body); padding: 5px 9px; border-radius: 999px; background: var(--bg); color: var(--ink-2); letter-spacing: 0.02em; }
 .tag.exact { color: var(--good); }
 .tag.lossy { color: var(--warn); }
 .stepchips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 14px; }
@@ -114,21 +104,21 @@ svg text { font-family: var(--f-body); }
 .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-block: 1px solid var(--rule); margin-top: 28px; }
 .stat { padding: 18px 16px; display: grid; gap: 4px; }
 .stat + .stat { border-left: 1px solid var(--rule); }
-.stat .big { font-family: var(--f-display); font-size: var(--step-3); font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat .big { font-family: var(--f-display); font-size: var(--step-3); font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .stat .big span { color: var(--accent); }
 .stat .what { font-size: var(--step--1); color: var(--ink-2); }
 
 /* sections */
 section.block { padding-block: 64px 0; display: grid; gap: 22px; }
-.thesis { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.5rem, 3.4vw, 2.3rem); line-height: 1.18; letter-spacing: -0.02em; max-width: 30ch; margin: 72px auto 0; text-align: center; text-wrap: balance; }
+.thesis { font-family: var(--f-display); font-weight: 600; letter-spacing: -0.028em; font-size: clamp(1.5rem, 3.4vw, 2.3rem); line-height: 1.18; letter-spacing: -0.02em; max-width: 30ch; margin: 72px auto 0; text-align: center; text-wrap: balance; }
 .thesis span { color: var(--accent); }
 .sec-head { display: grid; gap: 8px; }
 .sec-head h2 { font-size: var(--step-3); }
 .pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--ink); }
 .pillar { padding: 18px 20px 4px 0; display: grid; gap: 8px; align-content: start; min-width: 0; }
 .pillar + .pillar { padding-left: 20px; border-left: 1px solid var(--rule); }
-.pillar h3 { font-size: var(--step-1); }
-.pillar .res { font-family: var(--f-mono); font-size: 0.75rem; color: var(--accent); }
+.pillar h3 { font-size: var(--step-2); }
+.pillar .res { font-size: 0.8125rem; font-weight: 600; color: var(--accent); }
 .pillar p { color: var(--ink-2); font-size: 0.94rem; }
 .pillar ul { margin: 0; padding-left: 1.1em; color: var(--ink-2); font-size: 0.9rem; }
 
@@ -138,8 +128,8 @@ section.block { padding-block: 64px 0; display: grid; gap: 22px; }
 .ctrl label output { font-family: var(--f-mono); color: var(--ink); }
 input[type=range] { width: 100%; accent-color: var(--accent); }
 .readout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.readout div { background: var(--sunk); border-radius: 8px; padding: 10px 12px; }
-.readout .k { font-size: 0.72rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.readout div { background: var(--bg); border-radius: 8px; padding: 10px 12px; }
+.readout .k { font-size: 0.8125rem; color: var(--ink-3); }
 .readout .v { font-family: var(--f-display); font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .readout .v.acc { color: var(--accent); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--step--1); color: var(--ink-2); }
@@ -147,18 +137,37 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .legend button[aria-pressed="false"] { opacity: .35; }
 .legend i { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
 .chart svg { width: 100%; height: auto; display: block; overflow: visible; }
-.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font: 500 0.75rem/1.4 var(--f-mono); padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: #ffffff; font: 500 0.75rem/1.4 var(--f-mono); padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
 .chart { position: relative; }
 
 .tablewrap { overflow-x: auto; }
 table.acc { border-collapse: collapse; width: 100%; min-width: 560px; font-variant-numeric: tabular-nums; font-size: 0.92rem; }
-table.acc th { font: 500 0.75rem var(--f-mono); color: var(--ink-3); text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--ink); letter-spacing: .04em; }
+table.acc th { font: 600 0.8rem var(--f-body); color: var(--ink-3); text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--ink); }
 table.acc td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--rule); }
 table.acc td:first-child, table.acc th:first-child { text-align: left; }
 table.acc td i { font-style: normal; font-size: 0.72rem; color: var(--warn); margin-left: 5px; }
 table.acc tr.ours td { color: var(--accent); font-weight: 600; }
 table.acc tr.ours td i { font-weight: 400; }
-pre.code { background: var(--sunk); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font: 0.86rem/1.65 var(--f-mono); color: var(--ink); margin: 0; }
+.math { display: grid; gap: 14px; background: var(--surface); border-radius: var(--radius); padding: 22px 26px; max-width: 100%; overflow-x: auto; }
+.math math { font-family: var(--f-math); font-size: 1.3rem; color: var(--ink); }
+.math math[display="block"] { margin: 0; }
+.math dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 4px 0 0; font-size: 0.94rem; color: var(--ink-2); }
+.math dt { font-family: var(--f-math); font-style: italic; color: var(--ink); text-align: right; }
+.math dd { margin: 0; }
+.meter { height: 6px; background: var(--sunk); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.meter i { display: block; height: 100%; width: 100%; background: var(--accent); border-radius: 3px; transition: width .6s ease; }
+.ssd-stage { position: relative; height: 270px; background: var(--bg); border-radius: 12px; overflow: hidden; }
+.ss-lane { position: absolute; left: 0; right: 0; height: 32%; border-bottom: 1px dashed var(--rule); }
+.ss-lane:last-of-type { border-bottom: 0; }
+.ss-lane span { position: absolute; left: 12px; top: 8px; font-size: 0.75rem; font-weight: 600; color: var(--ink-3); }
+.ss-ssd.off span { text-decoration: line-through; }
+.ss-chip { position: absolute; width: 9.5%; height: 18%; display: grid; place-items: center; border-radius: 10px; font: 600 0.95rem var(--f-body); color: #fff; transition: left .55s cubic-bezier(.3,.7,.3,1), top .55s cubic-bezier(.3,.7,.3,1), opacity .4s, transform .3s; }
+.ss-chip.ghost { opacity: 0.18; }
+.ss-chip.active { transform: scale(1.12); box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--ink); }
+.ss-flash { position: absolute; right: 12px; top: 8px; font-size: 0.8rem; font-weight: 600; }
+.ss-read { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 760px) { .ss-read { grid-template-columns: minmax(0, 1fr); } }
+pre.code { background: var(--surface); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font: 0.86rem/1.65 var(--f-mono); color: var(--ink); margin: 0; }
 pre.code .c { color: var(--ink-3); }
 .copyrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 footer { margin-top: 88px; border-top: 1px solid var(--rule); padding-block: 26px 40px; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; font-size: var(--step--1); color: var(--ink-3); }
@@ -218,7 +227,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
       </div>
     </div>
     <div class="stepchips" id="climb-chips"></div>
-    <figcaption class="cap fig-cap">Decode throughput on Qwen3.8-Flash-Next (125B MoE) at one request on one DGX Spark as each optimization is added; percentages are the change from the previous step. Click a step to jump to it.</figcaption>
+    <figcaption class="cap fig-cap">Qwen3.8-Flash-Next, one request, one DGX Spark. Click a step to jump to it.</figcaption>
   </figure>
   <p class="tldr">On a single DGX Spark serving Qwen and Nemotron models of up to 125B parameters, Sharar completes up to <b>3.1× more agentic tasks per hour</b> and delivers up to <b>4.3× higher decoding throughput</b> than vLLM, llama.cpp, and TensorFold.</p>
 
@@ -228,44 +237,123 @@ footer b { color: var(--ink); font-family: var(--f-display); }
     <div class="stat"><div class="big num">150 <span>tasks/h</span></div><div class="what">Agentic tasks per hour with 16 agents on AgentPerf-Local, 3.1× vLLM (49). 168 at 32 agents.</div></div>
   </div>
 
-  <p class="thesis">Local agents keep extending long histories in the <span>same memory</span> that holds the model. Sharar decides what stays resident, what survives between turns, and what each accepted token costs.</p>
+  <p class="thesis">On a unified-memory device, the model and every agent's history share <span>one memory</span>.</p>
 
   <!-- techniques -->
   <section class="block" id="techniques">
     <div class="sec-head">
-      <span class="eyebrow">Three co-designed techniques</span>
-      <h2>Read fewer bytes, keep each agent's state, accept more per read</h2>
+      <span class="eyebrow">How it works</span>
+      <h2>Three ideas, designed together</h2>
     </div>
     <div class="pillars">
       <div class="pillar">
-        <span class="res">bytes read per token ↓</span>
+        <span class="res">Fewer bytes per token</span>
         <h3>Model surgery</h3>
-        <p>Editing a trained model's architecture to suit its hardware, so each token reads fewer bytes and the model takes less memory.</p>
-        <ul><li>Experts and dense-layer decode copies as 3-bit FP8-codebook indices, run on FP8 tensor cores</li><li>Recurrent states quantized to INT8</li><li>A 2-bit output head shortlists candidates, then FP8 rescores them</li></ul>
+        <p>Edit the trained model to fit the hardware: 3-bit weights, INT8 recurrent state, a 2-bit draft head.</p>
       </div>
       <div class="pillar">
-        <span class="res">work kept across turns ↑</span>
+        <span class="res">No recomputation between turns</span>
         <h3>Unified-memory management</h3>
-        <p>Each agent's state survives across turns, so a long-running agent resumes instantly instead of recomputing its context.</p>
-        <ul><li>SSD session cache: KV, recurrent and draft state, through a small fixed staging buffer</li><li>Engram offloading: large embedding tables served from the SSD</li></ul>
+        <p>Keep every agent's state across turns, spilling it to the SSD when GPU memory runs out.</p>
       </div>
       <div class="pillar">
-        <span class="res">work per accepted token ↓</span>
+        <span class="res">More tokens per weight read</span>
         <h3>Adaptive speculation</h3>
-        <p>More accepted tokens per weight read, by making each draft-verify round cheaper and longer where it pays.</p>
-        <ul><li>Expert sharing across the tokens of a verify batch</li><li>Draft lengths adapted to acceptance rates; diffusion prefixes verified selectively</li><li>Optional acceptance of near-miss tokens</li></ul>
+        <p>Share experts across drafted tokens, and draft only as far as acceptance pays for.</p>
       </div>
     </div>
-    <p class="cap">The <span class="mono">exact</span> profile serves the original model with exact verification; the <span class="mono">fast</span> profile, used for every result here, enables all optimizations. The tags in the figure above mark which steps change outputs.</p>
+  </section>
+
+  <!-- 3-bit codebook -->
+  <section class="block" id="codebook">
+    <div class="sec-head">
+      <span class="eyebrow">Model surgery · 3-bit weights</span>
+      <h2>Eight values per group, three bits per weight</h2>
+    </div>
+    <div class="prose"><p>Each group of 32 weights snaps to an 8-entry FP8 codebook, so each weight is stored as a 3-bit index. The kernel looks up the codes and feeds FP8 tensor cores directly.</p></div>
+    <div class="card two">
+      <div class="chart"><svg id="cb-svg" viewBox="0 0 470 250" role="img" aria-label="32 weights snapping to 8 codebook values"></svg></div>
+      <div style="display:grid;gap:16px;min-width:0">
+        <div class="tools">
+          <button class="chip" type="button" id="cb-play">Quantize</button>
+          <button class="chip" type="button" id="cb-new">New weights</button>
+        </div>
+        <div class="readout">
+          <div><div class="k">Bits per weight</div><div class="v acc num" id="cb-bits">8</div></div>
+          <div><div class="k">Bytes vs FP8</div><div class="v num" id="cb-bytes">100%</div></div>
+        </div>
+        <p class="cap">3 bits per index plus one 8-bit scale per 32 weights: 3 + 8/32 = 3.25 bits. Codebook values here are fitted to the group for illustration.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2-bit draft head -->
+  <section class="block" id="drafthead">
+    <div class="sec-head">
+      <span class="eyebrow">Model surgery · 2-bit draft head</span>
+      <h2>Shortlist in 2 bits, decide in FP8</h2>
+    </div>
+    <div class="prose"><p>The drafter's output head scores every token in the vocabulary, and it is the largest matrix the drafter reads. A 2-bit copy is cheap but noisy, so Sharar uses it only to shortlist, then rescores the shortlist in FP8.</p></div>
+    <div class="card" style="display:grid;gap:14px">
+      <div class="card-head" style="margin:0">
+        <div class="seg" role="group" aria-label="Example">
+          <button type="button" id="dh-easy" aria-pressed="false">Confident token</button>
+          <button type="button" id="dh-hard" aria-pressed="true">Uncertain token</button>
+        </div>
+        <div class="tools"><button class="chip" type="button" id="dh-play">Pause</button><button class="chip" type="button" id="dh-replay">Replay</button></div>
+      </div>
+      <div class="two" style="gap:22px">
+        <div class="chart"><svg id="dh-svg" viewBox="0 0 470 300" role="img" aria-label="Token scores from the 2-bit head, the shortlist, and the FP8 rescoring"></svg></div>
+        <div class="step-note" aria-live="polite">
+          <span class="idx" id="dh-idx">STEP 1 / 4</span>
+          <h3 id="dh-title"></h3>
+          <p id="dh-body"></p>
+          <div class="readout" style="grid-template-columns:minmax(0,1fr)">
+            <div><div class="k">Head weights read</div><div class="v num" id="dh-bytes">100%</div><div class="meter"><i id="dh-meter"></i></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="stepchips" id="dh-chips" style="margin:0"></div>
+      <p class="cap">Context: <span class="mono">for i in range(</span>. The served head shortlists 16 of a vocabulary of over 100,000 tokens and agrees with the FP8 head on 99.76% of tokens.</p>
+    </div>
+  </section>
+
+  <!-- SSD session cache -->
+  <section class="block" id="ssd">
+    <div class="sec-head">
+      <span class="eyebrow">Unified-memory management · SSD session cache</span>
+      <h2>Agents take turns. Keep their state on the SSD.</h2>
+    </div>
+    <div class="prose"><p>Here 8 agents take turns, but GPU memory holds the state of only 4. Each agent's state is evicted before its next turn. Discard it and the turn recomputes the whole context; spill it to the SSD and the turn reads it back.</p></div>
+    <div class="card" style="display:grid;gap:16px">
+      <div class="card-head" style="margin:0">
+        <div class="seg" role="group" aria-label="On eviction">
+          <button type="button" id="ss-drop" aria-pressed="false">Discard on eviction</button>
+          <button type="button" id="ss-keep" aria-pressed="true">Spill to SSD</button>
+        </div>
+        <div class="tools"><button class="chip" type="button" id="ss-play">Pause</button><button class="chip" type="button" id="ss-reset">Reset</button></div>
+      </div>
+      <div class="ssd-stage" id="ss-stage">
+        <div class="ss-lane" style="top:0%"><span>Agents</span></div>
+        <div class="ss-lane" style="top:34%"><span>GPU memory · 4 sessions</span></div>
+        <div class="ss-lane ss-ssd" style="top:68%"><span id="ss-lane3">SSD</span></div>
+      </div>
+      <div class="readout ss-read">
+        <div><div class="k">This turn</div><div class="v num" id="ss-now">…</div></div>
+        <div><div class="k">Resumed from cache</div><div class="v acc num" id="ss-hit">0%</div></div>
+        <div><div class="k">Prefill work per turn</div><div class="v num" id="ss-work">…</div></div>
+      </div>
+      <p class="cap">Illustration. On Qwen3.8-Flash-Next with 192 conversations, the SSD tier lifts cache hits to 80–98% and cuts time to first token by up to 42× against the baselines.</p>
+    </div>
   </section>
 
   <!-- expert sharing -->
   <section class="block" id="experts">
     <div class="sec-head">
-      <span class="eyebrow">Try it · adaptive speculation · expert sharing</span>
-      <h2>A verify batch reads the union of every token's experts</h2>
+      <span class="eyebrow">Adaptive speculation · expert sharing</span>
+      <h2>Share experts across drafted tokens</h2>
     </div>
-    <div class="prose"><p>In an MoE layer each token picks its own top-k experts, and verifying a batch of draft tokens must load every expert any of them chose. Sharar gives the batch a <strong>shared budget</strong>: each token's top choice is guaranteed, the remaining slots go to the experts with the most routing mass, and every token's second choice is taken from inside that set. Fewer distinct experts means fewer weight bytes per round.</p></div>
+    <div class="prose"><p>Verifying drafted tokens loads every expert any of them picked. Sharar gives the batch a <strong>shared expert budget</strong> instead, so it reads fewer weights per round.</p></div>
     <div class="card two">
       <div class="chart"><svg id="moe-svg" viewBox="0 0 470 300" role="img" aria-label="Token by expert routing grid"></svg></div>
       <div style="display:grid;gap:16px;min-width:0">
@@ -283,7 +371,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
           <div><div class="k">Tokens keeping own top-2</div><div class="v num" id="moe-keep">2 / 6</div></div>
           <div><div class="k">Routing mass kept</div><div class="v num" id="moe-mass">…</div></div>
         </div>
-        <p class="cap">Paper example: 6 draft tokens, 12 experts, k = 2. Each token weights its first choice 0.6 and its second 0.4. Red cells are top choices, pink cells second choices; the shaded columns are the experts read from memory. Lossy: tokens that lose their own second choice get a substitute from the set.</p>
+        <p class="cap">Toy example: 6 tokens, 12 experts, top-2 routing. Shaded columns are the experts read from memory; ↺ marks a second choice swapped for one inside the budget.</p>
       </div>
     </div>
   </section>
@@ -291,61 +379,50 @@ footer b { color: var(--ink); font-family: var(--f-display); }
   <!-- adaptive depth -->
   <section class="block" id="depth">
     <div class="sec-head">
-      <span class="eyebrow">Try it · adaptive speculation · adaptive drafting</span>
-      <h2>Draft only as deep as acceptance pays for</h2>
+      <span class="eyebrow">Adaptive speculation · adaptive drafting</span>
+      <h2>Draft only as far as acceptance pays for</h2>
     </div>
-    <div class="prose"><p>Each extra draft token costs one more draft step and one more verification row. Sharar keeps a per-request estimate <span class="mono">q</span> of how often a drafted position is accepted, and picks the depth that maximizes expected tokens per unit of round time:</p>
-    <p class="mono" style="color:var(--ink);font-size:.95rem">d* = argmax<sub>1≤d≤d<sub>max</sub></sub> (Σ<sub>j=0..d</sub> q<sup>j</sup>) / (1 + c·(d − 1))</p>
-    <p>Move the sliders. High-acceptance text (code, repeated tool output) earns deep drafts; uncertain text earns shallow ones. Under exact verification this changes speed only, never the output.</p></div>
+    <div class="prose"><p>A longer draft can yield more tokens per round, but each extra draft token costs time to draft and verify. Sharar picks the draft length that maximizes <strong>expected tokens per unit time</strong>.</p></div>
+    <div class="math" role="group" aria-label="Adaptive draft length">
+      <math display="block">
+        <mrow>
+          <msup><mi>d</mi><mo>⋆</mo></msup><mo>=</mo>
+          <munder><mrow><mi>arg</mi><mo>&#x2061;</mo><mi>max</mi></mrow><mrow><mn>1</mn><mo>≤</mo><mi>d</mi><mo>≤</mo><msub><mi>d</mi><mi>max</mi></msub></mrow></munder>
+          <mspace width="0.3em"></mspace>
+          <mfrac><mrow><mi>E</mi><mo stretchy="false">[</mo><msub><mi>N</mi><mi>d</mi></msub><mo stretchy="false">]</mo></mrow><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>d</mi><mo stretchy="false">)</mo></mrow></mfrac>
+        </mrow>
+      </math>
+      <math display="block">
+        <mrow>
+          <mi>E</mi><mo stretchy="false">[</mo><msub><mi>N</mi><mi>d</mi></msub><mo stretchy="false">]</mo><mo>=</mo>
+          <munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>0</mn></mrow><mi>d</mi></munderover><msup><mi>q</mi><mi>j</mi></msup>
+          <mo>=</mo><mfrac><mrow><mn>1</mn><mo>−</mo><msup><mi>q</mi><mrow><mi>d</mi><mo>+</mo><mn>1</mn></mrow></msup></mrow><mrow><mn>1</mn><mo>−</mo><mi>q</mi></mrow></mfrac>
+          <mo>,</mo><mspace width="1.5em"></mspace>
+          <mi>T</mi><mo stretchy="false">(</mo><mi>d</mi><mo stretchy="false">)</mo><mo>=</mo><mn>1</mn><mo>+</mo><mi>c</mi><mspace width="0.1em"></mspace><mo stretchy="false">(</mo><mi>d</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo>
+        </mrow>
+      </math>
+      <dl>
+        <dt>d</dt><dd>draft length: tokens drafted per round</dd>
+        <dt>q</dt><dd>probability that a drafted token is accepted, tracked per request</dd>
+        <dt>N<sub>d</sub></dt><dd>tokens emitted per round: the accepted prefix plus the target's own next token</dd>
+        <dt>T(d)</dt><dd>round time, relative to a round with d = 1</dd>
+        <dt>c</dt><dd>added cost of one more draft token</dd>
+      </dl>
+    </div>
     <div class="card two">
       <div class="chart" id="depth-chart"><svg id="depth-svg" viewBox="0 0 470 280" role="img" aria-label="Expected tokens per unit time against draft depth"></svg></div>
       <div style="display:grid;gap:16px;min-width:0">
-        <div class="ctrl"><label for="dq">Acceptance per position q <output id="dq-out">0.80</output></label><input type="range" id="dq" min="0.30" max="0.97" step="0.01" value="0.80"></div>
-        <div class="ctrl"><label for="dc">Cost of one more draft step c <output id="dc-out">0.12</output></label><input type="range" id="dc" min="0.02" max="0.60" step="0.01" value="0.12"></div>
-        <div class="ctrl"><label for="dmax">Depth cap d<sub>max</sub> <output id="dmax-out">8</output></label><input type="range" id="dmax" min="2" max="10" step="1" value="8"></div>
+        <div class="ctrl"><label for="dq">Acceptance rate q <output id="dq-out">0.80</output></label><input type="range" id="dq" min="0.30" max="0.97" step="0.01" value="0.80"></div>
+        <div class="ctrl"><label for="dc">Draft cost c <output id="dc-out">0.12</output></label><input type="range" id="dc" min="0.02" max="0.60" step="0.01" value="0.12"></div>
+        <div class="ctrl"><label for="dmax"><span>Longest draft d<sub>max</sub></span> <output id="dmax-out">8</output></label><input type="range" id="dmax" min="2" max="10" step="1" value="8"></div>
         <div class="readout">
-          <div><div class="k">Chosen depth d*</div><div class="v acc num" id="d-star">5</div></div>
-          <div><div class="k">Tokens per round</div><div class="v num" id="d-tok">…</div></div>
+          <div><div class="k">Best length d*</div><div class="v acc num" id="d-star">5</div></div>
+          <div><div class="k">E[N] per round</div><div class="v num" id="d-tok">…</div></div>
           <div><div class="k">Speed vs no drafting</div><div class="v num" id="d-speed">…</div></div>
-          <div><div class="k">Speed vs fixed depth 8</div><div class="v num" id="d-fixed">…</div></div>
+          <div><div class="k">vs. always 8</div><div class="v num" id="d-fixed">…</div></div>
         </div>
-        <p class="cap">The model from the paper: constant per-position acceptance, round time 1 + c(d − 1) relative to a depth-one round. Bars are tokens per unit time; the red bar is d*.</p>
+        <p class="cap">Idealized model. Bars show E[N<sub>d</sub>] / T(d) for each draft length; the red bar is d*.</p>
       </div>
-    </div>
-  </section>
-
-  <!-- draft head -->
-  <section class="block" id="drafthead">
-    <div class="sec-head">
-      <span class="eyebrow">Model surgery · draft head</span>
-      <h2>A 2-bit draft head that still agrees with FP8</h2>
-    </div>
-    <div class="prose"><p>The draft model's vocabulary head is the largest matrix it reads every step. Sharar stores it in 2 bits and rescores the top-16 candidates in higher precision, which recovers agreement where it was lost: on uncertain tokens, where the naive 2-bit head picks a different token half the time. Only the drafter changes, so the target still decides every token.</p></div>
-    <div class="card">
-      <div class="card-head"><div class="legend" id="dh-legend"></div></div>
-      <div class="chart" id="dh-chart"><svg id="dh-svg" viewBox="0 0 900 300" role="img" aria-label="Draft head agreement against entropy"></svg></div>
-      <p class="cap" style="margin-top:8px">Agreement with the FP8 head's token, binned by the FP8 head's entropy (bits). Overall agreement is in each legend entry.</p>
-    </div>
-  </section>
-
-  <!-- ssd tier -->
-  <section class="block" id="ssd">
-    <div class="sec-head">
-      <span class="eyebrow">Unified-memory management · SSD session cache</span>
-      <h2>When agent sessions outgrow GPU memory, keep them on the SSD</h2>
-    </div>
-    <div class="prose"><p>192 AgentPerf-Local conversations replayed at once, so their combined context grows to about twice Sharar's GPU KV capacity. About 130 turns pass before a conversation returns, so without a second tier each one is evicted first and recomputes most of its context. The baselines keep the saved state of only 16 to 32 conversations and stay below 20% cache hits; Sharar without the SSD tier stays below about 35%.</p>
-    <p>Sharar writes each evicted conversation to the SSD and reads it back on its next turn. Its hit rate climbs to <strong>80–98%</strong>, each turn recomputes about 600 tokens instead of 11,000, and median TTFT stays at a few seconds. The baselines' TTFT exceeds 100 s, <strong>up to 42× Sharar's</strong>.</p></div>
-    <div class="card">
-      <div class="card-head">
-        <div class="legend" id="burst-legend"></div>
-        <div class="seg" role="group" aria-label="Metric">
-          <button type="button" id="b-ttft" aria-pressed="true">Median TTFT</button>
-          <button type="button" id="b-hit" aria-pressed="false">Cache hit</button>
-        </div>
-      </div>
-      <div class="chart" id="burst-chart"><svg id="burst-svg" viewBox="0 0 900 360" role="img" aria-label="Open context, and TTFT or cache hit, over requests served"></svg></div>
-      <p class="cap" style="margin-top:8px">Qwen3.8-Flash-Next serving 192 agent conversations. Top: live session context, the tokens of all unfinished conversations; the dashed line is Sharar's GPU KV capacity (1.58 M tokens). Below: median TTFT (log scale) or the share of each prompt served from cache. 32 agents send turns back to back, thinking off, no tool time. Rolling medians; baseline runs were stopped after about 3.3k turns.</p>
     </div>
   </section>
 
@@ -355,7 +432,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
       <span class="eyebrow">Results · four models, SPEED-Bench 16k and AgentPerf-Local</span>
       <h2>Faster for one user, and for many</h2>
     </div>
-    <div class="prose"><p>Left, SPEED-Bench throughput on one DGX Spark as concurrency grows: each point is one concurrency level, per-user speed against total output throughput, so up and to the right is better. Sharar reaches higher throughput than every baseline at every concurrency level on all four models and scales to 64 requests; the baselines run out of memory for KV caches and recurrent states sooner. Right, agentic tasks per hour on AgentPerf-Local replay: at each system's best concurrency Sharar completes <strong>1.5–3.4×</strong> more tasks per hour than the fastest baseline. Hover a point for its numbers.</p></div>
+    <div class="prose"><p>Higher throughput than every baseline at every concurrency level, on all four models. Hover a point for its numbers.</p></div>
     <div class="card" style="display:grid;gap:14px">
       <div class="card-head" style="margin:0">
         <div class="seg" role="group" aria-label="Model" id="r-model"></div>
@@ -365,7 +442,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
         <div class="chart" id="warm-chart"><svg id="warm-svg" viewBox="0 0 470 330" role="img" aria-label="Output throughput against per-user speed"></svg></div>
         <div class="chart" id="agent-chart"><svg id="agent-svg" viewBox="0 0 470 330" role="img" aria-label="Agentic tasks per hour against concurrent agents"></svg></div>
       </div>
-      <p class="cap">The data of the paper's main results figure. SPEED-Bench with reasoning enabled, 16k prompts, log–log. Baselines run NVFP4 weights with their fastest drafter (DFlash2 for Qwen3.8-27B, the model's MTP head otherwise). Missing points are configurations a baseline could not run; TensorFold serves at most 16 streams.</p>
+      <p class="cap">One DGX Spark. Left: SPEED-Bench, 16k prompts; up and to the right is better. Right: AgentPerf-Local agent replay.</p>
     </div>
   </section>
 
@@ -375,7 +452,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
       <span class="eyebrow">Accuracy of the lossy optimizations</span>
       <h2>Within 3.6 points of the exact model</h2>
     </div>
-    <div class="prose"><p>Three-bit weights, expert sharing, and relaxed verification can change outputs. Added one at a time on Qwen3.8-Flash-Next, three-bit weights cost up to 2.3 points, expert sharing leaves every score unchanged, and relaxed verification costs up to 1.6 more. The full fast recipe stays within 3.6 points of the exact baseline on every benchmark.</p></div>
+    
     <div class="card tablewrap">
       <table class="acc">
         <thead><tr><th></th><th>GPQA</th><th>LCB</th><th>IFBench</th><th>AIME25</th><th>AIME26</th></tr></thead>
@@ -386,7 +463,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
           <tr class="ours"><td>+ Relaxed verif. (fast)</td><td>89.1<i>−1.6</i></td><td>84.6<i>−3.1</i></td><td>81.7<i>−3.6</i></td><td>99.2<i>−0.8</i></td><td>99.2<i>−0.8</i></td></tr>
         </tbody>
       </table>
-      <p class="cap" style="margin-top:10px">Task accuracy (%) on Qwen3.8-Flash-Next; small numbers are the change from the exact baseline. The last row is the full fast recipe, which also enables the NVFP4 KV cache. Relaxed verification at s = 0.5.</p>
+      <p class="cap" style="margin-top:10px">Task accuracy (%) on Qwen3.8-Flash-Next as each lossy step is added; small numbers are the drop from exact.</p>
     </div>
   </section>
 
@@ -425,7 +502,6 @@ uv run sharar launch claude      <span class="c"># point a coding agent at it</s
 </div>
 
 <script id="results-data" type="application/json">/*__RESULTS__*/</script>
-<script id="burst-data" type="application/json">/*__BURST__*/</script>
 <script>
 (() => {
 const NS = "http://www.w3.org/2000/svg";
@@ -442,14 +518,14 @@ function hideTip(box) { tipFor(box).hidden = true; }
 
 /* ---------------- hero: the hill climb ---------------- */
 const STEPS = [
-  ["No spec.", "No speculation", 27.9, ["baseline"], "NVFP4 experts, one token per forward pass. Every token streams the active weights through about 258 GB/s of unified-memory bandwidth."],
-  ["+ MTP", "+ Multi-token prediction", 54.9, ["exact", "speculation"], "The model's own MTP head drafts 4 tokens; the target verifies them in one pass and keeps the accepted prefix. +97%, the largest single step."],
-  ["+ 3-bit weights", "+ 3-bit weights", 78.7, ["lossy · calibrated", "model surgery"], "Experts and dense-layer decode copies as 3-bit indices into an FP8 codebook (3.25 bits per weight), expanded in registers straight into FP8 tensor-core operands."],
-  ["+ 2-bit draft head", "+ 2-bit draft head", 80.9, ["draft only", "model surgery"], "A 2-bit output head shortlists 16 candidate tokens, then FP8 rescores them. It agrees with the FP8 head on 99.76% of tokens."],
-  ["+ Relaxed verif.", "+ Relaxed verification", 82.1, ["lossy · optional", "speculation"], "Near-miss drafts can be accepted: a draft in the target's top 2 and within 1.0 logit of its top token passes with probability min(1, e^s·p(y)), s = 0.5. Other drafts get the exact test."],
-  ["+ Expert sharing", "+ Expert sharing", 108.5, ["lossy · optional", "speculation"], "The tokens in a verify batch share a budget of routed experts: top choices are guaranteed, the rest go to the experts with the most routing mass. +32%, and no accuracy change on any benchmark."],
-  ["+ Adaptive drafting", "+ Adaptive drafting", 113.9, ["exact", "speculation"], "Draft length follows each request's observed acceptance rate, so confident stretches draft deep and uncertain ones stop early."],
-  ["Fast", "+ NVFP4 KV cache = fast profile", 119.6, ["fast profile"], "The last step adds an NVFP4 KV cache, completing the fast profile: 27.9 to 119.6 tokens/s, 4.3× on the same Spark and model."],
+  ["No spec.", "No speculation", 27.9, ["baseline"], "One token per forward pass, NVFP4 weights."],
+  ["+ MTP", "+ Multi-token prediction", 54.9, ["exact", "speculation"], "The model's MTP head drafts tokens; the target verifies them in one pass."],
+  ["+ 3-bit weights", "+ 3-bit weights", 78.7, ["lossy · calibrated", "model surgery"], "Weights as 3-bit codes, run on FP8 tensor cores."],
+  ["+ 2-bit draft head", "+ 2-bit draft head", 80.9, ["draft only", "model surgery"], "The drafter's output head in 2 bits, with FP8 rescoring."],
+  ["+ Relaxed verif.", "+ Relaxed verification", 82.1, ["lossy · optional", "speculation"], "Near-miss drafts can be accepted."],
+  ["+ Expert sharing", "+ Expert sharing", 108.5, ["lossy · optional", "speculation"], "Drafted tokens share one budget of experts."],
+  ["+ Adaptive drafting", "+ Adaptive drafting", 113.9, ["exact", "speculation"], "Draft length follows the acceptance rate."],
+  ["Fast", "+ NVFP4 KV cache = fast profile", 119.6, ["fast profile"], "Adds an NVFP4 KV cache: the full fast profile."],
 ];
 const climbSvg = $("climb-svg");
 const W = 620, H = 330, L = 44, R = 12, T = 26, B = 58, YMAX = 140;
@@ -580,7 +656,7 @@ function drawDepth() {
     txt(depthSvg, x + bw / 2, H - B + 16, d, { "text-anchor": "middle", "font-size": 11, fill: d === best ? "var(--accent)" : "var(--ink-3)", "font-weight": d === best ? 700 : 400 });
     if (d === best) txt(depthSvg, x + bw / 2, y(v) - 6, v.toFixed(2), { "text-anchor": "middle", "font-size": 11, "font-weight": 700, fill: "var(--accent)" });
   });
-  txt(depthSvg, (L + W - R) / 2, H - 6, "draft depth d (bars past the cap are unavailable)", { "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  txt(depthSvg, (L + W - R) / 2, H - 6, "draft length d", { "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
   txt(depthSvg, 10, (T + H - B) / 2, "tokens per unit time", { transform: `rotate(-90 10 ${(T + H - B) / 2})`, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
   const [tok, rb] = rate(q, c, best);
   $("d-star").textContent = best;
@@ -592,80 +668,160 @@ function drawDepth() {
 ["dq", "dc", "dmax"].forEach(id => $(id).oninput = drawDepth);
 drawDepth();
 
-/* ---------------- draft head ---------------- */
-const ENT = [0.0007, 0.0026, 0.019, 0.11, 0.40, 0.90, 1.39, 2.27, 4.22];
-const DH = [
-  { name: "2-bit + top-16 rescore (served) · 99.76%", v: [100, 100, 100, 100, 100, 100, 100, 100, 97.5], c: "var(--accent)", on: true },
-  { name: "3-bit + top-8 rescore · 99.96%", v: [100, 100, 100, 100, 100, 100, 100, 100, 99.6], c: "var(--e-vllm)", on: true, dash: "2 4" },
-  { name: "2-bit, no rescore · 85.60%", v: [100, 100, 100, 99.3, 95.2, 80.4, 70.2, 61.4, 48.8], c: "var(--e-tf)", on: true, dash: "7 4" }];
 function legend(box, items, redraw) {
   box.innerHTML = "";
   items.forEach(it => { const b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-pressed", String(it.on)); b.innerHTML = `<i style="background:${it.c}"></i>${it.name}`; b.onclick = () => { it.on = !it.on; b.setAttribute("aria-pressed", String(it.on)); redraw(); }; box.appendChild(b); });
 }
-const dhSvg = $("dh-svg");
-function drawDH() {
-  dhSvg.innerHTML = "";
-  const L = 46, R = 16, T = 14, B = 40, W = 900, H = 300, lx = v => Math.log10(v), x0 = lx(0.0005), x1 = lx(6);
-  const x = v => L + (W - L - R) * (lx(v) - x0) / (x1 - x0), y = v => T + (H - T - B) * (1 - (v - 40) / 62);
-  const ax = el("g", { class: "axis" }, dhSvg);
-  for (const t of [40, 60, 80, 100]) { el("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "gridl" }, ax); txt(ax, L - 8, y(t) + 4, `${t}%`, { "text-anchor": "end" }); }
-  for (const t of [0.001, 0.01, 0.1, 1]) txt(ax, x(t), H - B + 18, t, { "text-anchor": "middle" });
-  txt(ax, (L + W) / 2, H - 4, "FP8 head entropy (bits, log scale)", { "text-anchor": "middle" });
-  const box = $("dh-chart");
-  DH.filter(s => s.on).forEach(s => {
-    el("polyline", { points: s.v.map((v, i) => `${x(ENT[i])},${y(v)}`).join(" "), fill: "none", stroke: s.c, "stroke-width": 2.2, "stroke-dasharray": s.dash || "none" }, dhSvg);
-    s.v.forEach((v, i) => { const p = el("circle", { cx: x(ENT[i]), cy: y(v), r: 4, fill: s.c, stroke: "var(--surface)", "stroke-width": 1.5 }, dhSvg);
-      p.addEventListener("pointerenter", () => showTip(box, dhSvg, x(ENT[i]), y(v), `entropy ${ENT[i]} · ${v}%`)); p.addEventListener("pointerleave", () => hideTip(box)); });
-  });
-}
-legend($("dh-legend"), DH, drawDH); drawDH();
 
-/* ---------------- burst ---------------- */
-const BURST = JSON.parse($("burst-data").textContent);
-const BRUNS = ["Sharar", "Sharar w/o SSD tier", "vLLM", "TensorFold"].map(n => ({ name: n, c: col(n), on: true, dash: n.includes("w/o") ? "6 4" : "none" }));
-let bMetric = "ttft";
-const bSvg = $("burst-svg");
-function drawBurst() {
-  bSvg.innerHTML = "";
-  const L = 52, R = 14, W = 900, XMAX = 4032, x = v => L + (W - L - R) * v / XMAX;
-  const T1 = 22, H1 = 80, T2 = 128, H2 = 192;
-  const oc = BURST.open_ctx, over = oc.filter(p => p[1] > BURST.kv_mtok);
-  const b0 = over.length ? over[0][0] : 0, b1 = over.length ? over[over.length - 1][0] : 0;
-  el("rect", { x: x(b0), y: T1 - 22, width: x(b1) - x(b0), height: T2 + H2 - T1 + 22, fill: "var(--sunk)" }, bSvg);
-  txt(bSvg, (x(b0) + x(b1)) / 2, T1 - 8, "above GPU KV capacity", { "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
-  const y1 = v => T1 + H1 * (1 - v / 3.5);
-  const ax = el("g", { class: "axis" }, bSvg);
-  for (const t of [0, 1, 2, 3]) { el("line", { x1: L, x2: W - R, y1: y1(t), y2: y1(t), class: "gridl" }, ax); txt(ax, L - 8, y1(t) + 4, `${t}M`, { "text-anchor": "end" }); }
-  el("line", { x1: L, x2: W - R, y1: y1(BURST.kv_mtok), y2: y1(BURST.kv_mtok), stroke: "var(--ink-2)", "stroke-dasharray": "3 3" }, bSvg);
-  txt(bSvg, W - R, y1(BURST.kv_mtok) - 5, "GPU KV capacity", { "text-anchor": "end", "font-size": 10.5, fill: "var(--ink-3)" });
-  el("polyline", { points: oc.map(p => `${x(p[0])},${y1(p[1])}`).join(" "), fill: "none", stroke: "var(--ink)", "stroke-width": 1.6 }, bSvg);
-  txt(bSvg, 12, T1 + H1 / 2, "live ctx", { transform: `rotate(-90 12 ${T1 + H1 / 2})`, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
-  let y2, ticks, fmt;
-  if (bMetric === "ttft") { const lo = Math.log10(0.5), hi = Math.log10(600); y2 = v => T2 + H2 * (1 - (Math.log10(Math.max(v, 0.5)) - lo) / (hi - lo)); ticks = [1, 10, 100]; fmt = t => `${t} s`; }
-  else { y2 = v => T2 + H2 * (1 - v / 100); ticks = [0, 50, 100]; fmt = t => `${t}%`; }
-  for (const t of ticks) { el("line", { x1: L, x2: W - R, y1: y2(t), y2: y2(t), class: "gridl" }, ax); txt(ax, L - 8, y2(t) + 4, fmt(t), { "text-anchor": "end" }); }
-  for (const t of [0, 1000, 2000, 3000, 4000]) txt(ax, x(t), T2 + H2 + 18, t ? `${t / 1000}k` : "0", { "text-anchor": "middle" });
-  txt(ax, (L + W) / 2, T2 + H2 + 36, "requests served", { "text-anchor": "middle" });
-  txt(bSvg, 12, T2 + H2 / 2, bMetric === "ttft" ? "median TTFT" : "prompt from cache", { transform: `rotate(-90 12 ${T2 + H2 / 2})`, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
-  const box = $("burst-chart");
-  [...BRUNS].reverse().filter(r => r.on).forEach(r => {
-    const pts = BURST.runs[r.name];
-    el("polyline", { points: pts.map(p => `${x(p[0])},${y2(bMetric === "ttft" ? p[2] : p[1])}`).join(" "), fill: "none", stroke: r.c, "stroke-width": r.name === "Sharar" ? 2.6 : 1.8, "stroke-dasharray": r.dash, "stroke-linejoin": "round" }, bSvg);
-  });
-  const hover = el("rect", { x: L, y: T1, width: W - L - R, height: T2 + H2 - T1, fill: "transparent" }, bSvg);
-  const guide = el("line", { y1: T1, y2: T2 + H2, stroke: "var(--ink-3)", "stroke-width": 1, visibility: "hidden" }, bSvg);
-  hover.addEventListener("pointermove", ev => {
-    const r = bSvg.getBoundingClientRect(), vx = (ev.clientX - r.left) / r.width * W, req = (vx - L) / (W - L - R) * XMAX;
-    guide.setAttribute("x1", vx); guide.setAttribute("x2", vx); guide.setAttribute("visibility", "visible");
-    const parts = BRUNS.filter(b => b.on).map(b => { const p = BURST.runs[b.name].reduce((a, q) => Math.abs(q[0] - req) < Math.abs(a[0] - req) ? q : a); return `${b.name.replace(" w/o SSD tier", " no-SSD")} ${bMetric === "ttft" ? p[2].toFixed(1) + " s" : p[1].toFixed(0) + "%"}`; });
-    showTip(box, bSvg, vx, T2 + 10, `req ${Math.round(req)} · ` + parts.join(" · "));
-  });
-  hover.addEventListener("pointerleave", () => { guide.setAttribute("visibility", "hidden"); hideTip(box); });
+/* simple seeded RNG for the illustrations */
+const rng = seed => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+const normal = r => { const u = Math.max(r(), 1e-9), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+function stepper(n, ms, show, playBtn, replayBtn) {
+  let k = 0, t = null, on = false;
+  const stop = () => { on = false; clearInterval(t); playBtn.textContent = "Play"; };
+  const play = from => { on = true; playBtn.textContent = "Pause"; k = from; show(k); clearInterval(t); t = setInterval(() => { if (k >= n - 1) { stop(); return; } show(++k); }, ms); };
+  playBtn.onclick = () => on ? stop() : play(k >= n - 1 ? 0 : k + 1);
+  if (replayBtn) replayBtn.onclick = () => play(0);
+  return { play, stop, go: i => { stop(); k = i; show(i); } };
 }
-legend($("burst-legend"), BRUNS, drawBurst);
-$("b-ttft").onclick = () => { bMetric = "ttft"; $("b-ttft").setAttribute("aria-pressed", "true"); $("b-hit").setAttribute("aria-pressed", "false"); drawBurst(); };
-$("b-hit").onclick = () => { bMetric = "hit"; $("b-hit").setAttribute("aria-pressed", "true"); $("b-ttft").setAttribute("aria-pressed", "false"); drawBurst(); };
-drawBurst();
+
+/* ---------------- 3-bit codebook ---------------- */
+const cbSvg = $("cb-svg");
+let cbSeed = 7, cbW = [], cbLv = [], cbT = 0, cbAnim = null;
+const CBX = v => 30 + (v + 3) / 6 * 410;
+function cbFit() {
+  const r = rng(cbSeed); cbW = Array.from({ length: 32 }, () => Math.max(-2.9, Math.min(2.9, normal(r) * 0.9)));
+  const srt = [...cbW].sort((a, b) => a - b);
+  cbLv = Array.from({ length: 8 }, (_, i) => srt[Math.floor((i + 0.5) / 8 * 32)]);
+  for (let it = 0; it < 6; it++) { const sum = Array(8).fill(0), cnt = Array(8).fill(0); cbW.forEach(w => { const c = cbNear(w); sum[c] += w; cnt[c]++; }); cbLv = cbLv.map((l, i) => cnt[i] ? sum[i] / cnt[i] : l); }
+}
+const cbNear = w => cbLv.reduce((b, l, i) => Math.abs(l - w) < Math.abs(cbLv[b] - w) ? i : b, 0);
+function cbDraw() {
+  cbSvg.innerHTML = "";
+  const t = cbT, yTop = 70, yBot = 150;
+  el("line", { x1: 30, x2: 440, y1: yBot + 18, y2: yBot + 18, stroke: "var(--rule)" }, cbSvg);
+  for (const v of [-2, -1, 0, 1, 2]) txt(cbSvg, CBX(v), yBot + 34, v, { "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
+  let lastX = -99;
+  cbLv.forEach((l, i) => {
+    const showCode = CBX(l) - lastX > 22; if (showCode) lastX = CBX(l);
+    el("line", { x1: CBX(l), x2: CBX(l), y1: 40, y2: yBot + 18, stroke: "var(--accent)", "stroke-width": 1.2, "stroke-dasharray": "3 3", opacity: 0.25 + 0.75 * t }, cbSvg);
+    if (showCode) txt(cbSvg, CBX(l), 32, i.toString(2).padStart(3, "0"), { "text-anchor": "middle", "font-size": 10.5, fill: "var(--accent)", "font-family": "var(--f-mono)", opacity: 0.3 + 0.7 * t });
+  });
+  txt(cbSvg, 30, 14, "codebook entry (3-bit code)", { "font-size": 11, fill: "var(--ink-3)" });
+  cbW.forEach((w, i) => {
+    const q = cbLv[cbNear(w)], x = CBX(w + (q - w) * t), y0 = yTop + (i % 8) * 10;
+    el("circle", { cx: x, cy: y0, r: 4.2, fill: t > 0.99 ? "var(--accent)" : "var(--ink)", opacity: 0.85 }, cbSvg);
+  });
+  // the 32 codes, as stored
+  const cw = 410 / 32;
+  cbW.forEach((w, i) => { const c = cbNear(w); el("rect", { x: 30 + i * cw + 0.5, y: 210, width: cw - 1, height: 22, rx: 2, fill: "var(--accent)", opacity: t > 0.99 ? 0.25 + c / 9.3 : 0.08 }, cbSvg); });
+  txt(cbSvg, 30, 204, t > 0.99 ? "stored: 32 × 3-bit codes + 1 scale" : "stored: 32 × 8-bit FP8 values", { "font-size": 11, fill: "var(--ink-3)" });
+  $("cb-bits").textContent = t > 0.99 ? "3.25" : "8";
+  $("cb-bytes").textContent = t > 0.99 ? "41%" : "100%";
+}
+function cbGo(to) {
+  cancelAnimationFrame(cbAnim); const from = cbT, t0 = performance.now();
+  if (reduce) { cbT = to; cbDraw(); return; }
+  const tick = n => { const f = Math.min(1, (n - t0) / 900); cbT = from + (to - from) * (1 - Math.pow(1 - f, 3)); cbDraw(); if (f < 1) cbAnim = requestAnimationFrame(tick); };
+  cbAnim = requestAnimationFrame(tick);
+}
+$("cb-play").onclick = () => { cbGo(cbT > 0.5 ? 0 : 1); $("cb-play").textContent = cbT > 0.5 ? "Quantize" : "Show FP8"; };
+$("cb-new").onclick = () => { cbSeed += 11; cbFit(); cbT = 0; cbDraw(); $("cb-play").textContent = "Quantize"; setTimeout(() => { cbGo(1); $("cb-play").textContent = "Show FP8"; }, 350); };
+cbFit(); cbT = reduce ? 1 : 0; cbDraw();
+if (!reduce) setTimeout(() => { cbGo(1); $("cb-play").textContent = "Show FP8"; }, 900);
+
+/* ---------------- 2-bit draft head ---------------- */
+// FP8 scores and the noisy 2-bit scores of the same 12 tokens
+const DH_EX = {
+  easy: { tok: ["len", "n", "1", "0", "10", "self", "x", "N", "size", "a", "num", "i"],
+          fp8: [9.1, 5.2, 4.6, 4.1, 3.0, 2.6, 2.2, 1.9, 1.5, 1.2, 0.9, 0.5],
+          q2:  [8.3, 5.9, 4.0, 4.7, 3.6, 2.0, 2.9, 1.4, 2.1, 0.8, 1.5, 0.9] },
+  hard: { tok: ["len", "n", "1", "0", "10", "self", "x", "N", "size", "a", "num", "i"],
+          fp8: [6.2, 6.0, 4.8, 4.3, 3.1, 2.7, 2.4, 2.0, 1.6, 1.3, 1.0, 0.6],
+          q2:  [5.6, 6.5, 5.1, 3.9, 3.6, 2.1, 3.0, 1.5, 2.2, 0.9, 1.6, 1.0] } };
+const K = 4;
+let dhEx = "hard";
+const DH_STEPS = [
+  ["FP8 head", "The full-precision head scores every token. Its top token is the one to match.", "100%"],
+  ["2-bit head", "A 2-bit copy reads a quarter of the bytes, but its scores are noisy. On uncertain tokens its top pick can be wrong.", "25%"],
+  ["Shortlist", "Keep only the 2-bit head's top candidates (4 here, 16 in Sharar). The right token is almost always among them.", "25%"],
+  ["FP8 rescore", "Rescore just the shortlist with FP8 rows. The pick matches the FP8 head, for 16 extra rows out of more than 100,000.", "25% + 16 rows"]];
+const dhSvg = $("dh-svg");
+function dhShow(k) {
+  const ex = DH_EX[dhEx], n = ex.tok.length;
+  const order = [...ex.tok.keys()].sort((a, b) => ex.q2[b] - ex.q2[a]);
+  const short = new Set(order.slice(0, K));
+  const vals = ex.tok.map((_, i) => k === 0 ? ex.fp8[i] : k === 3 && short.has(i) ? ex.fp8[i] : ex.q2[i]);
+  const live = i => k < 2 || short.has(i);
+  const pick = [...ex.tok.keys()].filter(live).reduce((b, i) => vals[i] > vals[b] ? i : b, order[0]);
+  const truth = 0, right = pick === truth;
+  dhSvg.innerHTML = "";
+  const L = 50, T = 18, rh = 22, W = 470, xs = v => L + v / 10 * (W - L - 70);
+  ex.tok.forEach((t, i) => {
+    const y = T + i * rh, on = live(i), isPick = i === pick;
+    txt(dhSvg, L - 8, y + 15, t, { "text-anchor": "end", "font-size": 12, "font-family": "var(--f-mono)", fill: on ? "var(--ink)" : "var(--ink-3)" });
+    const bar = el("rect", { x: L, y: y + 4, width: Math.max(2, xs(vals[i]) - L), height: rh - 8, rx: 3,
+      fill: isPick ? (right ? "var(--accent)" : "var(--ink-2)") : k === 3 && short.has(i) ? "var(--e-nossd)" : "var(--e-tf)", opacity: on ? 1 : 0.18 }, dhSvg);
+    bar.style.transition = "width .5s ease, opacity .4s";
+    if (k >= 1 && k <= 3 && short.has(i)) el("rect", { x: L - 46, y: y + 1, width: W - L + 40, height: rh - 2, rx: 6, fill: "none", stroke: k >= 2 ? "var(--accent)" : "none", "stroke-opacity": 0.35 }, dhSvg);
+    if (isPick) txt(dhSvg, xs(vals[i]) + 8, y + 15, k === 0 ? "target" : right ? "✓ match" : "✗ wrong", { "font-size": 11.5, "font-weight": 600, fill: right ? "var(--accent)" : "var(--ink-2)" });
+  });
+  $("dh-idx").textContent = `STEP ${k + 1} / 4`;
+  $("dh-title").textContent = DH_STEPS[k][0];
+  $("dh-body").textContent = DH_STEPS[k][1];
+  $("dh-bytes").textContent = DH_STEPS[k][2];
+  $("dh-meter").style.width = k === 0 ? "100%" : "25%";
+  dhChips.forEach((c, i) => c.setAttribute("aria-pressed", String(i === k)));
+}
+const dhChips = DH_STEPS.map((st, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = st[0]; b.onclick = () => dhRun.go(i); $("dh-chips").appendChild(b); return b; });
+const dhRun = stepper(4, 2200, dhShow, $("dh-play"), $("dh-replay"));
+const dhPick = ex => { dhEx = ex; $("dh-easy").setAttribute("aria-pressed", String(ex === "easy")); $("dh-hard").setAttribute("aria-pressed", String(ex === "hard")); dhRun.play(0); };
+$("dh-easy").onclick = () => dhPick("easy"); $("dh-hard").onclick = () => dhPick("hard");
+if (reduce) dhRun.go(3); else dhRun.play(0);
+
+/* ---------------- SSD session cache ---------------- */
+const AG = "ABCDEFGH".split(""), SLOTS = 4;
+const AG_COL = ["#a31f34", "#c0504d", "#5a6a7e", "#7d6b91", "#3f7f74", "#b07a2a", "#4b5d9e", "#8a4f6d"];
+const stage = $("ss-stage");
+const chipsSS = AG.map((a, i) => { const d = document.createElement("div"); d.className = "ss-chip"; d.textContent = a; d.style.background = AG_COL[i]; stage.appendChild(d); return d; });
+const flash = document.createElement("div"); flash.className = "ss-flash"; stage.appendChild(flash);
+let ssKeep = true, ssTurn = 0, ssGpu = [], ssSsd = new Set(), ssStats = { n: 0, hit: 0, work: 0 }, ssTimer = null, ssOn = false;
+const pos = (lane, i, of) => ({ left: (of === 8 ? 4 + i * 11.8 : 26 + i * 18) + "%", top: [12, 46, 80][lane] + "%" });
+function place(c, p) { c.style.left = p.left; c.style.top = p.top; }
+function ssLayout(active) {
+  AG.forEach((a, i) => {
+    const c = chipsSS[i]; c.classList.toggle("active", a === active);
+    const g = ssGpu.indexOf(a);
+    if (g >= 0) { place(c, pos(1, g, 4)); c.classList.remove("ghost"); }
+    else if (ssSsd.has(a)) { place(c, pos(2, i, 8)); c.classList.remove("ghost"); }
+    else { place(c, pos(0, i, 8)); c.classList.add("ghost"); }
+  });
+}
+function ssStep() {
+  const a = AG[ssTurn % AG.length]; ssTurn++;
+  let kind;
+  if (ssGpu.includes(a)) { kind = "hit"; ssGpu = ssGpu.filter(x => x !== a); }
+  else if (ssSsd.has(a)) { kind = "restore"; ssSsd.delete(a); }
+  else kind = ssTurn <= AG.length ? "first" : "recompute";
+  if (ssGpu.length >= SLOTS) { const ev = ssGpu.shift(); if (ssKeep) ssSsd.add(ev); }
+  ssGpu.push(a);
+  if (kind !== "first") { ssStats.n++; if (kind !== "recompute") ssStats.hit++; ssStats.work += kind === "recompute" ? 1 : 0.05; }
+  ssLayout(a);
+  const msg = { first: [`${a}: first turn, full prefill`, "var(--ink-3)"], hit: [`${a}: resumed from GPU`, "var(--good)"], restore: [`${a}: read back from SSD`, "var(--accent)"], recompute: [`${a}: state gone, recompute all`, "var(--warn)"] }[kind];
+  flash.textContent = msg[0]; flash.style.color = msg[1];
+  $("ss-now").textContent = { first: "First turn", hit: "GPU hit", restore: "SSD restore", recompute: "Recompute" }[kind];
+  $("ss-hit").textContent = ssStats.n ? `${Math.round(100 * ssStats.hit / ssStats.n)}%` : "…";
+  $("ss-work").textContent = ssStats.n ? `${Math.round(100 * ssStats.work / ssStats.n)}%` : "…";
+}
+function ssReset() { ssTurn = 0; ssGpu = []; ssSsd = new Set(); ssStats = { n: 0, hit: 0, work: 0 }; flash.textContent = ""; $("ss-now").textContent = "…"; $("ss-hit").textContent = "…"; $("ss-work").textContent = "…"; ssLayout(null); }
+function ssPlay() { ssOn = true; $("ss-play").textContent = "Pause"; clearInterval(ssTimer); ssTimer = setInterval(ssStep, 1100); }
+function ssStop() { ssOn = false; $("ss-play").textContent = "Play"; clearInterval(ssTimer); }
+$("ss-play").onclick = () => ssOn ? ssStop() : ssPlay();
+$("ss-reset").onclick = () => { ssReset(); if (ssOn) ssPlay(); };
+const ssMode = keep => { ssKeep = keep; $("ss-keep").setAttribute("aria-pressed", String(keep)); $("ss-drop").setAttribute("aria-pressed", String(!keep)); stage.querySelector(".ss-ssd").classList.toggle("off", !keep); $("ss-lane3").textContent = keep ? "SSD" : "SSD (unused)"; ssReset(); if (ssOn) ssPlay(); };
+$("ss-keep").onclick = () => ssMode(true); $("ss-drop").onclick = () => ssMode(false);
+ssReset();
+if (reduce) { for (let i = 0; i < 12; i++) ssStep(); ssStop(); } else { for (let i = 0; i < 8; i++) ssStep(); ssPlay(); }
 
 /* ---------------- results explorer ---------------- */
 const RES = JSON.parse($("results-data").textContent);
