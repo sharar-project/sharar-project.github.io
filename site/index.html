@@ -124,7 +124,7 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 .qs-left h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
 .qs-lede { color: var(--ink-2); font-size: 1.125rem; }
 .qs-notes { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; color: var(--ink-2); }
-.qs-notes a, .qs-hint a { color: var(--accent); text-decoration: none; }
+.qs-notes a { color: var(--accent); text-decoration: none; }
 .qs-panel { background: var(--surface); border-radius: var(--radius); padding: 24px; display: grid; gap: 14px; }
 .qs-row { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; align-items: center; }
 .qs-k { font-weight: 600; font-size: 0.9375rem; }
@@ -138,7 +138,6 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 .qs-copy { font: 500 0.8rem/1 var(--f-body); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink-2); cursor: pointer; }
 .qs-cmd { margin: 0; background: var(--bg); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; font: 0.875rem/1.75 var(--f-mono); color: var(--ink); overflow-x: auto; white-space: pre; }
 .qs-cmd .c { color: var(--ink-3); }
-.qs-hint { font-size: 0.875rem; color: var(--ink-2); }
 @media (max-width: 860px) { .qs { grid-template-columns: minmax(0, 1fr); } .qs-row { grid-template-columns: minmax(0, 1fr); gap: 6px; } }
 .projects { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
 .project { display: grid; gap: 0; align-content: start; background: var(--surface); border-radius: var(--radius); padding: 30px; }
@@ -228,7 +227,6 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
       </div></div>
       <div class="qs-cmdhead"><span>Run this command</span><button type="button" class="qs-copy" id="qs-copy">Copy</button></div>
       <pre class="qs-cmd" id="qs-cmd"></pre>
-      <p class="qs-hint" id="qs-hint"></p>
     </div>
   </section>
 
@@ -275,8 +273,6 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
     const flags = (st.tp === "2" ? " --tp 2" : "") + (st.profile === "fast" ? "" : " --" + st.profile);
     const cmd = `git clone https://github.com/abdelfattah-lab/sharar\ncd sharar && uv sync\nuv run sharar serve ${st.model}${flags}`;
     $("qs-cmd").textContent = cmd;
-    const gb = m.model + (st.profile === "exact" ? 0 : m.w3);
-    $("qs-hint").innerHTML = `Serves on <span class="mono">http://127.0.0.1:${m.port}/v1</span> · downloads about ${gb} GB on first run` + (st.tp === "2" ? " · run it on one Spark; it starts the second over ssh and copies the model to it (Sparks linked by their ConnectX ports)" : "") + ". The repository opens with the paper.";
   }
   [["qs-model", "model"], ["qs-profile", "profile"], ["qs-tp", "tp"]].forEach(([id, key]) =>
     $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (b && !b.disabled) { st[key] = b.dataset.v; render(); } }));
