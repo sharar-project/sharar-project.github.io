@@ -1,1996 +1,281 @@
 <title>Sharar</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Sharar: fast agentic inference on unified-memory devices.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Noto+Sans+Math&display=swap">
+<meta name="description" content="Sharar: fast local inference for AI agents on NVIDIA DGX Spark.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap">
 <style>
-/* Layout: one 1040px column on plain white; figures sit in soft gray panels, Apple-product-page style; prose ~60ch. */
-/* Single light theme by request: white page, every color set explicitly. */
+/* Shared by the home page and the blog index. Layout: a 1080px column on white; sticky nav; gray panels for figures and cards. */
 :root {
   --bg: #ffffff;
-  --surface: #f5f5f7;     /* figure panels */
+  --surface: #f5f5f7;
   --sunk: #e8e8ed;
   --ink: #1d1d1f;
   --ink-2: #515154;
   --ink-3: #86868b;
   --rule: #d2d2d7;
   --accent: #a31f34;      /* Sharar red, the paper figures' color */
-  --accent-soft: #f6e4e7;
-  --accent-ink: #ffffff;
-  --e-vllm: #1d1d1f;
-  --e-flare: #5a6a7e;
-  --e-tf: #9a9a9e;
-  --e-llama: #c7c7cc;
-  --e-nossd: #d98c98;
-  --good: #1f7a45;
-  --warn: #9a5b00;
   --f-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
   --f-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", Arial, sans-serif;
   --f-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
-  --f-math: "STIX Two Math", "Cambria Math", "Noto Sans Math", math, serif;
-  --step--1: 0.8125rem; --step-0: 1.0625rem; --step-1: 1.1875rem; --step-2: 1.5rem; --step-3: clamp(1.75rem, 3.6vw, 2.5rem); --step-4: clamp(3.5rem, 10vw, 6.5rem);
   --radius: 18px;
   color-scheme: light;
 }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: var(--step-0); line-height: 1.55; letter-spacing: -0.011em; -webkit-font-smoothing: antialiased; }
-.wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 1.0625rem; line-height: 1.55; letter-spacing: -0.011em; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
-h1, h2, h3 { font-family: var(--f-display); font-weight: 600; line-height: 1.1; text-wrap: balance; margin: 0; letter-spacing: -0.022em; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; line-height: 1.12; letter-spacing: -0.022em; margin: 0; text-wrap: balance; }
 p { margin: 0; }
-.prose { max-width: 60ch; display: grid; gap: 1em; color: var(--ink-2); }
-.prose strong { color: var(--ink); font-weight: 600; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .mono { font-family: var(--f-mono); }
 .num { font-variant-numeric: tabular-nums; }
-.eyebrow { font-family: var(--f-body); font-size: 0.875rem; font-weight: 600; letter-spacing: -0.01em; color: var(--accent); }
-.cap { font-size: var(--step--1); color: var(--ink-3); }
+.muted { color: var(--ink-3); }
 
-/* nav + hero */
-nav.top { display: flex; justify-content: space-between; align-items: center; padding-block: 20px; font-size: var(--step--1); color: var(--ink-2); gap: 12px; flex-wrap: wrap; }
-nav.top a { text-decoration: none; }
-nav.top .mono { font-family: var(--f-body); }
-nav.top a:hover { color: var(--accent); }
-.hero { padding-block: 40px 28px; display: grid; gap: 18px; justify-items: center; text-align: center; }
-.hero h1 { font-size: var(--step-4); font-weight: 700; letter-spacing: -0.04em; line-height: 0.95; }
-.hero h1 .bar { color: var(--accent); }
-.subtitle { font-family: var(--f-display); font-size: clamp(1.25rem, 2.8vw, 1.75rem); font-weight: 600; color: var(--ink-2); max-width: 34ch; line-height: 1.25; text-wrap: balance; }
-.subtitle em { font-style: normal; color: var(--accent); }
-.authors { font-size: var(--step-0); color: var(--ink); max-width: 62ch; text-wrap: balance; }
-.authors sup, .affil sup { font-size: 0.68em; color: var(--ink-3); margin-left: 1px; }
-.affil { font-size: var(--step--1); color: var(--ink-3); margin-top: -10px; }
-.links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
-.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; font: 500 0.875rem/1 var(--f-body); text-decoration: none; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
-.btn:hover { filter: brightness(1.1); }
-.btn.ghost { background: transparent; color: var(--ink-3); border-color: var(--rule); cursor: default; filter: none; }
-.btn svg { width: 15px; height: 15px; }
-
-/* figure cards */
-.card { background: var(--surface); border-radius: var(--radius); padding: 26px; }
-.card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-.card-head .lead { font-size: var(--step--1); color: var(--ink-2); }
-.card-head .lead b { color: var(--accent); font-variant-numeric: tabular-nums; }
-.tools { display: flex; gap: 8px; flex-wrap: wrap; }
-.chip { font: 500 0.78rem/1 var(--f-body); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink-2); cursor: pointer; white-space: nowrap; }
-.chip:hover { border-color: var(--ink-3); color: var(--ink); }
-.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-.seg { display: inline-flex; border-radius: 999px; padding: 2px; background: var(--sunk); flex-wrap: wrap; }
-.seg button { font: 500 0.78rem/1 var(--f-body); border: 0; background: none; color: var(--ink-2); padding: 7px 12px; border-radius: 999px; cursor: pointer; }
-.seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
-svg text { font-family: var(--f-body); }
-.axis text { fill: var(--ink-3); font-size: 11px; }
-.axis line, .axis path { stroke: var(--rule); }
-.gridl { stroke: var(--rule); stroke-width: 1; }
-
-/* hero figure */
-.climb { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 22px; align-items: stretch; }
-.climb svg { width: 100%; height: auto; display: block; }
-.step-note { border-left: 1px solid var(--rule); padding-left: 22px; display: grid; align-content: start; gap: 10px; min-width: 0; }
-.step-note .idx { font-family: var(--f-mono); font-size: 0.75rem; color: var(--ink-3); }
-.step-note h3 { font-size: var(--step-2); }
-.step-note .val { font-family: var(--f-display); font-size: 2.6rem; font-weight: 700; color: var(--accent); line-height: 1; font-variant-numeric: tabular-nums; }
-.step-note .val small { font: 500 var(--step--1) var(--f-body); color: var(--ink-3); margin-left: 4px; }
-.step-note p { color: var(--ink-2); font-size: 0.94rem; }
-.tags { display: flex; gap: 6px; flex-wrap: wrap; }
-.tag { font: 500 0.72rem/1 var(--f-body); padding: 5px 9px; border-radius: 999px; background: var(--bg); color: var(--ink-2); letter-spacing: 0.02em; }
-.tag.exact { color: var(--good); }
-.tag.lossy { color: var(--warn); }
-.stepchips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 14px; }
-.fig-cap { margin-top: 12px; text-align: center; }
-.bar-step { transition: opacity .35s ease; }
-
-/* stats */
-.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 56px; text-align: center; }
-.stat { display: grid; gap: 6px; }
-.stat .big { font-family: var(--f-display); font-size: clamp(2.75rem, 6vw, 4rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums; }
-.stat .what { font-size: var(--step-0); color: var(--ink-2); }
-.stats-note { text-align: center; margin-top: 18px; }
-
-/* sections */
-section.block { padding-block: 64px 0; display: grid; gap: 22px; }
-.thesis { font-family: var(--f-display); font-weight: 600; letter-spacing: -0.028em; font-size: clamp(1.5rem, 3.4vw, 2.3rem); line-height: 1.18; letter-spacing: -0.02em; max-width: 30ch; margin: 72px auto 0; text-align: center; text-wrap: balance; }
-.thesis span { color: inherit; }
-.sec-head { display: grid; gap: 8px; }
-.sec-head h2 { font-size: var(--step-3); }
-.pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--ink); }
-.pillar { padding: 18px 20px 4px 0; display: grid; gap: 8px; align-content: start; min-width: 0; }
-.pillar + .pillar { padding-left: 20px; border-left: 1px solid var(--rule); }
-.pillar h3 { font-size: var(--step-2); }
-.pillar .res { font-size: 0.8125rem; font-weight: 600; color: var(--accent); }
-.pillar p { color: var(--ink-2); font-size: 0.94rem; }
-.pillar ul { margin: 0; padding-left: 1.1em; color: var(--ink-2); font-size: 0.9rem; }
-
-.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px; align-items: start; }
-.ctrl { display: grid; gap: 6px; }
-.ctrl label { font-size: var(--step--1); color: var(--ink-2); display: flex; justify-content: space-between; gap: 10px; }
-.ctrl label output { font-family: var(--f-mono); color: var(--ink); }
-input[type=range] { width: 100%; accent-color: var(--accent); }
-.readout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.readout div { background: var(--bg); border-radius: 8px; padding: 10px 12px; }
-.readout .k { font-size: 0.8125rem; color: var(--ink-3); }
-.readout .v { font-family: var(--f-display); font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-.readout .v.acc { color: var(--accent); }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--step--1); color: var(--ink-2); }
-.legend button { all: unset; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
-.legend button[aria-pressed="false"] { opacity: .35; }
-.legend i { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
-.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
-.tip { position: absolute; pointer-events: none; background: var(--ink); color: #ffffff; font: 500 0.75rem/1.4 var(--f-mono); padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
-.chart { position: relative; }
-
-.tablewrap { overflow-x: auto; }
-table.acc { border-collapse: collapse; width: 100%; min-width: 560px; font-variant-numeric: tabular-nums; font-size: 0.92rem; }
-table.acc th { font: 600 0.8rem var(--f-body); color: var(--ink-3); text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--ink); }
-table.acc td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--rule); }
-table.acc td:first-child, table.acc th:first-child { text-align: left; }
-table.acc td i { font-style: normal; font-size: 0.72rem; color: var(--ink-3); margin-left: 5px; }
-table.acc tr.ours td { color: var(--ink); font-weight: 600; background: #e8f0fb; border-bottom-color: #e8f0fb; }
-table.acc tr.ours td:first-child { border-radius: 8px 0 0 8px; box-shadow: inset 3px 0 0 #2f6fd0; }
-table.acc tr.ours td:last-child { border-radius: 0 8px 8px 0; }
-table.acc tr.ours td i { color: #4d6a94; }
-table.acc tr.ours td i { font-weight: 400; }
-.math { display: grid; gap: 14px; background: var(--surface); border-radius: var(--radius); padding: 22px 26px; max-width: 100%; overflow-x: auto; }
-.math math { font-family: var(--f-math); font-size: 1.3rem; color: var(--ink); }
-.math math[display="block"] { margin: 0; }
-.math dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 4px 0 0; font-size: 0.94rem; color: var(--ink-2); }
-.math dt { font-family: var(--f-math); font-style: italic; color: var(--ink); text-align: right; }
-.math dd { margin: 0; }
-.meter { height: 6px; background: var(--sunk); border-radius: 3px; margin-top: 8px; overflow: hidden; }
-.meter i { display: block; height: 100%; width: 100%; background: var(--accent); border-radius: 3px; transition: width .6s ease; }
-.ssd-stage { position: relative; height: 270px; background: var(--bg); border-radius: 12px; overflow: hidden; }
-.ss-lane { position: absolute; left: 0; right: 0; height: 32%; border-bottom: 1px dashed var(--rule); }
-.ss-lane:last-of-type { border-bottom: 0; }
-.ss-lane span { position: absolute; left: 12px; top: 8px; font-size: 0.75rem; font-weight: 600; color: var(--ink-3); }
-.ss-ssd.off span { text-decoration: line-through; }
-.ss-chip { position: absolute; width: 9.5%; height: 18%; display: grid; place-items: center; border-radius: 10px; font: 600 0.95rem var(--f-body); color: #fff; transition: left .55s cubic-bezier(.3,.7,.3,1), top .55s cubic-bezier(.3,.7,.3,1), opacity .4s, transform .3s; }
-.ss-chip.ghost { opacity: 0.18; }
-.ss-chip.active { transform: scale(1.12); box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--ink); }
-.ss-flash { position: absolute; right: 12px; top: 8px; font-size: 0.8rem; font-weight: 600; }
-.ss-read { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-@media (max-width: 760px) { .ss-read { grid-template-columns: minmax(0, 1fr); } }
-/* SpecPilot-style document layout */
-html { scroll-behavior: smooth; scroll-padding-top: 72px; }
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+/* nav */
 .nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgb(255 255 255 / 92%); backdrop-filter: saturate(180%) blur(14px); border-bottom: 1px solid var(--rule); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.nav-inner { max-width: 1000px; margin: 0 auto; min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.nav-inner { max-width: 1048px; margin: 0 auto; min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .wordmark { font-family: var(--f-display); font-weight: 700; font-size: 1.125rem; letter-spacing: -0.02em; color: var(--accent); text-decoration: none; flex: none; }
-.nav-links { display: flex; gap: 22px; font-size: 0.875rem; overflow-x: auto; scrollbar-width: none; }
-.nav-links a { color: var(--ink-2); text-decoration: none; white-space: nowrap; padding-block: 14px; }
-.nav-links a:hover { color: var(--accent); }
-.wrap { max-width: 1000px; }
-.hero { padding-block: 48px 30px; gap: 16px; }
-.hero h1 { font-size: clamp(1.9rem, 4.2vw, 2.75rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; max-width: 22ch; }
-.hero h1 .brand { color: var(--accent); }
-.summary { max-width: 60ch; font-size: 1.1875rem; line-height: 1.55; color: var(--ink); text-wrap: pretty; }
-.affil { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin-top: -6px; }
-.btn { background: var(--ink); border-color: var(--ink); color: #ffffff; }
-.btn.ghost { color: var(--ink-2); }
-.hero-fig { margin: 0; }
-.figcap { font-size: 0.9375rem; color: var(--ink-2); line-height: 1.5; margin-top: 12px; max-width: 80ch; }
-.figcap b { color: var(--ink); font-weight: 600; }
-section { padding-block: 44px 0; display: grid; gap: 16px; border-top: 1px solid var(--rule); margin-top: 44px; }
-section > h2 { font-size: clamp(1.6rem, 3vw, 2rem); }
-section > h3 { font-size: 1.25rem; margin-top: 18px; }
-section > p { max-width: 70ch; color: var(--ink); }
-section > .figcap { margin-top: -4px; }
-.callout { border-left: 3px solid var(--accent); padding: 4px 0 4px 20px; display: grid; gap: 10px; max-width: 70ch; }
-.callout b { font-weight: 600; }
-.copyrow h2 { font-size: clamp(1.6rem, 3vw, 2rem); }
-.stats { margin-top: 48px; }
-@media (max-width: 760px) { .nav-links { gap: 16px; } .nav-inner { gap: 14px; } }
-pre.code { background: var(--surface); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font: 0.86rem/1.65 var(--f-mono); color: var(--ink); margin: 0; }
+.nav-links { display: flex; gap: 24px; font-size: 0.875rem; overflow-x: auto; scrollbar-width: none; align-items: center; }
+.nav-links a, .nav-links span { color: var(--ink-2); text-decoration: none; white-space: nowrap; padding-block: 14px; }
+.nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--accent); }
+.nav-links .soon { color: var(--ink-3); }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 999px; font: 500 0.9375rem/1 var(--f-body); text-decoration: none; border: 1px solid var(--ink); background: var(--ink); color: #ffffff; }
+.btn:hover { background: #000000; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+.btn.ghost:hover { border-color: var(--ink-3); }
+.btn svg { width: 16px; height: 16px; }
+
+/* cards */
+.card { background: var(--surface); border-radius: var(--radius); padding: 26px; }
+.post-card { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 28px; align-items: center; text-decoration: none; background: var(--surface); border-radius: var(--radius); padding: 22px; transition: background .2s; }
+.post-card:hover { background: var(--sunk); }
+.post-card .thumb { background: var(--bg); border-radius: 12px; overflow: hidden; }
+.post-card .thumb svg { display: block; width: 100%; height: auto; }
+.post-card .kicker { font-size: 0.8125rem; font-weight: 600; color: var(--accent); }
+.post-card h3 { font-size: clamp(1.3rem, 2.4vw, 1.6rem); margin-top: 6px; }
+.post-card .meta { font-size: 0.875rem; color: var(--ink-3); margin-top: 8px; }
+.post-card .dek { color: var(--ink-2); margin-top: 12px; }
+.post-card .more { display: inline-block; margin-top: 14px; font-weight: 500; color: var(--accent); }
+
+pre.code { background: var(--surface); border-radius: 12px; padding: 18px 20px; overflow-x: auto; font: 0.875rem/1.7 var(--f-mono); color: var(--ink); margin: 0; }
 pre.code .c { color: var(--ink-3); }
-.copyrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-footer { margin-top: 88px; border-top: 1px solid var(--rule); padding-block: 26px 40px; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; font-size: var(--step--1); color: var(--ink-3); }
-footer b { color: var(--ink); font-family: var(--f-display); }
+
+footer.site { margin-top: 96px; border-top: 1px solid var(--rule); }
+footer.site .wrap { padding-block: 28px 44px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 0.8125rem; color: var(--ink-3); }
+footer.site b { color: var(--ink); }
+footer.site a { text-decoration: none; }
+footer.site a:hover { color: var(--accent); }
 
 @media (max-width: 760px) {
-  .climb, .two { grid-template-columns: minmax(0, 1fr); }
-  .step-note { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 16px; }
-  .pillars { grid-template-columns: minmax(0, 1fr); }
-  .pillar + .pillar { padding-left: 0; border-left: 0; border-top: 1px solid var(--rule); }
-  .stats { grid-template-columns: minmax(0, 1fr); gap: 28px; }
-  .card { padding: 16px; }
+  .post-card { grid-template-columns: minmax(0, 1fr); }
+  .nav-links { gap: 16px; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+
+/* home page */
+.hero { padding-block: 72px 40px; display: grid; gap: 20px; justify-items: center; text-align: center; }
+.hero h1 { font-size: clamp(2.6rem, 7vw, 4.5rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.02; max-width: 14ch; }
+.hero h1 span { color: var(--accent); }
+.hero .lede { max-width: 58ch; font-size: 1.25rem; color: var(--ink-2); line-height: 1.5; }
+.hero .cta { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.hero .hw { font-size: 0.875rem; color: var(--ink-3); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; text-align: center; margin-top: 28px; }
+.stat .big { font-family: var(--f-display); font-size: clamp(2.6rem, 6vw, 3.75rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1; }
+.stat .what { color: var(--ink-2); margin-top: 6px; }
+.stats-note { text-align: center; font-size: 0.8125rem; color: var(--ink-3); margin-top: 18px; }
+section.band { margin-top: 88px; display: grid; gap: 22px; }
+section.band > header { display: grid; gap: 8px; max-width: 64ch; }
+section.band h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
+section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
+.ideas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.idea { background: var(--surface); border-radius: var(--radius); padding: 24px; display: grid; gap: 10px; align-content: start; text-decoration: none; transition: background .2s; }
+.idea:hover { background: var(--sunk); }
+.idea .gain { font-size: 0.8125rem; font-weight: 600; color: var(--accent); }
+.idea h3 { font-size: 1.25rem; }
+.idea p { color: var(--ink-2); font-size: 0.97rem; }
+.idea .go { font-size: 0.875rem; font-weight: 500; color: var(--ink); margin-top: 4px; }
+.tablewrap { overflow-x: auto; background: var(--surface); border-radius: var(--radius); padding: 8px 22px; }
+table.models { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.97rem; }
+table.models th { text-align: left; font-size: 0.8125rem; font-weight: 600; color: var(--ink-3); padding: 14px 12px 10px 0; border-bottom: 1px solid var(--rule); }
+table.models td { padding: 14px 12px 14px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.models tr:last-child td { border-bottom: 0; }
+table.models td:first-child { font-weight: 600; }
+table.models code { font-family: var(--f-mono); font-size: 0.875rem; background: var(--bg); padding: 3px 7px; border-radius: 6px; white-space: nowrap; }
+.tools-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.tool { border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px; display: grid; gap: 8px; align-content: start; }
+.tool h3 { font-size: 1.0625rem; }
+.tool p { color: var(--ink-2); font-size: 0.95rem; }
+.tool code { font-family: var(--f-mono); font-size: 0.85rem; }
+.start { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 28px; align-items: start; }
+.start ol { margin: 0; padding-left: 1.2em; display: grid; gap: 10px; color: var(--ink-2); }
+.start ol b { color: var(--ink); font-weight: 600; }
+.copyrow { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.chip { font: 500 0.8rem/1 var(--f-body); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink-2); cursor: pointer; }
+.chip:hover { border-color: var(--ink-3); color: var(--ink); }
+@media (max-width: 760px) {
+  .stats, .ideas, .tools-row, .start { grid-template-columns: minmax(0, 1fr); }
+  .hero { padding-top: 48px; }
+}
 </style>
 
-<nav class="nav" aria-label="Sections">
+<nav class="nav" aria-label="Site">
   <div class="nav-inner">
-    <a class="wordmark" href="#top">Sharar</a>
+    <a class="wordmark" href="index.html">Sharar</a>
     <div class="nav-links">
-      <a href="#idea">Idea</a><a href="#surgery">Model surgery</a><a href="#memory">Memory</a><a href="#speculation">Speculation</a><a href="#results">Results</a><a href="#bibtex">BibTeX</a>
+      <a href="index.html#models">Models</a>
+      <a href="index.html#start">Get started</a>
+      <a href="blog/index.html">Blog</a>
+      <span class="soon" title="The repository opens with the paper">GitHub (soon)</span>
     </div>
   </div>
 </nav>
-<div class="wrap" id="top">
-  <header class="hero">
-    <h1><span class="brand">Sharar</span>: Fast Agentic Inference on Unified-Memory Devices</h1>
-    <p class="summary">On a unified-memory device, the model and every agent's history share one memory. Sharar co-designs the model, its memory, and its decoding so many agents run fast on a single DGX Spark.</p>
-    <p class="authors">Yahya Emara<sup>1*</sup>, Chi-Chih Chang<sup>1*</sup>, Anthony Fei<sup>1</sup>, Ahmed F. AbouElhamayed<sup>1</sup>, Chong-Yan Chen<sup>2</sup>, Hung-Yueh Chiang<sup>3</sup>, Kai-Chiang Wu<sup>4</sup>, Mohamed S. Abdelfattah<sup>1</sup></p>
-    <p class="affil"><span><sup>1</sup>Cornell University</span><span><sup>2</sup>University of Illinois Urbana-Champaign</span><span><sup>3</sup>Independent researcher</span><span><sup>4</sup>National Yang Ming Chiao Tung University</span><span><sup>*</sup>Equal contribution</span></p>
-    <div class="links">
-      <span class="btn ghost" title="The paper is in preparation">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
-        Paper (soon)</span>
-      <span class="btn ghost" title="The repository is private for now">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
-        Code (soon)</span>
-      <a class="btn" href="#bibtex">BibTeX</a>
-    </div>
-  </header>
 
-  <figure class="hero-fig" id="climb-card">
-    <div class="card">
-    <div class="card-head">
-      <p class="lead">Building Sharar · <b id="climb-lead">27.9 tokens/s</b></p>
-      <div class="tools">
-        <button class="chip" id="climb-play" type="button">Pause</button>
-        <button class="chip" id="climb-replay" type="button">Replay</button>
-      </div>
+
+<main class="wrap">
+  <header class="hero">
+    <h1>Fast local inference for <span>AI agents</span></h1>
+    <p class="lede">Sharar is an inference engine for the NVIDIA DGX Spark. It runs Qwen and Nemotron models of up to 125B parameters for many agents at once, behind OpenAI- and Anthropic-compatible APIs.</p>
+    <div class="cta">
+      <a class="btn" href="#start">Get started</a>
+      <a class="btn ghost" href="blog/sharar-paper/index.html">Read the paper post</a>
     </div>
-    <div class="climb">
-      <svg id="climb-svg" viewBox="0 0 620 330" role="img" aria-label="Decode throughput rising from 27.9 to 119.6 tokens per second as each technique is added"></svg>
-      <div class="step-note" aria-live="polite">
-        <span class="idx" id="note-idx">STEP 1 / 8</span>
-        <h3 id="note-title">No speculation</h3>
-        <div class="val" id="note-val">27.9<small>tok/s</small></div>
-        <div class="tags" id="note-tags"></div>
-        <p id="note-body"></p>
-      </div>
-    </div>
-    <div class="stepchips" id="climb-chips"></div>
-    </div>
-    <figcaption class="figcap"><b>Each idea adds speed.</b> Decode throughput on Qwen3.8-Flash-Next at one request on one DGX Spark, as each optimization is added. Click a step to jump to it.</figcaption>
-  </figure>
+    <p class="hw">One GB10 · 128 GB unified memory · 262K context · Apache 2.0</p>
+  </header>
 
   <div class="stats">
     <div class="stat"><div class="big num">4.3×</div><div class="what">higher decoding throughput</div></div>
     <div class="stat"><div class="big num">3.1×</div><div class="what">more agentic tasks per hour</div></div>
     <div class="stat"><div class="big num">2.1×</div><div class="what">faster for a single user</div></div>
   </div>
-  <p class="cap stats-note">Qwen3.8-Flash-Next on one DGX Spark, against the fastest of vLLM, llama.cpp, and TensorFold.</p>
+  <p class="stats-note">Qwen3.8-Flash-Next on one DGX Spark, against the fastest of vLLM, llama.cpp, and TensorFold.</p>
 
-  <section id="idea">
-    <h2>The idea in a minute</h2>
-    <p>Local agents extend long histories, pause for tools, and run side by side. On a unified-memory device such as the DGX Spark, the weights, the active requests, and every saved history share one 128 GB pool, and every generated token streams the weights through limited bandwidth. Sharar attacks both limits at once.</p>
-    <div class="callout">
-      <p><b>Model surgery.</b> Edit the trained model to fit the hardware: 3-bit weights, INT8 recurrent state, and a 2-bit draft head, so each token reads fewer bytes.</p>
-      <p><b>Unified-memory management.</b> Keep every agent's state across turns, spilling it to the SSD when GPU memory runs out, so a returning agent resumes instead of recomputing.</p>
-      <p><b>Adaptive speculation.</b> Share experts across drafted tokens and draft only as far as acceptance pays for, so each weight read yields more tokens.</p>
+  <section class="band" id="how">
+    <header>
+      <h2>Built for unified memory</h2>
+      <p>On a DGX Spark, the model and every agent's history share one memory. Sharar is designed around that.</p>
+    </header>
+    <div class="ideas">
+      <a class="idea" href="blog/sharar-paper/index.html#surgery">
+        <span class="gain">Fewer bytes per token</span>
+        <h3>Model surgery</h3>
+        <p>3-bit weights, INT8 recurrent state, and a 2-bit draft head.</p>
+        <span class="go">How it works →</span>
+      </a>
+      <a class="idea" href="blog/sharar-paper/index.html#memory">
+        <span class="gain">No recomputation between turns</span>
+        <h3>SSD session cache</h3>
+        <p>Every agent's state survives across turns, on the SSD when GPU memory is full.</p>
+        <span class="go">How it works →</span>
+      </a>
+      <a class="idea" href="blog/sharar-paper/index.html#speculation">
+        <span class="gain">More tokens per weight read</span>
+        <h3>Adaptive speculation</h3>
+        <p>Shared experts across drafted tokens, and draft lengths that follow acceptance.</p>
+        <span class="go">How it works →</span>
+      </a>
     </div>
   </section>
 
-  <section id="surgery">
-    <h2>Model surgery</h2>
-    <p>Decoding one request is bound by memory bandwidth, so the fastest token is the one that reads the fewest bytes.</p>
-    <h3>Three-bit weights</h3>
-    <p>Each group of 32 weights snaps to an 8-entry FP8 codebook, so each weight is stored as a 3-bit index. The kernel looks up the codes and feeds FP8 tensor cores directly.</p>
-    <div class="card two">
-      <div class="chart"><svg id="cb-svg" viewBox="0 0 470 250" role="img" aria-label="32 weights snapping to 8 codebook values"></svg></div>
-      <div style="display:grid;gap:16px;min-width:0">
-        <div class="tools">
-          <button class="chip" type="button" id="cb-play">Quantize</button>
-          <button class="chip" type="button" id="cb-new">New weights</button>
-        </div>
-        <div class="readout">
-          <div><div class="k">Bits per weight</div><div class="v acc num" id="cb-bits">8</div></div>
-          <div><div class="k">Bytes vs FP8</div><div class="v num" id="cb-bytes">100%</div></div>
-        </div>
-      </div>
-    </div>
-    <p class="figcap"><b>Eight values per group, three bits per weight.</b> Codes take 3 bits and each group of 32 adds one 8-bit scale: 3 + 8/32 = 3.25 bits per weight. The codebook here is fitted to the group for illustration.</p>
-
-    <h3>Two-bit draft head</h3>
-    <p>The drafter's output head scores every token in the vocabulary and is the largest matrix the drafter reads. A 2-bit copy is cheap but noisy, so Sharar uses it only to shortlist candidates, then rescores the shortlist in FP8.</p>
-    <div class="card" style="display:grid;gap:14px">
-      <div class="card-head" style="margin:0">
-        <div class="seg" role="group" aria-label="Example">
-          <button type="button" id="dh-easy" aria-pressed="false">Confident token</button>
-          <button type="button" id="dh-hard" aria-pressed="true">Uncertain token</button>
-        </div>
-        <div class="tools"><button class="chip" type="button" id="dh-play">Pause</button><button class="chip" type="button" id="dh-replay">Replay</button></div>
-      </div>
-      <div class="two" style="gap:22px">
-        <div class="chart"><svg id="dh-svg" viewBox="0 0 470 300" role="img" aria-label="Token scores from the 2-bit head, the shortlist, and the FP8 rescoring"></svg></div>
-        <div class="step-note" aria-live="polite">
-          <span class="idx" id="dh-idx">STEP 1 / 4</span>
-          <h3 id="dh-title"></h3>
-          <p id="dh-body"></p>
-          <div class="readout" style="grid-template-columns:minmax(0,1fr)">
-            <div><div class="k">Head weights read</div><div class="v num" id="dh-bytes">100%</div><div class="meter"><i id="dh-meter"></i></div></div>
-          </div>
-        </div>
-      </div>
-      <div class="stepchips" id="dh-chips" style="margin:0"></div>
-    </div>
-    <p class="figcap"><b>Shortlist in 2 bits, decide in FP8.</b> Context: <span class="mono">for i in range(</span>. The served head shortlists 16 of over 100,000 tokens and agrees with the FP8 head on 99.76% of tokens.</p>
-
-  </section>
-
-  <section id="memory">
-    <h2>Unified-memory management</h2>
-    <p>Agents take turns. By the time an agent returns, other agents have usually pushed its state out of GPU memory.</p>
-    <h3>SSD session cache</h3>
-    <p>Discard an evicted agent's state and its next turn recomputes the whole context. Sharar spills the KV cache, recurrent state, and draft state to the SSD instead, and reads them back when the agent returns.</p>
-    <div class="card" style="display:grid;gap:16px">
-      <div class="card-head" style="margin:0">
-        <div class="seg" role="group" aria-label="On eviction">
-          <button type="button" id="ss-drop" aria-pressed="false">Discard on eviction</button>
-          <button type="button" id="ss-keep" aria-pressed="true">Spill to SSD</button>
-        </div>
-        <div class="tools"><button class="chip" type="button" id="ss-play">Pause</button><button class="chip" type="button" id="ss-reset">Reset</button></div>
-      </div>
-      <div class="ssd-stage" id="ss-stage">
-        <div class="ss-lane" style="top:0%"><span>Agents</span></div>
-        <div class="ss-lane" style="top:34%"><span>GPU memory · 4 sessions</span></div>
-        <div class="ss-lane ss-ssd" style="top:68%"><span id="ss-lane3">SSD</span></div>
-      </div>
-      <div class="readout ss-read">
-        <div><div class="k">This turn</div><div class="v num" id="ss-now">…</div></div>
-        <div><div class="k">Resumed from cache</div><div class="v acc num" id="ss-hit">0%</div></div>
-        <div><div class="k">Prefill work per turn</div><div class="v num" id="ss-work">…</div></div>
-      </div>
-    </div>
-    <p class="figcap"><b>Spill, don't discard.</b> Illustration with 8 agents and room for 4 in GPU memory. On Qwen3.8-Flash-Next with 192 conversations, the SSD tier lifts cache hits to 80–98% and cuts time to first token by up to 42× against the baselines.</p>
-
-  </section>
-
-  <section id="speculation">
-    <h2>Adaptive speculation</h2>
-    <p>A drafter proposes several tokens and the target checks them in one pass. Sharar makes each of these rounds cheaper and sizes it to what will be accepted.</p>
-    <h3>Expert sharing</h3>
-    <p>In a mixture-of-experts layer, verifying drafted tokens loads every expert any of them picked. Sharar gives the round a shared expert budget, so it reads fewer weights.</p>
-    <div class="card two">
-      <div class="chart"><svg id="moe-svg" viewBox="0 0 470 300" role="img" aria-label="Token by expert routing grid"></svg></div>
-      <div style="display:grid;gap:16px;min-width:0">
-        <div class="seg" role="group" aria-label="Routing policy">
-          <button type="button" id="moe-topk" aria-pressed="false">Per-token top-2</button>
-          <button type="button" id="moe-shared" aria-pressed="true">Shared budget</button>
-        </div>
-        <div class="ctrl" id="moe-budget-ctrl">
-          <label for="moe-b">Expert budget B <output id="moe-b-out">4</output></label>
-          <input type="range" id="moe-b" min="3" max="8" step="1" value="4">
-        </div>
-        <div class="readout">
-          <div><div class="k">Experts loaded</div><div class="v acc num" id="moe-loaded">4 / 12</div></div>
-          <div><div class="k">Expert bytes vs top-2</div><div class="v num" id="moe-bytes">50%</div></div>
-          <div><div class="k">Tokens keeping own top-2</div><div class="v num" id="moe-keep">2 / 6</div></div>
-          <div><div class="k">Routing mass kept</div><div class="v num" id="moe-mass">…</div></div>
-        </div>
-      </div>
-    </div>
-    <p class="figcap"><b>Fewer experts per round.</b> Toy example: 6 tokens, 12 experts, top-2 routing. Shaded columns are the experts read from memory; ↺ marks a second choice replaced by one inside the budget.</p>
-
-    <h3>Adaptive draft length</h3>
-    <p>A longer draft can yield more tokens per round, but each extra draft token costs time to draft and verify. Sharar picks the draft length that maximizes expected tokens per unit time:</p>
-    <div class="math" role="group" aria-label="Adaptive draft length">
-      <math display="block">
-        <mrow>
-          <msup><mi>d</mi><mo>⋆</mo></msup><mo>=</mo>
-          <munder><mrow><mi>arg</mi><mo>&#x2061;</mo><mi>max</mi></mrow><mrow><mn>1</mn><mo>≤</mo><mi>d</mi><mo>≤</mo><msub><mi>d</mi><mi>max</mi></msub></mrow></munder>
-          <mspace width="0.3em"></mspace>
-          <mfrac><mrow><mi>E</mi><mo stretchy="false">[</mo><msub><mi>N</mi><mi>d</mi></msub><mo stretchy="false">]</mo></mrow><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>d</mi><mo stretchy="false">)</mo></mrow></mfrac>
-        </mrow>
-      </math>
-      <math display="block">
-        <mrow>
-          <mi>E</mi><mo stretchy="false">[</mo><msub><mi>N</mi><mi>d</mi></msub><mo stretchy="false">]</mo><mo>=</mo>
-          <munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>0</mn></mrow><mi>d</mi></munderover><msup><mi>q</mi><mi>j</mi></msup>
-          <mo>=</mo><mfrac><mrow><mn>1</mn><mo>−</mo><msup><mi>q</mi><mrow><mi>d</mi><mo>+</mo><mn>1</mn></mrow></msup></mrow><mrow><mn>1</mn><mo>−</mo><mi>q</mi></mrow></mfrac>
-          <mo>,</mo><mspace width="1.5em"></mspace>
-          <mi>T</mi><mo stretchy="false">(</mo><mi>d</mi><mo stretchy="false">)</mo><mo>=</mo><mn>1</mn><mo>+</mo><mi>c</mi><mspace width="0.1em"></mspace><mo stretchy="false">(</mo><mi>d</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo>
-        </mrow>
-      </math>
-      <dl>
-        <dt>d</dt><dd>draft length: tokens drafted per round</dd>
-        <dt>q</dt><dd>probability that a drafted token is accepted, tracked per request</dd>
-        <dt>N<sub>d</sub></dt><dd>tokens emitted per round: the accepted prefix plus the target's own next token</dd>
-        <dt>T(d)</dt><dd>round time, relative to a round with d = 1</dd>
-        <dt>c</dt><dd>added cost of one more draft token</dd>
-      </dl>
-    </div>
-    <div class="card two">
-      <div class="chart" id="depth-chart"><svg id="depth-svg" viewBox="0 0 470 280" role="img" aria-label="Expected tokens per unit time against draft depth"></svg></div>
-      <div style="display:grid;gap:16px;min-width:0">
-        <div class="ctrl"><label for="dq">Acceptance rate q <output id="dq-out">0.80</output></label><input type="range" id="dq" min="0.30" max="0.97" step="0.01" value="0.80"></div>
-        <div class="ctrl"><label for="dc">Draft cost c <output id="dc-out">0.12</output></label><input type="range" id="dc" min="0.02" max="0.60" step="0.01" value="0.12"></div>
-        <div class="ctrl"><label for="dmax"><span>Longest draft d<sub>max</sub></span> <output id="dmax-out">8</output></label><input type="range" id="dmax" min="2" max="10" step="1" value="8"></div>
-        <div class="readout">
-          <div><div class="k">Best length d*</div><div class="v acc num" id="d-star">5</div></div>
-          <div><div class="k">E[N] per round</div><div class="v num" id="d-tok">…</div></div>
-          <div><div class="k">Speed vs no drafting</div><div class="v num" id="d-speed">…</div></div>
-          <div><div class="k">vs. always 8</div><div class="v num" id="d-fixed">…</div></div>
-        </div>
-      </div>
-    </div>
-    <p class="figcap"><b>Draft only as far as acceptance pays for.</b> Idealized model. Bars show E[N<sub>d</sub>] / T(d) for each draft length; the red bar is d*. High acceptance earns long drafts.</p>
-
-  </section>
-
-  <section id="results">
-    <h2>Results</h2>
-    <p>Four models on one DGX Spark against vLLM, Flare, TensorFold, and llama.cpp.</p>
-    <h3>Speed and agentic throughput</h3>
-    <div class="card" style="display:grid;gap:14px">
-      <div class="card-head" style="margin:0">
-        <div class="seg" role="group" aria-label="Model" id="r-model"></div>
-              </div>
-      <div class="legend" id="r-legend"></div>
-      <div class="two" style="gap:22px">
-        <div class="chart" id="warm-chart"><svg id="warm-svg" viewBox="0 0 470 330" role="img" aria-label="Output throughput against per-user speed"></svg></div>
-        <div class="chart" id="agent-chart"><svg id="agent-svg" viewBox="0 0 470 330" role="img" aria-label="Agentic tasks per hour against concurrent agents"></svg></div>
-      </div>
-    </div>
-    <p class="figcap"><b>Faster for one user, and for many.</b> Left: SPEED-Bench with 16k prompts, one point per concurrency level; up and to the right is better. Right: AgentPerf-Local agent replay. Hover a point for its numbers.</p>
-
-    <h3>Accuracy</h3>
-    <div class="card tablewrap">
-      <table class="acc">
-        <thead><tr><th></th><th>GPQA</th><th>LCB</th><th>IFBench</th><th>AIME25</th><th>AIME26</th></tr></thead>
+  <section class="band" id="models">
+    <header>
+      <h2>Models</h2>
+      <p>Each model downloads on first serve, with its calibrated 3-bit checkpoint for the default fast profile.</p>
+    </header>
+    <div class="tablewrap">
+      <table class="models">
+        <thead><tr><th>Model</th><th>Size</th><th>Command</th><th>Port</th><th>Sparks</th></tr></thead>
         <tbody>
-          <tr><td>Exact</td><td>90.7</td><td>87.7</td><td>85.3</td><td>100.0</td><td>100.0</td></tr>
-          <tr><td>+ 3-bit weights</td><td>90.4<i>−0.3</i></td><td>85.4<i>−2.3</i></td><td>83.3<i>−2.0</i></td><td>99.2<i>−0.8</i></td><td>99.2<i>−0.8</i></td></tr>
-          <tr><td>+ Expert sharing</td><td>90.4<i>−0.3</i></td><td>85.4<i>−2.3</i></td><td>83.3<i>−2.0</i></td><td>99.2<i>−0.8</i></td><td>99.2<i>−0.8</i></td></tr>
-          <tr class="ours"><td>+ Relaxed verif. (fast)</td><td>89.1<i>−1.6</i></td><td>84.6<i>−3.1</i></td><td>81.7<i>−3.6</i></td><td>99.2<i>−0.8</i></td><td>99.2<i>−0.8</i></td></tr>
+          <tr><td>Qwen3.8-27B</td><td>27B dense</td><td><code>sharar serve 27b</code></td><td class="num">30001</td><td>1 or 2</td></tr>
+          <tr><td>Qwen3.8-Flash-Next</td><td>125B MoE</td><td><code>sharar serve flashnext</code></td><td class="num">30004</td><td>1 or 2</td></tr>
+          <tr><td>Nemotron 3.5 Super</td><td>120B-A12B MoE</td><td><code>sharar serve nemotron</code></td><td class="num">30005</td><td>1</td></tr>
+          <tr><td>Nemotron 3.5 Bolt</td><td>74B-A9B MoE</td><td><code>sharar serve bolt</code></td><td class="num">30006</td><td>1</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="figcap"><b>Within 3.6 points of the exact model.</b> Task accuracy (%) on Qwen3.8-Flash-Next as each lossy optimization is added; small numbers are the drop from the exact model.</p>
-
   </section>
 
-  <section id="start">
-    <h2>Quick start</h2>
-    <div class="copyrow"><p class="cap">Install uv, then:</p><button class="chip" type="button" data-copy="qs">Copy</button></div>
-    <pre class="code" id="qs"><span class="c"># the repository opens with the paper</span>
+  <section class="band" id="tools">
+    <header>
+      <h2>Works with your agents</h2>
+      <p>Point any OpenAI or Anthropic client at the server, or let Sharar launch the agent for you.</p>
+    </header>
+    <div class="tools-row">
+      <div class="tool"><h3>Coding agents</h3><p><code>sharar launch claude</code> starts Claude Code on the served model. Also opencode and aider.</p></div>
+      <div class="tool"><h3>OpenAI and Anthropic APIs</h3><p>Chat completions at <code>/v1</code>, Messages at the root, with tool calls and constrained output.</p></div>
+      <div class="tool"><h3>Two Sparks</h3><p>Add <code>--tp 2</code> to split a Qwen model across two Sparks linked by their ConnectX ports.</p></div>
+    </div>
+  </section>
+
+  <section class="band" id="start">
+    <header>
+      <h2>Get started</h2>
+      <p>One DGX Spark with DGX OS, driver 580 or newer, and <a href="https://docs.astral.sh/uv/">uv</a>.</p>
+    </header>
+    <div class="start">
+      <ol>
+        <li><b>Clone and sync.</b> uv installs the pinned CUDA 13 PyTorch and FlashInfer, about 7 GB.</li>
+        <li><b>Serve a model.</b> The first run downloads it and builds the GB10 kernels.</li>
+        <li><b>Use it.</b> Chat in the terminal, or launch a coding agent on it.</li>
+      </ol>
+      <div>
+        <div class="copyrow"><button class="chip" type="button" data-copy="qs">Copy</button></div>
+        <pre class="code" id="qs"><span class="c"># the repository opens with the paper</span>
 git clone https://github.com/abdelfattah-lab/sharar && cd sharar
 uv sync
-uv run sharar serve 27b          <span class="c"># Qwen3.8-27B on http://127.0.0.1:30001</span>
-uv run sharar serve flashnext    <span class="c"># Qwen3.8-Flash-Next (125B MoE)</span>
-uv run sharar launch claude      <span class="c"># point a coding agent at it</span></pre>
-    <p class="cap">OpenAI- and Anthropic-compatible APIs, 262K context, one Spark or two over ConnectX. Add <span class="mono">--exact</span> for the model's own outputs.</p>
+uv run sharar serve nemotron     <span class="c"># Nemotron 3.5 Super on :30005</span>
+
+<span class="c"># in another terminal</span>
+uv run sharar chat
+uv run sharar launch claude</pre>
+      </div>
+    </div>
   </section>
 
-  <section id="bibtex">
-    <div class="copyrow"><h2>BibTeX</h2><button class="chip" type="button" data-copy="bib">Copy</button></div>
-    <pre class="code" id="bib">@misc{emara2026sharar,
-  title  = {Sharar: Fast Agentic Inference on Unified-Memory Devices},
-  author = {Emara, Yahya and Chang, Chi-Chih and Fei, Anthony and
-            AbouElhamayed, Ahmed F. and Chen, Chong-Yan and Chiang, Hung-Yueh and
-            Wu, Kai-Chiang and Abdelfattah, Mohamed S.},
-  year   = {2026},
-  note   = {Preprint}
-}</pre>
-  </section>
+  <section class="band" id="blog">
+    <header>
+      <h2>From the blog</h2>
+    </header>
+    <a class="post-card" href="blog/sharar-paper/index.html">
+  <div class="thumb" aria-hidden="true">
+    <svg viewBox="0 0 480 270">
+      <rect width="480" height="270" fill="#ffffff"/>
+      <text x="28" y="44" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="22" font-weight="700" fill="#a31f34">Sharar</text>
+      <text x="28" y="68" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="13" fill="#86868b">decode tokens/s, Qwen3.8-Flash-Next, one request</text>
+      <g stroke="#e8e8ed"><line x1="28" x2="452" y1="232" y2="232"/><line x1="28" x2="452" y1="182" y2="182"/><line x1="28" x2="452" y1="132" y2="132"/></g>
+      <path d="M28,232 L28,207 L81,207 L81,183 L134,183 L134,161 L187,161 L187,159 L240,159 L240,158 L293,158 L293,134 L346,134 L346,129 L399,129 L399,124 L452,124 L452,232 Z" fill="#a31f34" fill-opacity="0.08"/>
+      <path d="M28,207 L81,207 L81,183 L134,183 L134,161 L187,161 L187,159 L240,159 L240,158 L293,158 L293,134 L346,134 L346,129 L399,129 L399,124 L452,124" fill="none" stroke="#a31f34" stroke-width="3" stroke-linejoin="round"/>
+      <text x="452" y="108" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="34" font-weight="700" fill="#1d1d1f">4.3×</text>
+      <text x="54" y="196" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="12" fill="#515154">27.9</text>
+    </svg>
+  </div>
+  <div>
+    <span class="kicker">Paper</span>
+    <h3>Sharar: Fast Agentic Inference on Unified-Memory Devices</h3>
+    <p class="meta">November 4, 2026 · Emara, Chang, et al.</p>
+    <p class="dek">Model surgery, an SSD session cache, and adaptive speculation, co-designed for one DGX Spark. Interactive illustrations of each idea, and results on four models.</p>
+    <span class="more">Read the post →</span>
+  </div>
+</a>
 
-  <footer>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
     <span><b>Sharar</b> · Abdelfattah Lab, Cornell University</span>
-    <span>Numbers from the preprint, November 2026. Measured on one NVIDIA DGX Spark (GB10).</span>
-  </footer>
-</div>
+    <span><a href="index.html">Home</a> · <a href="blog/index.html">Blog</a> · Apache 2.0</span>
+  </div>
+</footer>
 
-<script id="results-data" type="application/json">{
- "models": [
-  "Qwen3.8-27B",
-  "Qwen3.8-Flash-Next",
-  "Nemotron-3.5-Bolt",
-  "Nemotron-3.5-Super"
- ],
- "context": "16k",
- "warm": {
-  "Qwen3.8-27B": {
-   "Sharar": [
-    {
-     "n": 1,
-     "user": 61.9,
-     "agg": 61.9,
-     "accept": "4.09"
-    },
-    {
-     "n": 2,
-     "user": 57.4,
-     "agg": 112.9,
-     "accept": "4.04"
-    },
-    {
-     "n": 4,
-     "user": 48.7,
-     "agg": 194.4,
-     "accept": "3.83"
-    },
-    {
-     "n": 8,
-     "user": 39.7,
-     "agg": 319.8,
-     "accept": "3.78"
-    },
-    {
-     "n": 16,
-     "user": 24.8,
-     "agg": 398.4,
-     "accept": "3.76"
-    },
-    {
-     "n": 32,
-     "user": 16.0,
-     "agg": 512.2,
-     "accept": "3.82"
-    },
-    {
-     "n": 64,
-     "user": 10.0,
-     "agg": 629.2,
-     "accept": "3.81"
-    }
-   ],
-   "vLLM": [
-    {
-     "n": 1,
-     "user": 26.3,
-     "agg": 26.3,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 23.4,
-     "agg": 46.4,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 21.0,
-     "agg": 82.8,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 13.4,
-     "agg": 107.1,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 12.2,
-     "agg": 193.8,
-     "accept": null
-    },
-    {
-     "n": 32,
-     "user": 7.4,
-     "agg": 239.0,
-     "accept": null
-    }
-   ],
-   "TensorFold": [
-    {
-     "n": 1,
-     "user": 47.5,
-     "agg": 47.5,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 35.7,
-     "agg": 70.0,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 28.6,
-     "agg": 112.3,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 18.8,
-     "agg": 158.2,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 9.7,
-     "agg": 167.2,
-     "accept": null
-    }
-   ],
-   "llama.cpp": [
-    {
-     "n": 1,
-     "user": 21.1,
-     "agg": 21.1,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 15.6,
-     "agg": 31.1,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 11.8,
-     "agg": 47.4,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 5.1,
-     "agg": 40.3,
-     "accept": null
-    }
-   ],
-   "Flare": [
-    {
-     "n": 1,
-     "user": 28.6,
-     "agg": 28.6,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 26.5,
-     "agg": 52.4,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 22.4,
-     "agg": 90.2,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 17.8,
-     "agg": 141.7,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 11.8,
-     "agg": 187.2,
-     "accept": null
-    },
-    {
-     "n": 32,
-     "user": 5.1,
-     "agg": 158.7,
-     "accept": null
-    }
-   ]
-  },
-  "Qwen3.8-Flash-Next": {
-   "Sharar": [
-    {
-     "n": 1,
-     "user": 103.1,
-     "agg": 103.1,
-     "accept": "4.92"
-    },
-    {
-     "n": 2,
-     "user": 82.2,
-     "agg": 163.7,
-     "accept": "3.89"
-    },
-    {
-     "n": 4,
-     "user": 61.7,
-     "agg": 246.0,
-     "accept": "3.97"
-    },
-    {
-     "n": 8,
-     "user": 45.8,
-     "agg": 366.5,
-     "accept": "4.0"
-    },
-    {
-     "n": 16,
-     "user": 32.2,
-     "agg": 517.7,
-     "accept": "3.39"
-    },
-    {
-     "n": 32,
-     "user": 20.1,
-     "agg": 642.6,
-     "accept": "3.42"
-    },
-    {
-     "n": 64,
-     "user": 12.5,
-     "agg": 794.2,
-     "accept": "3.43"
-    }
-   ],
-   "vLLM": [
-    {
-     "n": 1,
-     "user": 38.2,
-     "agg": 38.2,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 29.5,
-     "agg": 58.4,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 20.3,
-     "agg": 80.2,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 13.3,
-     "agg": 105.4,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 9.2,
-     "agg": 146.4,
-     "accept": null
-    }
-   ],
-   "TensorFold": [
-    {
-     "n": 1,
-     "user": 48.7,
-     "agg": 48.7,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 36.6,
-     "agg": 72.1,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 25.4,
-     "agg": 102.6,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 17.9,
-     "agg": 142.9,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 11.3,
-     "agg": 183.9,
-     "accept": null
-    },
-    {
-     "n": 32,
-     "user": 5.1,
-     "agg": 158.6,
-     "accept": null
-    }
-   ],
-   "llama.cpp": [
-    {
-     "n": 1,
-     "user": 33.4,
-     "agg": 33.4,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 23.4,
-     "agg": 46.4,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 13.9,
-     "agg": 54.2,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 8.4,
-     "agg": 66.4,
-     "accept": null
-    }
-   ],
-   "Flare": [
-    {
-     "n": 1,
-     "user": 41.5,
-     "agg": 41.5,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 32.9,
-     "agg": 65.4,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 24.7,
-     "agg": 98.2,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 15.4,
-     "agg": 122.2,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 9.0,
-     "agg": 143.4,
-     "accept": null
-    },
-    {
-     "n": 32,
-     "user": 6.4,
-     "agg": 204.6,
-     "accept": null
-    }
-   ]
-  },
-  "Nemotron-3.5-Bolt": {
-   "Sharar": [
-    {
-     "n": 1,
-     "user": 112.0,
-     "agg": 112.0,
-     "accept": "4.11"
-    },
-    {
-     "n": 2,
-     "user": 89.8,
-     "agg": 175.9,
-     "accept": "4.17"
-    },
-    {
-     "n": 4,
-     "user": 64.6,
-     "agg": 252.0,
-     "accept": "4.09"
-    },
-    {
-     "n": 8,
-     "user": 42.3,
-     "agg": 333.6,
-     "accept": "4.16"
-    },
-    {
-     "n": 16,
-     "user": 26.7,
-     "agg": 420.2,
-     "accept": "4.22"
-    },
-    {
-     "n": 32,
-     "user": 16.2,
-     "agg": 507.3,
-     "accept": "4.22"
-    },
-    {
-     "n": 64,
-     "user": 9.0,
-     "agg": 569.0,
-     "accept": "4.15"
-    }
-   ],
-   "vLLM": [
-    {
-     "n": 1,
-     "user": 77.6,
-     "agg": 77.6,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 60.9,
-     "agg": 119.0,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 43.3,
-     "agg": 168.7,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 27.9,
-     "agg": 233.8,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 17.0,
-     "agg": 294.2,
-     "accept": null
-    },
-    {
-     "n": 32,
-     "user": 8.7,
-     "agg": 318.5,
-     "accept": null
-    },
-    {
-     "n": 64,
-     "user": 5.0,
-     "agg": 374.0,
-     "accept": null
-    }
-   ],
-   "TensorFold": [
-    {
-     "n": 1,
-     "user": 83.7,
-     "agg": 83.7,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 61.3,
-     "agg": 118.1,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 45.5,
-     "agg": 179.9,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 31.7,
-     "agg": 236.3,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 18.4,
-     "agg": 276.9,
-     "accept": null
-    }
-   ],
-   "llama.cpp": [
-    {
-     "n": 1,
-     "user": 69.3,
-     "agg": 69.3,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 36.2,
-     "agg": 68.3,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 21.0,
-     "agg": 80.6,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 11.9,
-     "agg": 88.4,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 5.7,
-     "agg": 86.1,
-     "accept": null
-    }
-   ],
-   "Flare": [
-    {
-     "n": 1,
-     "user": 82.4,
-     "agg": 82.4,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 68.2,
-     "agg": 133.3,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 52.5,
-     "agg": 201.6,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 35.4,
-     "agg": 275.0,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 22.5,
-     "agg": 349.5,
-     "accept": null
-    },
-    {
-     "n": 32,
-     "user": 13.8,
-     "agg": 423.8,
-     "accept": null
-    }
-   ]
-  },
-  "Nemotron-3.5-Super": {
-   "Sharar": [
-    {
-     "n": 1,
-     "user": 114.9,
-     "agg": 114.9,
-     "accept": "6.82"
-    },
-    {
-     "n": 2,
-     "user": 76.4,
-     "agg": 151.1,
-     "accept": "5.97"
-    },
-    {
-     "n": 4,
-     "user": 53.1,
-     "agg": 209.9,
-     "accept": "5.3"
-    },
-    {
-     "n": 8,
-     "user": 38.6,
-     "agg": 304.3,
-     "accept": "5.31"
-    },
-    {
-     "n": 16,
-     "user": 22.6,
-     "agg": 360.7,
-     "accept": "3.8"
-    },
-    {
-     "n": 32,
-     "user": 17.1,
-     "agg": 536.3,
-     "accept": "6.52"
-    },
-    {
-     "n": 64,
-     "user": 11.5,
-     "agg": 716.2,
-     "accept": "6.64"
-    }
-   ],
-   "vLLM": [
-    {
-     "n": 1,
-     "user": 37.1,
-     "agg": 37.1,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 27.3,
-     "agg": 53.7,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 19.1,
-     "agg": 75.4,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 13.3,
-     "agg": 105.5,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 9.5,
-     "agg": 156.1,
-     "accept": null
-    },
-    {
-     "n": 32,
-     "user": 7.0,
-     "agg": 237.4,
-     "accept": null
-    }
-   ],
-   "TensorFold": [
-    {
-     "n": 1,
-     "user": 49.0,
-     "agg": 49.0,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 32.2,
-     "agg": 60.7,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 20.3,
-     "agg": 80.7,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 12.2,
-     "agg": 96.2,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 6.5,
-     "agg": 98.2,
-     "accept": null
-    },
-    {
-     "n": 32,
-     "user": 3.2,
-     "agg": 98.2,
-     "accept": null
-    }
-   ],
-   "llama.cpp": [
-    {
-     "n": 1,
-     "user": 29.6,
-     "agg": 29.6,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 16.7,
-     "agg": 32.7,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 9.0,
-     "agg": 35.6,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 4.6,
-     "agg": 36.8,
-     "accept": null
-    }
-   ],
-   "Flare": [
-    {
-     "n": 1,
-     "user": 37.5,
-     "agg": 37.5,
-     "accept": null
-    },
-    {
-     "n": 2,
-     "user": 26.9,
-     "agg": 51.9,
-     "accept": null
-    },
-    {
-     "n": 4,
-     "user": 17.1,
-     "agg": 65.5,
-     "accept": null
-    },
-    {
-     "n": 8,
-     "user": 11.4,
-     "agg": 89.1,
-     "accept": null
-    },
-    {
-     "n": 16,
-     "user": 9.0,
-     "agg": 139.9,
-     "accept": null
-    },
-    {
-     "n": 32,
-     "user": 4.5,
-     "agg": 138.1,
-     "accept": null
-    }
-   ]
-  }
- },
- "agents": {
-  "qwen3.8-27b": {
-   "vllm": [
-    [
-     1,
-     20.0
-    ],
-    [
-     8,
-     41.0
-    ],
-    [
-     16,
-     59.0
-    ],
-    [
-     32,
-     76.0
-    ]
-   ],
-   "sharar": [
-    [
-     1,
-     42.0
-    ],
-    [
-     8,
-     91.0
-    ],
-    [
-     16,
-     108.0
-    ],
-    [
-     32,
-     116.0
-    ]
-   ],
-   "tensorfold": [
-    [
-     1,
-     26.0
-    ],
-    [
-     8,
-     46.0
-    ],
-    [
-     16,
-     46.0
-    ],
-    [
-     32,
-     43.0
-    ]
-   ],
-   "llamacpp": [
-    [
-     1,
-     22.0
-    ],
-    [
-     8,
-     22.0
-    ],
-    [
-     16,
-     15.0
-    ],
-    [
-     32,
-     8.0
-    ]
-   ],
-   "flare": [
-    [
-     1,
-     19.6
-    ],
-    [
-     8,
-     25.1
-    ],
-    [
-     16,
-     33.1
-    ],
-    [
-     32,
-     35.9
-    ]
-   ]
-  },
-  "nemotron-3.5-bolt": {
-   "vllm": [
-    [
-     1,
-     51.0
-    ],
-    [
-     8,
-     72.0
-    ],
-    [
-     16,
-     75.0
-    ],
-    [
-     32,
-     81.0
-    ]
-   ],
-   "tensorfold": [
-    [
-     1,
-     35.0
-    ],
-    [
-     8,
-     33.0
-    ],
-    [
-     16,
-     35.0
-    ],
-    [
-     32,
-     36.0
-    ]
-   ],
-   "llamacpp": [
-    [
-     1,
-     50.0
-    ],
-    [
-     8,
-     49.0
-    ],
-    [
-     16,
-     42.0
-    ],
-    [
-     32,
-     29.8
-    ]
-   ],
-   "sharar": [
-    [
-     1,
-     84.0
-    ],
-    [
-     8,
-     126.0
-    ],
-    [
-     16,
-     137.0
-    ],
-    [
-     32,
-     135.0
-    ]
-   ],
-   "flare": [
-    [
-     1,
-     43.5
-    ],
-    [
-     8,
-     45.2
-    ],
-    [
-     16,
-     41.7
-    ],
-    [
-     32,
-     42.6
-    ]
-   ]
-  },
-  "nemotron-3.5-super": {
-   "vllm": [
-    [
-     1,
-     28.0
-    ],
-    [
-     8,
-     51.0
-    ],
-    [
-     16,
-     67.0
-    ],
-    [
-     32,
-     82.0
-    ]
-   ],
-   "sharar": [
-    [
-     1,
-     77.0
-    ],
-    [
-     8,
-     114.0
-    ],
-    [
-     16,
-     130.0
-    ],
-    [
-     32,
-     154.0
-    ]
-   ],
-   "tensorfold": [
-    [
-     1,
-     28.0
-    ],
-    [
-     8,
-     30.0
-    ],
-    [
-     16,
-     33.0
-    ],
-    [
-     32,
-     33.0
-    ]
-   ],
-   "llamacpp": [
-    [
-     1,
-     22.0
-    ],
-    [
-     8,
-     18.0
-    ],
-    [
-     16,
-     16.0
-    ],
-    [
-     32,
-     6.2
-    ]
-   ],
-   "flare": [
-    [
-     1,
-     19.8
-    ],
-    [
-     8,
-     28.4
-    ],
-    [
-     16,
-     28.7
-    ],
-    [
-     32,
-     33.0
-    ]
-   ]
-  },
-  "qwen3.8-flash-next": {
-   "tensorfold": [
-    [
-     1,
-     26.0
-    ],
-    [
-     8,
-     32.0
-    ],
-    [
-     16,
-     34.0
-    ],
-    [
-     32,
-     26.0
-    ]
-   ],
-   "sharar": [
-    [
-     1,
-     74.0
-    ],
-    [
-     8,
-     127.0
-    ],
-    [
-     16,
-     150.0
-    ],
-    [
-     32,
-     168.0
-    ]
-   ],
-   "vllm": [
-    [
-     1,
-     28.0
-    ],
-    [
-     8,
-     43.0
-    ],
-    [
-     16,
-     49.0
-    ],
-    [
-     32,
-     29.0
-    ]
-   ],
-   "llamacpp": [
-    [
-     1,
-     29.0
-    ],
-    [
-     8,
-     33.0
-    ],
-    [
-     16,
-     29.0
-    ],
-    [
-     32,
-     5.6
-    ]
-   ],
-   "flare": [
-    [
-     1,
-     25.4
-    ],
-    [
-     8,
-     37.0
-    ],
-    [
-     16,
-     36.9
-    ],
-    [
-     32,
-     36.8
-    ]
-   ]
-  }
- }
-}</script>
+
 <script>
-(() => {
-const NS = "http://www.w3.org/2000/svg";
-const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
-const txt = (parent, x, y, s, attrs = {}) => { const t = el("text", { x, y, ...attrs }, parent); t.textContent = s; return t; };
-const $ = id => document.getElementById(id);
-const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-const ENGINE_VAR = { "Sharar": "--accent", "vLLM": "--e-vllm", "Flare": "--e-flare", "TensorFold": "--e-tf", "llama.cpp": "--e-llama", "Sharar w/o SSD tier": "--e-nossd" };
-const col = e => `var(${ENGINE_VAR[e]})`;
-function tipFor(box) { let t = box.querySelector(".tip"); if (!t) { t = document.createElement("div"); t.className = "tip"; t.hidden = true; box.appendChild(t); } return t; }
-function showTip(box, svg, x, y, s) { const t = tipFor(box), r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal; t.textContent = s; t.style.left = (x / vb.width * r.width) + "px"; t.style.top = (y / vb.height * r.height) + "px"; t.hidden = false; }
-function hideTip(box) { tipFor(box).hidden = true; }
-
-/* ---------------- hero: the hill climb ---------------- */
-const STEPS = [
-  ["No spec.", "No speculation", 27.9, ["baseline"], "One token per forward pass, NVFP4 weights."],
-  ["+ MTP", "+ Multi-token prediction", 54.9, ["exact", "speculation"], "The model's MTP head drafts tokens; the target verifies them in one pass."],
-  ["+ 3-bit weights", "+ 3-bit weights", 78.7, ["lossy · calibrated", "model surgery"], "Weights as 3-bit codes, run on FP8 tensor cores."],
-  ["+ 2-bit draft head", "+ 2-bit draft head", 80.9, ["draft only", "model surgery"], "The drafter's output head in 2 bits, with FP8 rescoring."],
-  ["+ Relaxed verif.", "+ Relaxed verification", 82.1, ["lossy · optional", "speculation"], "Near-miss drafts can be accepted."],
-  ["+ Expert sharing", "+ Expert sharing", 108.5, ["lossy · optional", "speculation"], "Drafted tokens share one budget of experts."],
-  ["+ Adaptive drafting", "+ Adaptive drafting", 113.9, ["exact", "speculation"], "Draft length follows the acceptance rate."],
-  ["Fast", "+ NVFP4 KV cache", 119.6, ["fast profile"], "Adds an NVFP4 KV cache: the full fast profile."],
-];
-const climbSvg = $("climb-svg");
-const W = 620, H = 330, L = 44, R = 12, T = 26, B = 58, YMAX = 140;
-const n = STEPS.length, cw = (W - L - R) / n;
-const xs = i => L + i * cw, ys = v => T + (H - T - B) * (1 - v / YMAX);
-const ax = el("g", { class: "axis" }, climbSvg);
-for (const t of [0, 25, 50, 75, 100, 125]) { el("line", { x1: L, x2: W - R, y1: ys(t), y2: ys(t), class: "gridl" }, ax); txt(ax, L - 8, ys(t) + 4, t, { "text-anchor": "end" }); }
-txt(ax, 12, (T + H - B) / 2, "tokens/s", { transform: `rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor": "middle" });
-const area = el("path", { fill: "var(--accent)", "fill-opacity": 0.08 }, climbSvg);
-const line = el("path", { fill: "none", stroke: "var(--accent)", "stroke-width": 2.5, "stroke-linejoin": "round" }, climbSvg);
-const labels = STEPS.map((s, i) => {
-  const g = el("g", { class: "bar-step" }, climbSvg);
-  const v = txt(g, xs(i) + cw / 2, ys(s[2]) - 18, s[2].toFixed(1), { "text-anchor": "middle", "font-size": 12, "font-weight": 600, fill: "var(--ink)", class: "num" });
-  const d = i ? txt(g, xs(i) + cw / 2, ys(s[2]) - 5, `+${Math.round(100 * (s[2] / STEPS[i - 1][2] - 1))}%`, { "text-anchor": "middle", "font-size": 10, fill: "var(--ink-3)" }) : null;
-  const words = s[0].replace("+ ", "+\u00a0").split(" ");
-  const lab = el("text", { x: xs(i) + cw / 2, y: H - B + 18, "text-anchor": "middle", "font-size": 10.5, fill: "var(--ink-2)" }, climbSvg);
-  const half = Math.ceil(words.length / 2);
-  [words.slice(0, half).join(" "), words.slice(half).join(" ")].filter(Boolean).forEach((w, k) => { const ts = el("tspan", { x: xs(i) + cw / 2, dy: k ? 13 : 0 }, lab); ts.textContent = w; });
-  const hit = el("rect", { x: xs(i), y: T, width: cw, height: H - T - B + 40, fill: "transparent", style: "cursor:pointer" }, climbSvg);
-  hit.addEventListener("click", () => { stop(); show(i, true); });
-  return { g, lab };
-});
-const gain = el("g", {}, climbSvg);
-const chips = STEPS.map((s, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = s[0]; b.setAttribute("aria-pressed", "false"); b.onclick = () => { stop(); show(i, true); }; $("climb-chips").appendChild(b); return b; });
-let cur = -1, shown = 0, timer = null, playing = false, anim = null;
-function pathFor(k, frac) { // stairs through step k, the last tread rising by frac
-  let d = "", a = "";
-  for (let i = 0; i <= k; i++) {
-    const v = i === k && i > 0 ? STEPS[i - 1][2] + (STEPS[i][2] - STEPS[i - 1][2]) * frac : STEPS[i][2];
-    d += (i ? `L${xs(i)},${ys(v)}` : `M${xs(0)},${ys(v)}`) + `L${xs(i + 1)},${ys(v)}`;
-  }
-  a = d.replace(/^M/, `M${xs(0)},${ys(0)}L`) + `L${xs(k + 1)},${ys(0)}Z`;
-  return [d, a];
-}
-function draw(k, frac) { const [d, a] = pathFor(k, frac); line.setAttribute("d", d); area.setAttribute("d", a); }
-function show(k, jump) {
-  cur = k;
-  labels.forEach((l, i) => { l.g.style.opacity = i <= k ? 1 : 0; l.lab.setAttribute("fill", i === k ? "var(--accent)" : "var(--ink-2)"); l.lab.setAttribute("font-weight", i === k ? 700 : 400); });
-  chips.forEach((c, i) => c.setAttribute("aria-pressed", String(i === k)));
-  cancelAnimationFrame(anim);
-  if (jump || reduce || k === 0) draw(k, 1);
-  else { const t0 = performance.now(); const tick = t => { const f = Math.min(1, (t - t0) / 450); draw(k, 1 - Math.pow(1 - f, 3)); if (f < 1) anim = requestAnimationFrame(tick); }; anim = requestAnimationFrame(tick); }
-  const s = STEPS[k];
-  $("climb-lead").textContent = `${s[2].toFixed(1)} tokens/s`;
-  $("note-idx").textContent = `STEP ${k + 1} / ${n}`;
-  $("note-title").textContent = s[1];
-  $("note-val").innerHTML = `${s[2].toFixed(1)}<small>tok/s${k ? ` · ${(s[2] / STEPS[0][2]).toFixed(1)}× start` : ""}</small>`;
-  $("note-tags").innerHTML = s[3].map(t => `<span class="tag ${t.startsWith("exact") ? "exact" : t.startsWith("lossy") ? "lossy" : ""}">${t}</span>`).join("");
-  $("note-body").textContent = s[4];
-  gain.innerHTML = "";
-  if (k === n - 1) {
-    const gx = xs(n - 1) + cw / 2;
-    el("line", { x1: xs(1), x2: gx, y1: ys(STEPS[0][2]), y2: ys(STEPS[0][2]), stroke: "var(--accent)", "stroke-dasharray": "2 3", "stroke-width": 1 }, gain);
-    el("line", { x1: gx, x2: gx, y1: ys(STEPS[0][2]), y2: ys(STEPS[n - 1][2]) + 26, stroke: "var(--accent)", "stroke-width": 1.4 }, gain);
-    el("path", { d: `M${gx - 4},${ys(STEPS[n - 1][2]) + 32}L${gx},${ys(STEPS[n - 1][2]) + 24}L${gx + 4},${ys(STEPS[n - 1][2]) + 32}Z`, fill: "var(--accent)" }, gain);
-    txt(gain, gx - 8, (ys(STEPS[0][2]) + ys(STEPS[n - 1][2])) / 2 + 10, "4.3×", { "text-anchor": "end", "font-size": 18, "font-weight": 800, fill: "var(--accent)", "font-family": "var(--f-display)" });
-  }
-}
-function stop() { playing = false; clearInterval(timer); $("climb-play").textContent = "Play"; }
-function play(from) { playing = true; $("climb-play").textContent = "Pause"; let k = from; show(k); clearInterval(timer); timer = setInterval(() => { if (k >= n - 1) { stop(); return; } show(++k); }, 1700); }
-$("climb-play").onclick = () => playing ? stop() : play(cur >= n - 1 ? 0 : cur + 1);
-$("climb-replay").onclick = () => play(0);
-if (reduce) { show(n - 1, true); stop(); } else play(0);
-
-/* ---------------- expert sharing ---------------- */
-const TOK = [ // [top1, top2, next]
-  [1, 6, 3], [3, 9, 1], [1, 11, 7], [7, 2, 3], [3, 9, 7], [7, 5, 1]];
-const FILL = [9, 2, 5, 6, 11]; // after the guarantees, by remaining routing mass (E9 0.8, then 0.4 each)
-let moeMode = "shared";
-const moeSvg = $("moe-svg");
-function drawMoe() {
-  const B = +$("moe-b").value; $("moe-b-out").textContent = B;
-  moeSvg.innerHTML = "";
-  const gx = 46, gy = 34, cs = 34, rh = 36;
-  let set, pairs;
-  if (moeMode === "topk") { set = new Set(TOK.flatMap(t => [t[0], t[1]])); pairs = TOK.map(t => [t[0], t[1]]); }
-  else {
-    set = new Set([1, 3, 7]); for (const e of FILL) { if (set.size >= B) break; set.add(e); }
-    pairs = TOK.map(t => [t[0], set.has(t[1]) ? t[1] : t[2]]);
-  }
-  for (let e = 1; e <= 12; e++) {
-    const x = gx + (e - 1) * cs;
-    if (set.has(e)) el("rect", { x: x + 1, y: gy - 22, width: cs - 2, height: rh * 6 + 26, rx: 4, fill: "var(--accent-soft)" }, moeSvg);
-    txt(moeSvg, x + cs / 2, gy - 8, `E${e}`, { "text-anchor": "middle", "font-size": 11, fill: set.has(e) ? "var(--accent)" : "var(--ink-3)", "font-weight": set.has(e) ? 700 : 400 });
-  }
-  TOK.forEach((t, r) => {
-    const y = gy + r * rh;
-    txt(moeSvg, gx - 10, y + rh / 2 + 4, `t${r + 1}`, { "text-anchor": "end", "font-size": 11, fill: "var(--ink-2)" });
-    for (let e = 1; e <= 12; e++) {
-      const x = gx + (e - 1) * cs;
-      const kind = e === pairs[r][0] ? 1 : e === pairs[r][1] ? 2 : 0;
-      el("rect", { x: x + 5, y: y + 5, width: cs - 10, height: rh - 10, rx: 3, fill: kind === 1 ? "var(--accent)" : kind === 2 ? "var(--e-nossd)" : "var(--sunk)", stroke: kind === 0 ? "var(--rule)" : "none" }, moeSvg);
-      if (moeMode === "shared" && kind === 2 && pairs[r][1] !== t[1]) txt(moeSvg, x + cs / 2, y + rh / 2 + 4, "↺", { "text-anchor": "middle", "font-size": 12, fill: "var(--ink)" });
-    }
-  });
-  txt(moeSvg, gx, gy + rh * 6 + 26, moeMode === "topk" ? "Each token loads its own two experts" : "↺ second choice replaced from inside the shared set", { "font-size": 11, fill: "var(--ink-3)" });
-  const keep = pairs.filter((p, r) => p[1] === TOK[r][1]).length;
-  // routing mass kept: top choice 0.6 always, own second 0.4, a substitute (its third choice) counted as 0
-  const mass = TOK.reduce((s, t, r) => s + 0.6 + (pairs[r][1] === t[1] ? 0.4 : 0), 0) / TOK.length;
-  $("moe-loaded").textContent = `${set.size} / 12`;
-  $("moe-bytes").textContent = `${Math.round(100 * set.size / 8)}%`;
-  $("moe-keep").textContent = `${keep} / 6`;
-  $("moe-mass").textContent = moeMode === "topk" ? "100%" : `≥ ${Math.round(100 * mass)}%`;
-  $("moe-budget-ctrl").style.opacity = moeMode === "topk" ? .4 : 1;
-  $("moe-b").disabled = moeMode === "topk";
-}
-$("moe-topk").onclick = () => { moeMode = "topk"; $("moe-topk").setAttribute("aria-pressed", "true"); $("moe-shared").setAttribute("aria-pressed", "false"); drawMoe(); };
-$("moe-shared").onclick = () => { moeMode = "shared"; $("moe-shared").setAttribute("aria-pressed", "true"); $("moe-topk").setAttribute("aria-pressed", "false"); drawMoe(); };
-$("moe-b").oninput = drawMoe;
-drawMoe();
-
-/* ---------------- adaptive depth ---------------- */
-const depthSvg = $("depth-svg");
-function rate(q, c, d) { let s = 0; for (let j = 0; j <= d; j++) s += Math.pow(q, j); return [s, s / (1 + c * (d - 1))]; }
-function drawDepth() {
-  const q = +$("dq").value, c = +$("dc").value, dmax = +$("dmax").value;
-  $("dq-out").textContent = q.toFixed(2); $("dc-out").textContent = c.toFixed(2); $("dmax-out").textContent = dmax;
-  const ds = Array.from({ length: 10 }, (_, i) => i + 1), r = ds.map(d => rate(q, c, d)[1]);
-  let best = 1; for (let d = 1; d <= dmax; d++) if (r[d - 1] > r[best - 1]) best = d;
-  depthSvg.innerHTML = "";
-  const L = 40, R = 8, T = 16, B = 40, W = 470, H = 280, ymax = Math.max(4, Math.ceil(Math.max(...r) + 0.5));
-  const bw = (W - L - R) / 10, y = v => T + (H - T - B) * (1 - v / ymax);
-  const ax = el("g", { class: "axis" }, depthSvg);
-  for (let t = 0; t <= ymax; t += ymax > 6 ? 2 : 1) { el("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "gridl" }, ax); txt(ax, L - 6, y(t) + 4, t, { "text-anchor": "end" }); }
-  ds.forEach((d, i) => {
-    const x = L + i * bw, v = r[i], over = d > dmax;
-    el("rect", { x: x + bw * 0.18, y: y(v), width: bw * 0.64, height: y(0) - y(v), rx: 2, fill: d === best ? "var(--accent)" : over ? "var(--sunk)" : "var(--e-tf)", stroke: over ? "var(--rule)" : "none" }, depthSvg);
-    txt(depthSvg, x + bw / 2, H - B + 16, d, { "text-anchor": "middle", "font-size": 11, fill: d === best ? "var(--accent)" : "var(--ink-3)", "font-weight": d === best ? 700 : 400 });
-    if (d === best) txt(depthSvg, x + bw / 2, y(v) - 6, v.toFixed(2), { "text-anchor": "middle", "font-size": 11, "font-weight": 700, fill: "var(--accent)" });
-  });
-  txt(depthSvg, (L + W - R) / 2, H - 6, "draft length d", { "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
-  txt(depthSvg, 10, (T + H - B) / 2, "tokens per unit time", { transform: `rotate(-90 10 ${(T + H - B) / 2})`, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
-  const [tok, rb] = rate(q, c, best);
-  $("d-star").textContent = best;
-  $("d-tok").textContent = tok.toFixed(2);
-  $("d-speed").textContent = `${rb.toFixed(2)}×`;
-  const f = rate(q, c, Math.min(8, dmax))[1];
-  $("d-fixed").textContent = `${(rb / f).toFixed(2)}×`;
-}
-["dq", "dc", "dmax"].forEach(id => $(id).oninput = drawDepth);
-drawDepth();
-
-function legend(box, items, redraw) {
-  box.innerHTML = "";
-  items.forEach(it => { const b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-pressed", String(it.on)); b.innerHTML = `<i style="background:${it.c}"></i>${it.name}`; b.onclick = () => { it.on = !it.on; b.setAttribute("aria-pressed", String(it.on)); redraw(); }; box.appendChild(b); });
-}
-
-/* simple seeded RNG for the illustrations */
-const rng = seed => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
-const normal = r => { const u = Math.max(r(), 1e-9), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
-function stepper(n, ms, show, playBtn, replayBtn) {
-  let k = 0, t = null, on = false;
-  const stop = () => { on = false; clearInterval(t); playBtn.textContent = "Play"; };
-  const play = from => { on = true; playBtn.textContent = "Pause"; k = from; show(k); clearInterval(t); t = setInterval(() => { if (k >= n - 1) { stop(); return; } show(++k); }, ms); };
-  playBtn.onclick = () => on ? stop() : play(k >= n - 1 ? 0 : k + 1);
-  if (replayBtn) replayBtn.onclick = () => play(0);
-  return { play, stop, go: i => { stop(); k = i; show(i); } };
-}
-
-/* ---------------- 3-bit codebook ---------------- */
-const cbSvg = $("cb-svg");
-let cbSeed = 7, cbW = [], cbLv = [], cbT = 0, cbAnim = null;
-const CBX = v => 30 + (v + 3) / 6 * 410;
-function cbFit() {
-  const r = rng(cbSeed); cbW = Array.from({ length: 32 }, () => Math.max(-2.9, Math.min(2.9, normal(r) * 0.9)));
-  const srt = [...cbW].sort((a, b) => a - b);
-  cbLv = Array.from({ length: 8 }, (_, i) => srt[Math.floor((i + 0.5) / 8 * 32)]);
-  for (let it = 0; it < 6; it++) { const sum = Array(8).fill(0), cnt = Array(8).fill(0); cbW.forEach(w => { const c = cbNear(w); sum[c] += w; cnt[c]++; }); cbLv = cbLv.map((l, i) => cnt[i] ? sum[i] / cnt[i] : l); }
-}
-const cbNear = w => cbLv.reduce((b, l, i) => Math.abs(l - w) < Math.abs(cbLv[b] - w) ? i : b, 0);
-function cbDraw() {
-  cbSvg.innerHTML = "";
-  const t = cbT, yTop = 70, yBot = 150;
-  el("line", { x1: 30, x2: 440, y1: yBot + 18, y2: yBot + 18, stroke: "var(--rule)" }, cbSvg);
-  for (const v of [-2, -1, 0, 1, 2]) txt(cbSvg, CBX(v), yBot + 34, v, { "text-anchor": "middle", "font-size": 11, fill: "var(--ink-3)" });
-  let lastX = -99;
-  cbLv.forEach((l, i) => {
-    const showCode = CBX(l) - lastX > 22; if (showCode) lastX = CBX(l);
-    el("line", { x1: CBX(l), x2: CBX(l), y1: 40, y2: yBot + 18, stroke: "var(--accent)", "stroke-width": 1.2, "stroke-dasharray": "3 3", opacity: 0.25 + 0.75 * t }, cbSvg);
-    if (showCode) txt(cbSvg, CBX(l), 32, i.toString(2).padStart(3, "0"), { "text-anchor": "middle", "font-size": 10.5, fill: "var(--accent)", "font-family": "var(--f-mono)", opacity: 0.3 + 0.7 * t });
-  });
-  txt(cbSvg, 30, 14, "codebook entry (3-bit code)", { "font-size": 11, fill: "var(--ink-3)" });
-  cbW.forEach((w, i) => {
-    const q = cbLv[cbNear(w)], x = CBX(w + (q - w) * t), y0 = yTop + (i % 8) * 10;
-    el("circle", { cx: x, cy: y0, r: 4.2, fill: t > 0.99 ? "var(--accent)" : "var(--ink)", opacity: 0.85 }, cbSvg);
-  });
-  // the 32 codes, as stored
-  const cw = 410 / 32;
-  cbW.forEach((w, i) => { const c = cbNear(w); el("rect", { x: 30 + i * cw + 0.5, y: 210, width: cw - 1, height: 22, rx: 2, fill: "var(--accent)", opacity: t > 0.99 ? 0.25 + c / 9.3 : 0.08 }, cbSvg); });
-  txt(cbSvg, 30, 204, t > 0.99 ? "stored: 32 × 3-bit codes + 1 scale" : "stored: 32 × 8-bit FP8 values", { "font-size": 11, fill: "var(--ink-3)" });
-  $("cb-bits").textContent = t > 0.99 ? "3.25" : "8";
-  $("cb-bytes").textContent = t > 0.99 ? "41%" : "100%";
-}
-function cbGo(to) {
-  cancelAnimationFrame(cbAnim); const from = cbT, t0 = performance.now();
-  if (reduce) { cbT = to; cbDraw(); return; }
-  const tick = n => { const f = Math.min(1, (n - t0) / 900); cbT = from + (to - from) * (1 - Math.pow(1 - f, 3)); cbDraw(); if (f < 1) cbAnim = requestAnimationFrame(tick); };
-  cbAnim = requestAnimationFrame(tick);
-}
-$("cb-play").onclick = () => { cbGo(cbT > 0.5 ? 0 : 1); $("cb-play").textContent = cbT > 0.5 ? "Quantize" : "Show FP8"; };
-$("cb-new").onclick = () => { cbSeed += 11; cbFit(); cbT = 0; cbDraw(); $("cb-play").textContent = "Quantize"; setTimeout(() => { cbGo(1); $("cb-play").textContent = "Show FP8"; }, 350); };
-cbFit(); cbT = reduce ? 1 : 0; cbDraw();
-if (!reduce) setTimeout(() => { cbGo(1); $("cb-play").textContent = "Show FP8"; }, 900);
-
-/* ---------------- 2-bit draft head ---------------- */
-// FP8 scores and the noisy 2-bit scores of the same 12 tokens
-const DH_EX = {
-  easy: { tok: ["len", "n", "1", "0", "10", "self", "x", "N", "size", "a", "num", "i"],
-          fp8: [9.1, 5.2, 4.6, 4.1, 3.0, 2.6, 2.2, 1.9, 1.5, 1.2, 0.9, 0.5],
-          q2:  [8.3, 5.9, 4.0, 4.7, 3.6, 2.0, 2.9, 1.4, 2.1, 0.8, 1.5, 0.9] },
-  hard: { tok: ["len", "n", "1", "0", "10", "self", "x", "N", "size", "a", "num", "i"],
-          fp8: [6.2, 6.0, 4.8, 4.3, 3.1, 2.7, 2.4, 2.0, 1.6, 1.3, 1.0, 0.6],
-          q2:  [5.6, 6.5, 5.1, 3.9, 3.6, 2.1, 3.0, 1.5, 2.2, 0.9, 1.6, 1.0] } };
-const K = 4;
-let dhEx = "hard";
-const DH_STEPS = [
-  ["FP8 head", "The full-precision head scores every token. Its top token is the one to match.", "100%"],
-  ["2-bit head", "A 2-bit copy reads a quarter of the bytes, but its scores are noisy. On uncertain tokens its top pick can be wrong.", "25%"],
-  ["Shortlist", "Keep only the 2-bit head's top candidates (4 here, 16 in Sharar). The right token is almost always among them.", "25%"],
-  ["FP8 rescore", "Rescore just the shortlist with FP8 rows. The pick matches the FP8 head, for 16 extra rows out of more than 100,000.", "25% + 16 rows"]];
-const dhSvg = $("dh-svg");
-function dhShow(k) {
-  const ex = DH_EX[dhEx], n = ex.tok.length;
-  const order = [...ex.tok.keys()].sort((a, b) => ex.q2[b] - ex.q2[a]);
-  const short = new Set(order.slice(0, K));
-  const vals = ex.tok.map((_, i) => k === 0 ? ex.fp8[i] : k === 3 && short.has(i) ? ex.fp8[i] : ex.q2[i]);
-  const live = i => k < 2 || short.has(i);
-  const pick = [...ex.tok.keys()].filter(live).reduce((b, i) => vals[i] > vals[b] ? i : b, order[0]);
-  const truth = 0, right = pick === truth;
-  dhSvg.innerHTML = "";
-  const L = 50, T = 18, rh = 22, W = 470, xs = v => L + v / 10 * (W - L - 70);
-  ex.tok.forEach((t, i) => {
-    const y = T + i * rh, on = live(i), isPick = i === pick;
-    txt(dhSvg, L - 8, y + 15, t, { "text-anchor": "end", "font-size": 12, "font-family": "var(--f-mono)", fill: on ? "var(--ink)" : "var(--ink-3)" });
-    const bar = el("rect", { x: L, y: y + 4, width: Math.max(2, xs(vals[i]) - L), height: rh - 8, rx: 3,
-      fill: isPick ? (right ? "var(--accent)" : "var(--ink-2)") : k === 3 && short.has(i) ? "var(--e-nossd)" : "var(--e-tf)", opacity: on ? 1 : 0.18 }, dhSvg);
-    bar.style.transition = "width .5s ease, opacity .4s";
-    if (k >= 1 && k <= 3 && short.has(i)) el("rect", { x: L - 46, y: y + 1, width: W - L + 40, height: rh - 2, rx: 6, fill: "none", stroke: k >= 2 ? "var(--accent)" : "none", "stroke-opacity": 0.35 }, dhSvg);
-    if (isPick) txt(dhSvg, xs(vals[i]) + 8, y + 15, k === 0 ? "target" : right ? "✓ match" : "✗ wrong", { "font-size": 11.5, "font-weight": 600, fill: right ? "var(--accent)" : "var(--ink-2)" });
-  });
-  $("dh-idx").textContent = `STEP ${k + 1} / 4`;
-  $("dh-title").textContent = DH_STEPS[k][0];
-  $("dh-body").textContent = DH_STEPS[k][1];
-  $("dh-bytes").textContent = DH_STEPS[k][2];
-  $("dh-meter").style.width = k === 0 ? "100%" : "25%";
-  dhChips.forEach((c, i) => c.setAttribute("aria-pressed", String(i === k)));
-}
-const dhChips = DH_STEPS.map((st, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = st[0]; b.onclick = () => dhRun.go(i); $("dh-chips").appendChild(b); return b; });
-const dhRun = stepper(4, 2200, dhShow, $("dh-play"), $("dh-replay"));
-const dhPick = ex => { dhEx = ex; $("dh-easy").setAttribute("aria-pressed", String(ex === "easy")); $("dh-hard").setAttribute("aria-pressed", String(ex === "hard")); dhRun.play(0); };
-$("dh-easy").onclick = () => dhPick("easy"); $("dh-hard").onclick = () => dhPick("hard");
-if (reduce) dhRun.go(3); else dhRun.play(0);
-
-/* ---------------- SSD session cache ---------------- */
-const AG = "ABCDEFGH".split(""), SLOTS = 4;
-const AG_COL = ["#a31f34", "#c0504d", "#5a6a7e", "#7d6b91", "#3f7f74", "#b07a2a", "#4b5d9e", "#8a4f6d"];
-const stage = $("ss-stage");
-const chipsSS = AG.map((a, i) => { const d = document.createElement("div"); d.className = "ss-chip"; d.textContent = a; d.style.background = AG_COL[i]; stage.appendChild(d); return d; });
-const flash = document.createElement("div"); flash.className = "ss-flash"; stage.appendChild(flash);
-let ssKeep = true, ssTurn = 0, ssGpu = [], ssSsd = new Set(), ssStats = { n: 0, hit: 0, work: 0 }, ssTimer = null, ssOn = false;
-const pos = (lane, i, of) => ({ left: (of === 8 ? 4 + i * 11.8 : 26 + i * 18) + "%", top: [12, 46, 80][lane] + "%" });
-function place(c, p) { c.style.left = p.left; c.style.top = p.top; }
-function ssLayout(active) {
-  AG.forEach((a, i) => {
-    const c = chipsSS[i]; c.classList.toggle("active", a === active);
-    const g = ssGpu.indexOf(a);
-    if (g >= 0) { place(c, pos(1, g, 4)); c.classList.remove("ghost"); }
-    else if (ssSsd.has(a)) { place(c, pos(2, i, 8)); c.classList.remove("ghost"); }
-    else { place(c, pos(0, i, 8)); c.classList.add("ghost"); }
-  });
-}
-function ssStep() {
-  const a = AG[ssTurn % AG.length]; ssTurn++;
-  let kind;
-  if (ssGpu.includes(a)) { kind = "hit"; ssGpu = ssGpu.filter(x => x !== a); }
-  else if (ssSsd.has(a)) { kind = "restore"; ssSsd.delete(a); }
-  else kind = ssTurn <= AG.length ? "first" : "recompute";
-  if (ssGpu.length >= SLOTS) { const ev = ssGpu.shift(); if (ssKeep) ssSsd.add(ev); }
-  ssGpu.push(a);
-  if (kind !== "first") { ssStats.n++; if (kind !== "recompute") ssStats.hit++; ssStats.work += kind === "recompute" ? 1 : 0.05; }
-  ssLayout(a);
-  const msg = { first: [`${a}: first turn, full prefill`, "var(--ink-3)"], hit: [`${a}: resumed from GPU`, "var(--good)"], restore: [`${a}: read back from SSD`, "var(--accent)"], recompute: [`${a}: state gone, recompute all`, "var(--warn)"] }[kind];
-  flash.textContent = msg[0]; flash.style.color = msg[1];
-  $("ss-now").textContent = { first: "First turn", hit: "GPU hit", restore: "SSD restore", recompute: "Recompute" }[kind];
-  $("ss-hit").textContent = ssStats.n ? `${Math.round(100 * ssStats.hit / ssStats.n)}%` : "…";
-  $("ss-work").textContent = ssStats.n ? `${Math.round(100 * ssStats.work / ssStats.n)}%` : "…";
-}
-function ssReset() { ssTurn = 0; ssGpu = []; ssSsd = new Set(); ssStats = { n: 0, hit: 0, work: 0 }; flash.textContent = ""; $("ss-now").textContent = "…"; $("ss-hit").textContent = "…"; $("ss-work").textContent = "…"; ssLayout(null); }
-function ssPlay() { ssOn = true; $("ss-play").textContent = "Pause"; clearInterval(ssTimer); ssTimer = setInterval(ssStep, 1100); }
-function ssStop() { ssOn = false; $("ss-play").textContent = "Play"; clearInterval(ssTimer); }
-$("ss-play").onclick = () => ssOn ? ssStop() : ssPlay();
-$("ss-reset").onclick = () => { ssReset(); if (ssOn) ssPlay(); };
-const ssMode = keep => { ssKeep = keep; $("ss-keep").setAttribute("aria-pressed", String(keep)); $("ss-drop").setAttribute("aria-pressed", String(!keep)); stage.querySelector(".ss-ssd").classList.toggle("off", !keep); $("ss-lane3").textContent = keep ? "SSD" : "SSD (unused)"; ssReset(); if (ssOn) ssPlay(); };
-$("ss-keep").onclick = () => ssMode(true); $("ss-drop").onclick = () => ssMode(false);
-ssReset();
-if (reduce) { for (let i = 0; i < 12; i++) ssStep(); ssStop(); } else { for (let i = 0; i < 8; i++) ssStep(); ssPlay(); }
-
-/* ---------------- results explorer ---------------- */
-const RES = JSON.parse($("results-data").textContent);
-const RENG = ["Sharar", "vLLM", "Flare", "TensorFold", "llama.cpp"].map(n => ({ name: n === "Sharar" ? "Sharar (ours)" : n, key: n, c: col(n), on: true }));
-const AKEY = { Sharar: "sharar", vLLM: "vllm", Flare: "flare", TensorFold: "tensorfold", "llama.cpp": "llamacpp" };
-let rModel = "Qwen3.8-Flash-Next";
-function seg(box, opts, get, set) {
-  box.innerHTML = "";
-  opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.textContent = o; b.setAttribute("aria-pressed", String(o === get())); b.onclick = () => { set(o); [...box.children].forEach(c => c.setAttribute("aria-pressed", String(c.textContent === o))); drawResults(); }; box.appendChild(b); });
-}
-seg($("r-model"), RES.models, () => rModel, v => rModel = v);
-legend($("r-legend"), RENG, drawResults);
-function drawResults() {
-  // warm decode, log-log, the points of the paper's main results figure (16k prompts)
-  const svg = $("warm-svg"), box = $("warm-chart"); svg.innerHTML = "";
-  const L = 50, R = 14, T = 26, B = 44, W = 470, H = 330;
-  const all = Object.values(RES.warm[rModel]).flat();
-  const xlo = Math.log10(Math.min(...all.map(p => p.user)) / 1.2), xhi = Math.log10(Math.max(...all.map(p => p.user)) * 1.2);
-  const ylo = Math.log10(Math.min(...all.map(p => p.agg)) / 1.3), yhi = Math.log10(Math.max(...all.map(p => p.agg)) * 1.3);
-  const x = v => L + (W - L - R) * (Math.log10(v) - xlo) / (xhi - xlo), y = v => T + (H - T - B) * (1 - (Math.log10(v) - ylo) / (yhi - ylo));
-  const ax = el("g", { class: "axis" }, svg);
-  for (const t of [1, 2, 5, 10, 20, 50, 100, 200]) if (Math.log10(t) >= xlo && Math.log10(t) <= xhi) { el("line", { x1: x(t), x2: x(t), y1: T, y2: H - B, class: "gridl" }, ax); txt(ax, x(t), H - B + 16, t, { "text-anchor": "middle" }); }
-  for (const t of [10, 20, 50, 100, 200, 500, 1000]) if (Math.log10(t) >= ylo && Math.log10(t) <= yhi) { el("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "gridl" }, ax); txt(ax, L - 6, y(t) + 4, t >= 1000 ? "1k" : t, { "text-anchor": "end" }); }
-  txt(ax, (L + W) / 2, H - 8, "per-user speed (tokens/s/user)", { "text-anchor": "middle" });
-  txt(ax, 12, (T + H - B) / 2, "output throughput (tokens/s)", { transform: `rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor": "middle" });
-  txt(svg, L, 14, `SPEED-Bench, ${RES.context} prompts`, { "font-size": 12.5, "font-weight": 600, fill: "var(--ink)" });
-  const cells = RES.warm[rModel] || {};
-  [...RENG].reverse().filter(e => e.on && cells[e.key]).forEach(e => {
-    const pts = cells[e.key];
-    el("polyline", { points: pts.map(p => `${x(p.user)},${y(p.agg)}`).join(" "), fill: "none", stroke: e.c, "stroke-width": e.key === "Sharar" ? 2.8 : 2, "stroke-linejoin": "round" }, svg);
-    pts.forEach(p => { const c = el("circle", { cx: x(p.user), cy: y(p.agg), r: e.key === "Sharar" ? 4.5 : 3.6, fill: e.c, stroke: "var(--surface)", "stroke-width": 1.5, style: "cursor:default" }, svg);
-      c.addEventListener("pointerenter", () => showTip(box, svg, x(p.user), y(p.agg), `${e.key} · ${p.n} req · ${p.user} tok/s/user · ${p.agg} tok/s${p.accept ? ` · accept ${p.accept}` : ""}`));
-      c.addEventListener("pointerleave", () => hideTip(box)); });
-  });
-  const missing = RENG.filter(e => e.on && !cells[e.key]).map(e => e.key);
-  if (missing.length) txt(svg, W - R, 14, `not measured here: ${missing.join(", ")}`, { "text-anchor": "end", "font-size": 10.5, fill: "var(--ink-3)" });
-
-  // agents
-  const as = $("agent-svg"), abox = $("agent-chart"); as.innerHTML = "";
-  const AX = [1, 8, 16, 32], ax_ = v => L + (W - L - R) * (Math.log2(v) - Math.log2(0.8)) / (Math.log2(40) - Math.log2(0.8)), ay = v => T + (H - T - B) * (1 - v / 200);
-  const g2 = el("g", { class: "axis" }, as);
-  for (const t of [0, 50, 100, 150, 200]) { el("line", { x1: L, x2: W - R, y1: ay(t), y2: ay(t), class: "gridl" }, g2); txt(g2, L - 6, ay(t) + 4, t, { "text-anchor": "end" }); }
-  for (const t of AX) txt(g2, ax_(t), H - B + 16, t, { "text-anchor": "middle" });
-  txt(g2, (L + W) / 2, H - 8, "concurrent agents", { "text-anchor": "middle" });
-  txt(g2, 12, (T + H - B) / 2, "tasks per hour", { transform: `rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor": "middle" });
-  txt(as, L, 14, "AgentPerf-Local", { "font-size": 12.5, "font-weight": 600, fill: "var(--ink)" });
-  const am = RES.agents[rModel.toLowerCase()] || {};
-  [...RENG].reverse().filter(e => e.on && am[AKEY[e.key]]).forEach(e => {
-    const pts = am[AKEY[e.key]];
-    el("polyline", { points: pts.map(p => `${ax_(p[0])},${ay(p[1])}`).join(" "), fill: "none", stroke: e.c, "stroke-width": e.key === "Sharar" ? 2.8 : 2 }, as);
-    pts.forEach(p => { const c = el("circle", { cx: ax_(p[0]), cy: ay(p[1]), r: e.key === "Sharar" ? 4.5 : 3.6, fill: e.c, stroke: "var(--surface)", "stroke-width": 1.5 }, as);
-      c.addEventListener("pointerenter", () => showTip(abox, as, ax_(p[0]), ay(p[1]), `${e.key} · ${p[0]} agents · ${p[1]} tasks/h`));
-      c.addEventListener("pointerleave", () => hideTip(abox)); });
-  });
-}
-drawResults();
-
-/* copy buttons */
 document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => {
-  const pre = $(b.dataset.copy), s = pre.innerText;
+  const pre = document.getElementById(b.dataset.copy), s = pre.innerText;
   const done = () => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1400); };
   try { navigator.clipboard.writeText(s).then(done, () => { getSelection().selectAllChildren(pre); b.textContent = "Selected"; }); }
   catch { getSelection().selectAllChildren(pre); b.textContent = "Selected"; }
 }));
-})();
 </script>

@@ -1,4 +1,4 @@
-<title>Sharar</title>
+<title>Sharar: Fast Agentic Inference on Unified-Memory Devices</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Sharar: fast agentic inference on unified-memory devices.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Noto+Sans+Math&display=swap">
@@ -173,6 +173,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgb(255 255 255 / 92%); backdrop-filter: saturate(180%) blur(14px); border-bottom: 1px solid var(--rule); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .nav-inner { max-width: 1000px; margin: 0 auto; min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .wordmark { font-family: var(--f-display); font-weight: 700; font-size: 1.125rem; letter-spacing: -0.02em; color: var(--accent); text-decoration: none; flex: none; }
+.crumbs { display: flex; align-items: baseline; gap: 8px; flex: none; }
+.crumbs .sep { color: var(--ink-3); }
+.crumbs a:not(.wordmark) { color: var(--ink-2); text-decoration: none; font-size: 0.9375rem; }
+.crumbs a:hover { color: var(--accent); }
 .nav-links { display: flex; gap: 22px; font-size: 0.875rem; overflow-x: auto; scrollbar-width: none; }
 .nav-links a { color: var(--ink-2); text-decoration: none; white-space: nowrap; padding-block: 14px; }
 .nav-links a:hover { color: var(--accent); }
@@ -180,6 +184,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .hero { padding-block: 48px 30px; gap: 16px; }
 .hero h1 { font-size: clamp(1.9rem, 4.2vw, 2.75rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; max-width: 22ch; }
 .hero h1 .brand { color: var(--accent); }
+.postdate { font-size: 0.875rem; color: var(--ink-3); margin-top: -4px; }
 .summary { max-width: 60ch; font-size: 1.1875rem; line-height: 1.55; color: var(--ink); text-wrap: pretty; }
 .affil { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin-top: -6px; }
 .btn { background: var(--ink); border-color: var(--ink); color: #ffffff; }
@@ -216,7 +221,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
 
 <nav class="nav" aria-label="Sections">
   <div class="nav-inner">
-    <a class="wordmark" href="#top">Sharar</a>
+    <div class="crumbs"><a class="wordmark" href="{{ROOT}}index.html">Sharar</a><span class="sep">/</span><a href="{{ROOT}}blog/index.html">Blog</a></div>
     <div class="nav-links">
       <a href="#idea">Idea</a><a href="#surgery">Model surgery</a><a href="#memory">Memory</a><a href="#speculation">Speculation</a><a href="#results">Results</a><a href="#bibtex">BibTeX</a>
     </div>
@@ -225,6 +230,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
 <div class="wrap" id="top">
   <header class="hero">
     <h1><span class="brand">Sharar</span>: Fast Agentic Inference on Unified-Memory Devices</h1>
+    <p class="postdate">Paper · November 4, 2026</p>
     <p class="summary">On a unified-memory device, the model and every agent's history share one memory. Sharar co-designs the model, its memory, and its decoding so many agents run fast on a single DGX Spark.</p>
     <p class="authors">Yahya Emara<sup>1*</sup>, Chi-Chih Chang<sup>1*</sup>, Anthony Fei<sup>1</sup>, Ahmed F. AbouElhamayed<sup>1</sup>, Chong-Yan Chen<sup>2</sup>, Hung-Yueh Chiang<sup>3</sup>, Kai-Chiang Wu<sup>4</sup>, Mohamed S. Abdelfattah<sup>1</sup></p>
     <p class="affil"><span><sup>1</sup>Cornell University</span><span><sup>2</sup>University of Illinois Urbana-Champaign</span><span><sup>3</sup>Independent researcher</span><span><sup>4</sup>National Yang Ming Chiao Tung University</span><span><sup>*</sup>Equal contribution</span></p>
