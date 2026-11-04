@@ -92,11 +92,20 @@ section.band { margin-top: 80px; display: grid; gap: 22px; scroll-margin-top: 72
 section.band > header { display: grid; gap: 8px; max-width: 64ch; }
 section.band h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
 section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
-.principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--ink); }
-.principle { padding: 20px 22px 4px 0; display: grid; gap: 8px; align-content: start; }
-.principle + .principle { padding-left: 22px; border-left: 1px solid var(--rule); }
-.principle h3 { font-size: 1.25rem; }
-.principle p { color: var(--ink-2); font-size: 0.97rem; }
+.map { background: var(--surface); border-radius: var(--radius); padding: 26px 30px; display: grid; gap: 12px; }
+.map-head { display: grid; grid-template-columns: minmax(0, 1fr) 80px minmax(0, 1fr); font-size: 0.8125rem; font-weight: 600; color: var(--ink-3); }
+.map-head span:last-child { color: var(--accent); }
+.map-row { display: grid; grid-template-columns: minmax(0, 1fr) 80px minmax(0, 1fr); align-items: stretch; }
+.limit, .change { align-content: center; }
+.limit, .change { border-radius: 14px; padding: 16px 18px; display: grid; gap: 2px; }
+.limit { background: var(--bg); }
+.limit b { font-family: var(--f-display); font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
+.limit span { color: var(--ink-2); font-size: 0.95rem; }
+.change { background: var(--bg); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.change b { font-size: 1.125rem; font-weight: 600; color: var(--accent); }
+.change span { color: var(--ink-2); font-size: 0.95rem; }
+.arrow { height: 2px; background: var(--ink-3); margin: 0 10px; position: relative; align-self: center; }
+.arrow i { position: absolute; right: -1px; top: -5px; border: 6px solid transparent; border-left: 9px solid var(--ink-3); border-right: 0; }
 .projects { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
 .project { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: center; background: var(--surface); border-radius: var(--radius); padding: 30px; text-decoration: none; transition: background .2s; }
 .project:hover { background: var(--sunk); }
@@ -114,8 +123,12 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 .next { border: 1.5px dashed var(--rule); border-radius: var(--radius); padding: 22px 26px; color: var(--ink-3); }
 .next b { color: var(--ink-2); font-weight: 600; }
 @media (max-width: 760px) {
-  .principles, .project { grid-template-columns: minmax(0, 1fr); }
-  .principle + .principle { padding-left: 0; border-left: 0; border-top: 1px solid var(--rule); }
+  .project { grid-template-columns: minmax(0, 1fr); }
+  .map { padding: 18px; }
+  .map-head { display: none; }
+  .map-row { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .arrow { width: 2px; height: 22px; margin: 0 auto; }
+  .arrow i { right: auto; left: -5px; top: auto; bottom: -1px; border: 6px solid transparent; border-top: 9px solid var(--ink-3); border-bottom: 0; }
   .hero { padding-top: 52px; }
 }
 </style>
@@ -144,13 +157,26 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 
   <section class="band" id="approach">
     <header>
-      <h2>The approach</h2>
-      <p>Start from what the device does well and badly, then edit everything above it to match.</p>
+      <h2>From device limits to model changes</h2>
+      <p>Each project starts from what limits its device, then changes the model, memory, and decoding to match. Sharar on the DGX Spark:</p>
     </header>
-    <div class="principles">
-      <div class="principle"><h3>Fit the model to the hardware</h3><p>Change weight formats, state precision, and the drafter so each token reads fewer bytes on this device.</p></div>
-      <div class="principle"><h3>Use the whole memory hierarchy</h3><p>Plan GPU memory, host memory, and SSD as one budget, and keep work that will be needed again.</p></div>
-      <div class="principle"><h3>Decode for the workload</h3><p>Size speculation and batching to the device's real costs and to how agents actually call the model.</p></div>
+    <div class="map" role="img" aria-label="Three DGX Spark limits, each linked to the change Sharar makes for it">
+      <div class="map-head"><span>NVIDIA DGX Spark</span><span></span><span>Sharar</span></div>
+      <div class="map-row">
+        <div class="limit"><b>273 GB/s</b><span>memory bandwidth. One request's decode is bound by reading weights.</span></div>
+        <div class="arrow" aria-hidden="true"><i></i></div>
+        <div class="change"><b>Read fewer bytes</b><span>3-bit weights and a 2-bit draft head</span></div>
+      </div>
+      <div class="map-row">
+        <div class="limit"><b>128 GB</b><span>shared by the weights and every agent's history.</span></div>
+        <div class="arrow" aria-hidden="true"><i></i></div>
+        <div class="change"><b>Spill to the SSD</b><span>agent state kept across turns, not recomputed</span></div>
+      </div>
+      <div class="map-row">
+        <div class="limit"><b>Idle compute</b><span>while weights stream in during decode.</span></div>
+        <div class="arrow" aria-hidden="true"><i></i></div>
+        <div class="change"><b>Verify drafts in parallel</b><span>adaptive speculation and shared experts</span></div>
+      </div>
     </div>
   </section>
 
