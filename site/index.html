@@ -6,7 +6,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
-<title>Specialized Inference</title>
+<title>MSI</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Model- and hardware-specific inference: engines that fit one model family to one device.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap">
@@ -100,6 +100,11 @@ section.band { margin-top: 80px; display: grid; gap: 22px; scroll-margin-top: 72
 section.band > header { display: grid; gap: 8px; max-width: 64ch; }
 section.band h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
 section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
+.msi { margin: 8px 0 0; display: grid; gap: 14px; }
+.msi-scroll { overflow-x: auto; background: var(--bg); border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px 24px 16px; }
+.msi-svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.msi figcaption { font-size: 0.9375rem; color: var(--ink-2); max-width: 80ch; margin: 0 auto; text-align: center; }
+.msi figcaption b { color: var(--ink); font-weight: 600; }
 .map { background: var(--surface); border-radius: var(--radius); padding: 26px 30px; display: grid; gap: 12px; }
 .map-head { display: grid; grid-template-columns: minmax(0, 1fr) 80px minmax(0, 1fr); font-size: 0.8125rem; font-weight: 600; color: var(--ink-3); }
 .map-head span:last-child { color: var(--accent); }
@@ -143,7 +148,7 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 
 <nav class="nav" aria-label="Site">
   <div class="nav-inner">
-    <a class="wordmark site" href="index.html">Specialized Inference</a>
+    <a class="wordmark site" href="index.html">MSI</a>
     <div class="nav-links">
       <a href="index.html#projects">Projects</a>
       <a href="blog/index.html">Blog</a>
@@ -162,6 +167,80 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
       <a class="btn ghost" href="blog/index.html">Read the blog</a>
     </div>
   </header>
+
+  <figure class="msi" id="msi">
+    <div class="msi-scroll">
+      <svg class="msi-svg" viewBox="0 0 1000 400" role="img" aria-label="Generic serving puts one framework between every model and every device; MSI builds one engine per model family and device, sitting directly on that device.">
+      <text x="20" y="30" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="21" font-weight="700" fill="#1d1d1f">Generic serving today</text>
+      <text x="20" y="52" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" fill="#6e6e73">One framework for every model and device.</text>
+      <text x="580" y="30" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="21" font-weight="700" fill="#1d1d1f">MSI</text>
+      <text x="580" y="52" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" fill="#6e6e73">One engine per model family and device, built on that device.</text>
+      <line x1="500" y1="70" x2="500" y2="380" stroke="#d2d2d7" stroke-width="1.5" stroke-dasharray="3 5"/>
+      <text x="500" y="128" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="11.5" font-weight="600" letter-spacing="1.2" fill="#86868b" paint-order="stroke" stroke="#ffffff" stroke-width="6">MODELS</text>
+      <text x="500" y="238" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="11.5" font-weight="600" letter-spacing="1.2" fill="#86868b" paint-order="stroke" stroke="#ffffff" stroke-width="6">SERVING</text>
+      <text x="500" y="256" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="11.5" font-weight="600" letter-spacing="1.2" fill="#86868b" paint-order="stroke" stroke="#ffffff" stroke-width="6">ENGINE</text>
+      <text x="500" y="352" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="11.5" font-weight="600" letter-spacing="1.2" fill="#86868b" paint-order="stroke" stroke="#ffffff" stroke-width="6">HARDWARE</text>
+      <rect x="20" y="90" width="74" height="72" rx="6" fill="#ece4f3" stroke="#a58fc0" stroke-width="1.5"/>
+      <text x="57.0" y="122" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1d1d1f">Qwen3.8</text>
+      <text x="57.0" y="138" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" fill="#1d1d1f">27B</text>
+      <rect x="104" y="90" width="74" height="72" rx="6" fill="#f3e2e3" stroke="#c49196" stroke-width="1.5"/>
+      <text x="141.0" y="130" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1d1d1f">Flash-Next</text>
+      <rect x="188" y="90" width="74" height="72" rx="6" fill="#f2ead9" stroke="#bfa477" stroke-width="1.5"/>
+      <text x="225.0" y="122" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1d1d1f">Nemotron</text>
+      <text x="225.0" y="138" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" fill="#1d1d1f">Super</text>
+      <rect x="272" y="90" width="74" height="72" rx="6" fill="#e7efdc" stroke="#9fb47f" stroke-width="1.5"/>
+      <text x="309.0" y="122" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1d1d1f">Nemotron</text>
+      <text x="309.0" y="138" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" fill="#1d1d1f">Bolt</text>
+      <rect x="356" y="90" width="74" height="72" rx="6" fill="#e0eeee" stroke="#86b3b2" stroke-width="1.5"/>
+      <text x="393.0" y="130" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1d1d1f">Model …</text>
+      <rect x="20" y="190" width="410" height="96" rx="8" fill="#f5f5f7" stroke="#b8b8bf" stroke-width="1.5"/>
+      <text x="225" y="236" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="15" font-weight="600" fill="#1d1d1f">Generic framework</text>
+      <text x="225" y="256" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#6e6e73">same kernels, formats, and cache for all</text>
+      <rect x="20" y="322" width="126" height="52" rx="6" fill="#e8e8ed" stroke="#8e8e93" stroke-width="1.5"/>
+      <text x="83" y="353" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">DGX Spark</text>
+      <rect x="162" y="322" width="126" height="52" rx="6" fill="#e8e8ed" stroke="#8e8e93" stroke-width="1.5"/>
+      <text x="225" y="353" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">Device Y</text>
+      <rect x="304" y="322" width="126" height="52" rx="6" fill="#e8e8ed" stroke="#8e8e93" stroke-width="1.5"/>
+      <text x="367" y="353" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">Device Z</text>
+      <rect x="580.0" y="90" width="43.0" height="72" rx="6" fill="#ece4f3" stroke="#a58fc0" stroke-width="1.5"/>
+      <text x="601.5" y="126" text-anchor="middle" transform="rotate(-90 601.5 126)" dy="4" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#1d1d1f">27B</text>
+      <rect x="629.0" y="90" width="43.0" height="72" rx="6" fill="#f3e2e3" stroke="#c49196" stroke-width="1.5"/>
+      <text x="650.5" y="126" text-anchor="middle" transform="rotate(-90 650.5 126)" dy="4" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#1d1d1f">Flash-Next</text>
+      <rect x="678.0" y="90" width="43.0" height="72" rx="6" fill="#f2ead9" stroke="#bfa477" stroke-width="1.5"/>
+      <text x="699.5" y="126" text-anchor="middle" transform="rotate(-90 699.5 126)" dy="4" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#1d1d1f">Super</text>
+      <rect x="727.0" y="90" width="43.0" height="72" rx="6" fill="#e7efdc" stroke="#9fb47f" stroke-width="1.5"/>
+      <text x="748.5" y="126" text-anchor="middle" transform="rotate(-90 748.5 126)" dy="4" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#1d1d1f">Bolt</text>
+      <rect x="580" y="190" width="190" height="184" rx="8" fill="#ffffff" stroke="#a31f34" stroke-width="2"/>
+      <path d="M580 322 H770" stroke="#a31f34" stroke-width="1.2"/>
+      <rect x="581" y="191" width="188" height="130" rx="7" fill="#f8e9ec"/>
+      <text x="675.0" y="222" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="17" font-weight="700" fill="#a31f34">Sharar</text>
+      <text x="675.0" y="248" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#515154">3-bit weights</text>
+      <text x="675.0" y="268" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#515154">SSD session cache</text>
+      <text x="675.0" y="288" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#515154">adaptive speculation</text>
+      <rect x="581" y="323" width="188" height="50" rx="7" fill="#e8e8ed"/>
+      <text x="675.0" y="353" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">DGX Spark</text>
+      <rect x="790" y="90" width="95" height="72" rx="6" fill="#ffffff" stroke="#c7c7cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <text x="837.5" y="130" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" fill="#86868b">models …</text>
+      <rect x="790" y="190" width="95" height="184" rx="8" fill="#ffffff" stroke="#8e8e93" stroke-width="1.5"/>
+      <rect x="791" y="191" width="93" height="130" rx="7" fill="#ffffff" stroke="#c7c7cc" stroke-dasharray="4 4"/>
+      <text x="837.5" y="250" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#86868b">next</text>
+      <text x="837.5" y="266" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#86868b">engine</text>
+      <path d="M790 322 H885" stroke="#8e8e93" stroke-width="1.2"/>
+      <rect x="791" y="323" width="93" height="50" rx="7" fill="#e8e8ed"/>
+      <text x="837.5" y="353" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">Device Y</text>
+      <rect x="900" y="90" width="95" height="72" rx="6" fill="#ffffff" stroke="#c7c7cc" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <text x="947.5" y="130" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="11.5" fill="#86868b">models …</text>
+      <rect x="900" y="190" width="95" height="184" rx="8" fill="#ffffff" stroke="#8e8e93" stroke-width="1.5"/>
+      <rect x="901" y="191" width="93" height="130" rx="7" fill="#ffffff" stroke="#c7c7cc" stroke-dasharray="4 4"/>
+      <text x="947.5" y="250" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#86868b">next</text>
+      <text x="947.5" y="266" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="12" fill="#86868b">engine</text>
+      <path d="M900 322 H995" stroke="#8e8e93" stroke-width="1.2"/>
+      <rect x="901" y="323" width="93" height="50" rx="7" fill="#e8e8ed"/>
+      <text x="947.5" y="353" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d1d1f">Device Z</text>
+      </svg>
+    </div>
+    <figcaption><b>One engine per model family and device.</b> A generic framework puts the same layer between every model and every device. Each MSI engine is built on its device, for the models it serves.</figcaption>
+  </figure>
 
   <section class="band" id="approach">
     <header>
@@ -244,7 +323,7 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 
 <footer class="site">
   <div class="wrap">
-    <span><b>Specialized Inference</b> · Model- and hardware-specific inference</span>
+    <span><b>MSI</b> · Model- and hardware-specific inference</span>
     <span><a href="index.html">Home</a> · <a href="index.html#projects">Projects</a> · <a href="blog/index.html">Blog</a></span>
   </div>
 </footer>

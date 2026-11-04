@@ -12,7 +12,7 @@ models page read data/results.json (the paper's main results).
 import json
 from pathlib import Path
 
-SITE = "Specialized Inference"  # working name of the umbrella site; one place to change it
+SITE = "MSI"  # the umbrella site's name; one place to change it
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
 PARTS = {p.name: p.read_text() for p in (SRC / "partials").iterdir()}
