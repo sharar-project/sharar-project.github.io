@@ -21,6 +21,7 @@
   --ink-3: #86868b;
   --rule: #d2d2d7;
   --accent: #a31f34;      /* Sharar red, the paper figures' color */
+  --accent-soft: #f6e4e7;
   --f-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
   --f-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", Arial, sans-serif;
   --f-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
@@ -100,36 +101,13 @@ section.band { margin-top: 80px; display: grid; gap: 22px; scroll-margin-top: 72
 section.band > header { display: grid; gap: 8px; max-width: 64ch; }
 section.band h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
 section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
-.tokfig { margin: 8px 0 0; display: grid; gap: 16px; }
-.tf-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
-.tf-q { font-size: 1.0625rem; font-weight: 600; }
-.tf-eq { font-size: 0.9375rem; color: var(--ink-2); margin-top: 4px; }
-.tf-eq b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
-.seg { display: inline-flex; border-radius: 999px; padding: 2px; background: var(--sunk); flex-wrap: wrap; }
-.seg button { font: 500 0.82rem/1 var(--f-body); border: 0; background: none; color: var(--ink-2); padding: 8px 14px; border-radius: 999px; cursor: pointer; }
-.seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 12%); }
-.tf-lanes { display: grid; gap: 10px; }
-.tf-lane { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) 6.5rem; gap: 18px; align-items: center; background: var(--surface); border-radius: 14px; padding: 16px 18px; }
-.tf-lane.best { box-shadow: inset 0 0 0 1.5px var(--accent); background: var(--bg); }
-.tf-name b { display: block; font-size: 0.97rem; font-weight: 600; }
-.tf-name span { font-size: 0.8125rem; color: var(--ink-3); }
-.tf-mid { display: grid; gap: 8px; min-width: 0; }
-.tf-bar { height: 4px; border-radius: 2px; background: var(--sunk); overflow: hidden; }
-.tf-bar i { display: block; height: 100%; width: 0; background: var(--ink-3); }
-.tf-lane.best .tf-bar i { background: var(--accent); }
-.tf-out { font: 0.8125rem/1.5 var(--f-mono); color: var(--ink); height: 6em; overflow: hidden; white-space: pre-wrap; word-break: break-word; display: flex; flex-direction: column; justify-content: flex-end; }
-.tf-out .cur { display: inline-block; width: 7px; height: 1.05em; vertical-align: -0.15em; background: var(--accent); margin-left: 1px; animation: tf-blink 1s steps(1) infinite; }
-@keyframes tf-blink { 50% { opacity: 0; } }
-.tf-rate { text-align: right; }
-.tf-rate b { display: block; font-family: var(--f-display); font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
-.tf-lane.best .tf-rate b { color: var(--accent); }
-.tf-rate span { font-size: 0.75rem; color: var(--ink-3); }
-.tokfig figcaption { font-size: 0.9375rem; color: var(--ink-2); max-width: 80ch; }
-.tokfig figcaption b { color: var(--ink); font-weight: 600; }
-@media (max-width: 760px) {
-  .tf-lane { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
-  .tf-mid { grid-column: 1 / -1; grid-row: 2; }
-}
+.features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; margin-top: 24px; text-align: center; }
+.feature { display: grid; justify-items: center; gap: 10px; align-content: start; }
+.ficon { width: 56px; height: 56px; border-radius: 16px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; margin-bottom: 6px; }
+.ficon svg { width: 28px; height: 28px; }
+.feature h3 { font-size: 1.25rem; }
+.feature p { color: var(--ink-2); max-width: 30ch; }
+@media (max-width: 760px) { .features { grid-template-columns: minmax(0, 1fr); gap: 32px; } }
 .qs { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 40px; align-items: start; }
 .qs-left { display: grid; gap: 14px; }
 .qs-left h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
@@ -187,21 +165,23 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
     </div>
   </header>
 
-  <figure class="tokfig" id="msi">
-    <div class="tf-top">
-      <div>
-        <p class="tf-q">On a local device, speed is set by the bytes read per token.</p>
-        <p class="tf-eq">tokens/s ≈ <b id="tf-bw">273 GB/s</b> ÷ bytes read per token × tokens per read</p>
-      </div>
-      <div class="seg" role="group" aria-label="Device" id="tf-dev">
-        <button type="button" data-bw="273" aria-pressed="true">DGX Spark</button>
-        <button type="button" data-bw="819" aria-pressed="false">Mac Studio</button>
-        <button type="button" data-bw="256" aria-pressed="false">Strix Halo</button>
-      </div>
+  <section class="features" id="msi">
+    <div class="feature">
+      <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3 7.5 12 12l9-4.5L12 3Z"/><path d="m3 12 9 4.5 9-4.5"/><path d="m3 16.5 9 4.5 9-4.5"/></svg></span>
+      <h3>Fitted to the model</h3>
+      <p>Weight formats, caches, and drafters chosen for each model family, dense or mixture-of-experts.</p>
     </div>
-    <div class="tf-lanes" id="tf-lanes"></div>
-    <figcaption><b>Fit the engine to the device.</b> A 27B dense model on one device, decoding for one user. A generic engine reads all 16-bit weights for every token. Reading fewer bytes and getting more tokens per read are the levers a fitted engine pulls. Speeds are idealized bandwidth bounds from published specs; the text streams at those rates.</figcaption>
-  </figure>
+    <div class="feature">
+      <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx=".8"/><path d="M9 2.5V6M15 2.5V6M9 18v3.5M15 18v3.5M2.5 9H6M2.5 15H6M18 9h3.5M18 15h3.5"/></svg></span>
+      <h3>Fitted to the device</h3>
+      <p>Kernels and memory plans built for one device's bandwidth, memory, and storage.</p>
+    </div>
+    <div class="feature">
+      <span class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4" width="19" height="16" rx="2.5"/><path d="m7 9.5 3 2.5-3 2.5M12.5 15H17"/></svg></span>
+      <h3>One command to serve</h3>
+      <p>Pick a model and serve it behind OpenAI- and Anthropic-compatible APIs.</p>
+    </div>
+  </section>
 
   <section class="band qs" id="start">
     <div class="qs-left">
@@ -297,53 +277,7 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
   render();
 })();
 </script>
-<script>
-(() => {
-  // a 27B dense model: 16-bit weights 54 GB, 3.25-bit codes about 11 GB; speculation: about 3 tokens accepted per weight read
-  const LANES = [
-    { name: "Generic engine", sub: "16-bit weights · 54 GB per token", gb: 54, per: 1 },
-    { name: "Fewer bytes", sub: "3-bit weights · 11 GB per token", gb: 11, per: 1 },
-    { name: "More tokens per read", sub: "3-bit weights + speculation · 3 tokens per read", gb: 11, per: 3, best: true }];
-  const TEXT = "def retry(fn, attempts=3):\n    for i in range(attempts):\n        try:\n            return fn()\n        except TimeoutError:\n            time.sleep(2 ** i)\n    raise RuntimeError(\"gave up\")";
-  const TOKS = TEXT.match(/\s+|[A-Za-z_]+|\d+|[^\sA-Za-z_\d]/g);  // word-sized pieces, close to real tokens
-  const box = document.getElementById("tf-lanes"), reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let bw = 273, raf = null, t0 = 0;
-  const rows = LANES.map(l => {
-    const d = document.createElement("div"); d.className = "tf-lane" + (l.best ? " best" : "");
-    d.innerHTML = `<div class="tf-name"><b>${l.name}</b><span>${l.sub}</span></div><div class="tf-mid"><div class="tf-out" aria-hidden="true"><div></div></div><div class="tf-bar"><i></i></div></div><div class="tf-rate"><b>0</b><span>tokens/s</span></div>`;
-    box.appendChild(d); return { l, out: d.querySelector(".tf-out > div"), bar: d.querySelector(".tf-bar i"), rate: d.querySelector(".tf-rate b") };
-  });
-  const rateOf = l => bw / l.gb * l.per;
-  function frame(now) {
-    const t = (now - t0) / 1000;
-    let done = true;
-    rows.forEach(r => {
-      const n = Math.min(TOKS.length, Math.floor(t * rateOf(r.l)));
-      if (n < TOKS.length) done = false;
-      r.bar.style.width = (100 * n / TOKS.length) + "%";
-      r.out.innerHTML = "";
-      r.out.append(TOKS.slice(0, n).join(""));
-      const c = document.createElement("span"); c.className = "cur"; r.out.appendChild(c);
-    });
-    if (done && t > 1) { t0 = now + 1200; }  // pause, then replay
-    raf = requestAnimationFrame(frame);
-  }
-  function start() {
-    document.getElementById("tf-bw").textContent = bw + " GB/s";
-    rows.forEach(r => r.rate.textContent = rateOf(r.l) >= 100 ? Math.round(rateOf(r.l)) : rateOf(r.l).toFixed(rateOf(r.l) < 10 ? 1 : 0));
-    cancelAnimationFrame(raf);
-    if (reduce) { rows.forEach(r => { r.out.textContent = TOKS.join(""); r.bar.style.width = "100%"; }); return; }
-    t0 = performance.now(); raf = requestAnimationFrame(frame);
-  }
-  document.getElementById("tf-dev").addEventListener("click", e => {
-    const b = e.target.closest("button"); if (!b) return;
-    bw = +b.dataset.bw;
-    document.querySelectorAll("#tf-dev button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
-    start();
-  });
-  start();
-})();
-</script>
+
 
 
 
