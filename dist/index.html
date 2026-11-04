@@ -93,26 +93,17 @@ section.band { margin-top: 80px; display: grid; gap: 22px; scroll-margin-top: 72
 section.band > header { display: grid; gap: 8px; max-width: 64ch; }
 section.band h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
 section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
-.flow { margin: 16px 0 0; display: grid; grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1.3fr) 48px minmax(0, 1fr); align-items: stretch; }
-.fl-in { display: grid; gap: 14px; align-content: center; }
-.fl-tile { display: flex; align-items: center; gap: 12px; background: var(--surface); border-radius: 14px; padding: 16px; }
-.fl-tile .k, .fl-out .k { display: block; font-size: 0.75rem; font-weight: 600; color: var(--ink-3); }
-.fl-tile b { font-size: 1rem; font-weight: 600; }
-.ic { flex: none; width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
-.ic svg { width: 21px; height: 21px; }
-.fl-link { width: 100%; height: 100%; color: var(--ink-3); align-self: center; max-height: 240px; }
-.fl-mid { border: 1.5px solid var(--rule); border-radius: var(--radius); padding: 18px 20px; display: grid; gap: 10px; align-content: center; }
-.fl-head { font-size: 0.8125rem; font-weight: 600; color: var(--ink-3); text-align: center; }
-.fl-layers { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.fl-layers li { background: var(--surface); border-radius: 12px; padding: 14px; text-align: center; font-weight: 600; }
-.fl-out { background: var(--accent); color: #ffffff; border-radius: var(--radius); padding: 22px 18px; display: grid; justify-items: center; align-content: center; text-align: center; gap: 4px; }
-.fl-out .ic { background: rgb(255 255 255 / 18%); color: #ffffff; margin-bottom: 6px; }
-.fl-out .k { color: #f3d7dc; }
-.fl-out b { font-family: var(--f-display); font-size: 1.375rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
-.fl-out .sub { font-size: 0.8125rem; color: #f3d7dc; }
+.tease { margin: 40px 0 0; padding-block: 56px; border-block: 1px solid var(--rule); display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 28px; align-items: start; }
+.t-part { display: grid; gap: 12px; }
+.t-big { font-family: var(--f-display); font-size: clamp(1.9rem, 3.6vw, 2.9rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1.05; color: var(--ink); }
+.t-grad { background: linear-gradient(90deg, #a31f34 0%, #d4455b 55%, #e8836b 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.t-sub { font-size: 1.0625rem; line-height: 1.45; color: var(--ink-2); max-width: 24ch; }
+.t-op { font-family: var(--f-display); font-size: clamp(1.9rem, 3.6vw, 2.9rem); font-weight: 200; line-height: 1.05; color: var(--ink-3); }
 @media (max-width: 860px) {
-  .flow { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 36px auto 36px auto; }
-  .fl-link { transform: rotate(90deg); width: 36px; height: 60px; justify-self: center; }
+  .tease { grid-template-columns: minmax(0, 1fr); gap: 14px; padding-block: 36px; text-align: center; }
+  .t-part { justify-items: center; }
+  .t-op.arrow, .tease .t-op:last-of-type { transform: rotate(90deg); justify-self: center; }
+  .t-op { justify-self: center; }
 }
 .qs { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 40px; align-items: start; }
 .qs-left { display: grid; gap: 14px; }
@@ -171,22 +162,20 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
     </div>
   </header>
 
-  <figure class="flow" id="msi" aria-label="One model family and one device go in; weights, kernels, memory, and decoding are tailored to both; one dedicated engine comes out">
-    <div class="fl-in">
-      <div class="fl-tile"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3 7.5 12 12l9-4.5L12 3Z"/><path d="m3 12 9 4.5 9-4.5"/><path d="m3 16.5 9 4.5 9-4.5"/></svg></span><div><b>One model family</b></div></div>
-      <div class="fl-tile"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx=".8"/><path d="M9 2.5V6M15 2.5V6M9 18v3.5M15 18v3.5M2.5 9H6M2.5 15H6M18 9h3.5M18 15h3.5"/></svg></span><div><b>One device</b></div></div>
+  <figure class="tease" id="msi" aria-label="One model family plus one device gives one engine tailored to both">
+    <div class="t-part">
+      <p class="t-big">One model.</p>
+      <p class="t-sub">A model family: its architecture, drafters, and state.</p>
     </div>
-    <svg class="fl-link merge" viewBox="0 0 60 200" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C30 50 30 100 52 100 M0 150 C30 150 30 100 52 100" fill="none" stroke="currentColor" stroke-width="1.6" vector-effect="non-scaling-stroke"/><path d="M50 94 L58 100 L50 106" fill="none" stroke="currentColor" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>
-    <div class="fl-mid">
-      <p class="fl-head">Tailored to both</p>
-      <ul class="fl-layers">
-        <li>Weights</li><li>Kernels</li><li>Memory</li><li>Decoding</li>
-      </ul>
+    <span class="t-op" aria-hidden="true">+</span>
+    <div class="t-part">
+      <p class="t-big">One device.</p>
+      <p class="t-sub">Its bandwidth, its memory, its storage.</p>
     </div>
-    <svg class="fl-link" viewBox="0 0 60 200" preserveAspectRatio="none" aria-hidden="true"><path d="M0 100 H56" fill="none" stroke="currentColor" stroke-width="1.6" vector-effect="non-scaling-stroke"/><path d="M50 94 L58 100 L50 106" fill="none" stroke="currentColor" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>
-    <div class="fl-out">
-      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg></span>
-      <b>One dedicated engine</b>
+    <span class="t-op" aria-hidden="true">→</span>
+    <div class="t-part">
+      <p class="t-big t-grad">One engine.</p>
+      <p class="t-sub">Weights, kernels, memory, and decoding, tailored to both.</p>
     </div>
   </figure>
 
