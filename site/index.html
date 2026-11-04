@@ -117,20 +117,6 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 .dv-credit { font-size: 0.75rem; color: var(--ink-3); margin-top: -8px; }
 .dv-credit a { color: inherit; }
 @media (max-width: 760px) { .dv-cards { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
-.map { background: var(--surface); border-radius: var(--radius); padding: 26px 30px; display: grid; gap: 12px; }
-.map-head { display: grid; grid-template-columns: minmax(0, 1fr) 80px minmax(0, 1fr); font-size: 0.8125rem; font-weight: 600; color: var(--ink-3); }
-.map-head span:last-child { color: var(--accent); }
-.map-row { display: grid; grid-template-columns: minmax(0, 1fr) 80px minmax(0, 1fr); align-items: stretch; }
-.limit, .change { align-content: center; }
-.limit, .change { border-radius: 14px; padding: 16px 18px; display: grid; gap: 2px; }
-.limit { background: var(--bg); }
-.limit b { font-family: var(--f-display); font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
-.limit span { color: var(--ink-2); font-size: 0.95rem; }
-.change { background: var(--bg); box-shadow: inset 0 0 0 1.5px var(--accent); }
-.change b { font-size: 1.125rem; font-weight: 600; color: var(--accent); }
-.change span { color: var(--ink-2); font-size: 0.95rem; }
-.arrow { height: 2px; background: var(--ink-3); margin: 0 10px; position: relative; align-self: center; }
-.arrow i { position: absolute; right: -1px; top: -5px; border: 6px solid transparent; border-left: 9px solid var(--ink-3); border-right: 0; }
 .projects { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
 .project { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: center; background: var(--surface); border-radius: var(--radius); padding: 30px; text-decoration: none; transition: background .2s; }
 .project:hover { background: var(--sunk); }
@@ -149,11 +135,6 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 .next b { color: var(--ink-2); font-weight: 600; }
 @media (max-width: 760px) {
   .project { grid-template-columns: minmax(0, 1fr); }
-  .map { padding: 18px; }
-  .map-head { display: none; }
-  .map-row { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .arrow { width: 2px; height: 22px; margin: 0 auto; }
-  .arrow i { right: auto; left: -5px; top: auto; bottom: -1px; border: 6px solid transparent; border-top: 9px solid var(--ink-3); border-bottom: 0; }
   .hero { padding-top: 52px; }
 }
 </style>
@@ -214,31 +195,6 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
     <figcaption><b>Fit the engine to the device.</b> These machines differ in memory and bandwidth, yet each can read its whole memory only about twice per second. A model that fills memory decodes at a couple of tokens per second unless the engine is built to read fewer bytes per token. Published specifications, at each device's largest memory option.</figcaption>
     <p class="dv-credit">Photos, cropped: <a href="https://commons.wikimedia.org/wiki/File:Nvidia_DGX_Spark_oblique_view_dllu.jpg">Daniel Lu</a>, CC BY-SA 4.0; <a href="https://commons.wikimedia.org/wiki/File:Mac_Studio_(2022)_front.jpg">Yasu</a>, CC BY-SA 3.0; <a href="https://commons.wikimedia.org/wiki/File:%E8%B6%85%E7%BA%A7%E6%A0%B8%E6%98%BE%E6%9D%A5%E8%A2%AD%EF%BC%81AMD%E6%96%B0%E5%93%81%E7%8E%B0%E5%9C%BA%E4%BD%93%E9%AA%8C_(2160p_60fps_VP9-128kbit_AAC)-00.03.56.214.png">极客湾 Geekerwan</a>, CC BY 3.0; via Wikimedia Commons.</p>
   </figure>
-
-  <section class="band" id="approach">
-    <header>
-      <h2>From device limits to model changes</h2>
-      <p>Each project starts from what limits its device, then changes the model, memory, and decoding to match. Sharar on the DGX Spark:</p>
-    </header>
-    <div class="map" role="img" aria-label="Three DGX Spark limits, each linked to the change Sharar makes for it">
-      <div class="map-head"><span>NVIDIA DGX Spark</span><span></span><span>Sharar</span></div>
-      <div class="map-row">
-        <div class="limit"><b>273 GB/s</b><span>memory bandwidth. One request's decode is bound by reading weights.</span></div>
-        <div class="arrow" aria-hidden="true"><i></i></div>
-        <div class="change"><b>Read fewer bytes</b><span>3-bit weights and a 2-bit draft head</span></div>
-      </div>
-      <div class="map-row">
-        <div class="limit"><b>128 GB</b><span>shared by the weights and every agent's history.</span></div>
-        <div class="arrow" aria-hidden="true"><i></i></div>
-        <div class="change"><b>Spill to the SSD</b><span>agent state kept across turns, not recomputed</span></div>
-      </div>
-      <div class="map-row">
-        <div class="limit"><b>Idle compute</b><span>while weights stream in during decode.</span></div>
-        <div class="arrow" aria-hidden="true"><i></i></div>
-        <div class="change"><b>Verify drafts in parallel</b><span>adaptive speculation and shared experts</span></div>
-      </div>
-    </div>
-  </section>
 
   <section class="band" id="projects">
     <header>
