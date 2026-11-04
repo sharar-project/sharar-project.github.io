@@ -15,13 +15,16 @@ section.band h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
 section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 .tease { margin: 40px 0 0; padding-block: 56px; border-block: 1px solid var(--rule); display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 28px; align-items: start; }
 .t-part { display: grid; gap: 12px; }
-.t-big { font-family: var(--f-display); font-size: clamp(1.9rem, 3.6vw, 2.9rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1.05; color: var(--ink); }
+.t-big { display: flex; align-items: center; gap: 0.28em; font-family: var(--f-display); font-size: clamp(1.7rem, 3vw, 2.4rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1.05; color: var(--ink); white-space: nowrap; }
+.t-ic { width: 0.95em; height: 0.95em; flex: none; color: var(--ink-2); }
+.t-big .logo { width: 0.95em; height: 0.95em; }
 .t-grad { background: linear-gradient(90deg, #a31f34 0%, #d4455b 55%, #e8836b 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .t-sub { font-size: 1.0625rem; line-height: 1.45; color: var(--ink-2); max-width: 24ch; }
-.t-op { font-family: var(--f-display); font-size: clamp(1.9rem, 3.6vw, 2.9rem); font-weight: 200; line-height: 1.05; color: var(--ink-3); }
+.t-op { font-family: var(--f-display); font-size: clamp(1.7rem, 3vw, 2.4rem); font-weight: 200; line-height: 1.05; color: var(--ink-3); }
 @media (max-width: 860px) {
   .tease { grid-template-columns: minmax(0, 1fr); gap: 14px; padding-block: 36px; text-align: center; }
   .t-part { justify-items: center; }
+  .t-big { justify-content: center; }
   .t-op.arrow, .tease .t-op:last-of-type { transform: rotate(90deg); justify-self: center; }
   .t-op { justify-self: center; }
 }
@@ -76,17 +79,17 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 
   <figure class="tease" id="msi" aria-label="One model family plus one device gives one engine tailored to both">
     <div class="t-part">
-      <p class="t-big">One model.</p>
+      <p class="t-big"><svg class="t-ic" viewBox="0 0 40 40" aria-hidden="true"><path d="M7 11 L20 6 M7 11 L20 20 M7 11 L20 34 M7 29 L20 6 M7 29 L20 20 M7 29 L20 34 M20 6 L33 14 M20 20 L33 14 M20 34 L33 14 M20 6 L33 26 M20 20 L33 26 M20 34 L33 26" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.45"/><g fill="#ffffff" stroke="currentColor" stroke-width="2"><circle cx="7" cy="11" r="3.4"/><circle cx="7" cy="29" r="3.4"/><circle cx="20" cy="6" r="3.4"/><circle cx="20" cy="20" r="3.4"/><circle cx="20" cy="34" r="3.4"/><circle cx="33" cy="14" r="3.4"/><circle cx="33" cy="26" r="3.4"/></g></svg><span>One model.</span></p>
       <p class="t-sub">A model family: its architecture, drafters, and state.</p>
     </div>
     <span class="t-op" aria-hidden="true">+</span>
     <div class="t-part">
-      <p class="t-big">One device.</p>
+      <p class="t-big"><svg class="t-ic" viewBox="0 0 40 40" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="22" height="22" rx="4"/><rect x="15" y="15" width="10" height="10" rx="2"/><path d="M15 3.5V9M20 3.5V9M25 3.5V9M15 31v5.5M20 31v5.5M25 31v5.5M3.5 15H9M3.5 20H9M3.5 25H9M31 15h5.5M31 20h5.5M31 25h5.5"/></g></svg><span>One device.</span></p>
       <p class="t-sub">Its bandwidth, its memory, its storage.</p>
     </div>
     <span class="t-op" aria-hidden="true">→</span>
     <div class="t-part">
-      <p class="t-big t-grad">One engine.</p>
+      <p class="t-big">{{LOGO:tease}}<span class="t-grad">One engine.</span></p>
       <p class="t-sub">Weights, kernels, memory, and decoding, tailored to both.</p>
     </div>
   </figure>
