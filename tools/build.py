@@ -25,7 +25,7 @@ HEAD = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
 PAGES = [  # (source, output, path back to the site root, current nav item, unused)
     ("index.html", "index.html", "", "", ""),
     ("sharar.html", "projects/sharar/index.html", "../../", "overview", ""),
-    ("models.html", "projects/sharar/models/index.html", "../../../", "models", ""),
+    ("models.html", "projects/sharar/models/index.html", "../../../", "overview", ""),
     ("blog.html", "blog/index.html", "../", "blog", ""),
     ("posts/sharar-paper.html", "blog/sharar-paper/index.html", "../../", "blog", ""),
 ]
@@ -71,7 +71,7 @@ FILL, CMP_ROWS = model_numbers()
 def render(src, root, current, sub):
     page = (SRC / src).read_text()
     nav = PARTS["nav.html"]
-    for item in ("overview", "models", "blog"):
+    for item in ("overview", "blog"):
         nav = nav.replace(f" {{{{CUR_{item}}}}}", ' aria-current="page"' if item == current else "")
     page = (page.replace("/*__SITE_CSS__*/", PARTS["site.css"])
                 .replace("<!--__NAV__-->", nav)
