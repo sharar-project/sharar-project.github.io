@@ -211,12 +211,12 @@ footer b { color: var(--ink); font-family: var(--f-display); }
     <div class="stepchips" id="climb-chips"></div>
     <figcaption class="cap fig-cap">Qwen3.8-Flash-Next (125B MoE) · one DGX Spark · one request (batch size 1) · decode tokens/s after each technique is added. Click a step to jump to it.</figcaption>
   </figure>
-  <p class="tldr">On one DGX Spark, Sharar decodes Qwen3.8-Flash-Next at <b>103 tokens/s</b> for one user, <b>2.1×</b> the fastest baseline engine, peaks at <b>794 tokens/s</b> across 64 requests, and finishes <b>150 agentic tasks per hour</b> with 16 agents, <b>3.1×</b> vLLM.</p>
+  <p class="tldr">On one DGX Spark, Sharar decodes Qwen3.8-Flash-Next on 16k prompts at <b>103 tokens/s</b> for one user, <b>2.1×</b> the fastest baseline engine, peaks at <b>794 tokens/s</b> across 64 requests (3.9× the best baseline), and finishes <b>150 agentic tasks per hour</b> with 16 agents, <b>3.1×</b> vLLM.</p>
 
   <div class="stats">
-    <div class="stat"><div class="big num">103 <span>tok/s</span></div><div class="what">Single-user decode, Flash-Next, 16k prompts. vLLM 38, TensorFold 49, llama.cpp 33.</div></div>
-    <div class="stat"><div class="big num">794 <span>tok/s</span></div><div class="what">Peak decode throughput at 64 requests. Best baseline: TensorFold, 184 at 16 requests.</div></div>
-    <div class="stat"><div class="big num">150 <span>tasks/h</span></div><div class="what">Agentic tasks with 16 concurrent agents (AA-AgentPerf traces). vLLM 49, TensorFold 34.</div></div>
+    <div class="stat"><div class="big num">103 <span>tok/s</span></div><div class="what">Single-user decode, Flash-Next, 16k prompts. TensorFold 49, Flare 42, vLLM 38, llama.cpp 33.</div></div>
+    <div class="stat"><div class="big num">794 <span>tok/s</span></div><div class="what">Peak decode throughput at 64 requests, 16k prompts. Best baseline: Flare, 205 at 32 requests.</div></div>
+    <div class="stat"><div class="big num">150 <span>tasks/h</span></div><div class="what">Agentic tasks with 16 concurrent agents (AgentPerf-Local). vLLM 49, Flare 37, TensorFold 34.</div></div>
   </div>
 
   <p class="thesis">Local agents keep extending long histories in the <span>same memory</span> that holds the model. Sharar decides what stays resident, what survives between turns, and what each accepted token costs.</p>
@@ -342,21 +342,20 @@ footer b { color: var(--ink); font-family: var(--f-display); }
   <!-- results explorer -->
   <section class="block" id="results">
     <div class="sec-head">
-      <span class="eyebrow">Results · four models, five engines</span>
+      <span class="eyebrow">Results · four models, five engines, 16k prompts</span>
       <h2>Faster for one user, and for many</h2>
     </div>
-    <div class="prose"><p>Warm-cache decode on SPEED-Bench prompts: each point is one concurrency level, plotted as per-user speed against total output throughput. Up and to the right is better. Each engine runs its fastest measured setting with its own speculation enabled. Hover a point for its request count.</p></div>
+    <div class="prose"><p>Warm-cache decode on SPEED-Bench 16k prompts, as in the paper's main results: each point is one concurrency level, plotted as per-user speed against total output throughput. Up and to the right is better. Each engine runs its fastest measured setting with its own speculation enabled. Hover a point for its request count.</p></div>
     <div class="card" style="display:grid;gap:14px">
       <div class="card-head" style="margin:0">
         <div class="seg" role="group" aria-label="Model" id="r-model"></div>
-        <div class="seg" role="group" aria-label="Prompt length" id="r-ctx"></div>
-      </div>
+              </div>
       <div class="legend" id="r-legend"></div>
       <div class="two" style="gap:22px">
         <div class="chart" id="warm-chart"><svg id="warm-svg" viewBox="0 0 470 330" role="img" aria-label="Output throughput against per-user speed"></svg></div>
         <div class="chart" id="agent-chart"><svg id="agent-svg" viewBox="0 0 470 330" role="img" aria-label="Agentic tasks per hour against concurrent agents"></svg></div>
       </div>
-      <p class="cap">Left: SPEED-Bench, warm cache, log–log. Right: agentic tasks per hour on AgentPerf-Local traces against concurrent agents (thinking-off setting). One DGX Spark per engine. TensorFold serves at most 16 streams; the rest queue.</p>
+      <p class="cap">Left: SPEED-Bench, 16k prompts, warm cache, log–log; llama.cpp points slower than every other engine's slowest are left out, as in the paper. Right: agentic tasks per hour on AgentPerf-Local traces against concurrent agents (thinking-off setting). One DGX Spark per engine. TensorFold serves at most 16 streams; the rest queue.</p>
     </div>
   </section>
 
@@ -639,19 +638,18 @@ drawBurst();
 const RES = JSON.parse($("results-data").textContent);
 const RENG = ["Sharar", "vLLM", "Flare", "TensorFold", "llama.cpp"].map(n => ({ name: n === "Sharar" ? "Sharar (ours)" : n, key: n, c: col(n), on: true }));
 const AKEY = { Sharar: "sharar", vLLM: "vllm", Flare: "flare", TensorFold: "tensorfold", "llama.cpp": "llamacpp" };
-let rModel = "Qwen3.8-Flash-Next", rCtx = "16k";
+let rModel = "Qwen3.8-Flash-Next";
 function seg(box, opts, get, set) {
   box.innerHTML = "";
   opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.textContent = o; b.setAttribute("aria-pressed", String(o === get())); b.onclick = () => { set(o); [...box.children].forEach(c => c.setAttribute("aria-pressed", String(c.textContent === o))); drawResults(); }; box.appendChild(b); });
 }
 seg($("r-model"), RES.models, () => rModel, v => rModel = v);
-seg($("r-ctx"), ["8k", "16k", "32k"], () => rCtx, v => rCtx = v);
 legend($("r-legend"), RENG, drawResults);
 function drawResults() {
-  // warm decode, log-log; axes fixed per model across contexts so switching prompt length is comparable
+  // warm decode, log-log, the points of the paper's main results figure (16k prompts)
   const svg = $("warm-svg"), box = $("warm-chart"); svg.innerHTML = "";
   const L = 50, R = 14, T = 26, B = 44, W = 470, H = 330;
-  const all = Object.values(RES.warm[rModel]).flatMap(c => Object.values(c).flat());
+  const all = Object.values(RES.warm[rModel]).flat();
   const xlo = Math.log10(Math.min(...all.map(p => p.user)) / 1.2), xhi = Math.log10(Math.max(...all.map(p => p.user)) * 1.2);
   const ylo = Math.log10(Math.min(...all.map(p => p.agg)) / 1.3), yhi = Math.log10(Math.max(...all.map(p => p.agg)) * 1.3);
   const x = v => L + (W - L - R) * (Math.log10(v) - xlo) / (xhi - xlo), y = v => T + (H - T - B) * (1 - (Math.log10(v) - ylo) / (yhi - ylo));
@@ -660,8 +658,8 @@ function drawResults() {
   for (const t of [10, 20, 50, 100, 200, 500, 1000]) if (Math.log10(t) >= ylo && Math.log10(t) <= yhi) { el("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "gridl" }, ax); txt(ax, L - 6, y(t) + 4, t >= 1000 ? "1k" : t, { "text-anchor": "end" }); }
   txt(ax, (L + W) / 2, H - 8, "per-user speed (tokens/s/user)", { "text-anchor": "middle" });
   txt(ax, 12, (T + H - B) / 2, "output throughput (tokens/s)", { transform: `rotate(-90 12 ${(T + H - B) / 2})`, "text-anchor": "middle" });
-  txt(svg, L, 14, `SPEED-Bench, ${rCtx} prompts`, { "font-size": 12.5, "font-weight": 600, fill: "var(--ink)" });
-  const cells = RES.warm[rModel][rCtx] || {};
+  txt(svg, L, 14, `SPEED-Bench, ${RES.context} prompts`, { "font-size": 12.5, "font-weight": 600, fill: "var(--ink)" });
+  const cells = RES.warm[rModel] || {};
   [...RENG].reverse().filter(e => e.on && cells[e.key]).forEach(e => {
     const pts = cells[e.key];
     el("polyline", { points: pts.map(p => `${x(p.user)},${y(p.agg)}`).join(" "), fill: "none", stroke: e.c, "stroke-width": e.key === "Sharar" ? 2.8 : 2, "stroke-linejoin": "round" }, svg);
