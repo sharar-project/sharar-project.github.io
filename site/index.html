@@ -118,19 +118,13 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 .dv-credit a { color: inherit; }
 @media (max-width: 760px) { .dv-cards { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
 .projects { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
-.project { display: grid; gap: 0; align-content: start; background: var(--surface); border-radius: var(--radius); padding: 30px; text-decoration: none; transition: background .2s; }
-.project:hover { background: var(--sunk); }
+.project { display: grid; gap: 0; align-content: start; background: var(--surface); border-radius: var(--radius); padding: 30px; }
 .project .tagline { font-size: 0.8125rem; font-weight: 600; color: var(--ink-3); }
 .project h3 { font-size: clamp(1.8rem, 3.6vw, 2.4rem); font-weight: 700; letter-spacing: -0.03em; color: var(--accent); margin-top: 4px; }
 .project .what { font-size: 1.125rem; margin-top: 10px; }
-.project .facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
-.project .facts span { font-size: 0.8rem; font-weight: 500; padding: 5px 11px; border-radius: 999px; background: var(--bg); color: var(--ink-2); }
-.project .go { display: inline-block; margin-top: 18px; font-weight: 500; color: var(--accent); }
-.project .nums { display: grid; gap: 16px; }
-.project .nums div { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: baseline; }
-.project .nums b { font-family: var(--f-display); font-size: 2.2rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; min-width: 3.2ch; }
-.project .nums span { color: var(--ink-2); }
-.project .fine { font-size: 0.8125rem; color: var(--ink-3); }
+.project .links { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 18px; }
+.project .links a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.project .links a:hover { text-decoration: underline; }
 .next { border: 1.5px dashed var(--rule); border-radius: var(--radius); padding: 22px 26px; color: var(--ink-3); }
 .next b { color: var(--ink-2); font-weight: 600; }
 @media (max-width: 760px) {
@@ -200,44 +194,16 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
       <h2>Projects</h2>
     </header>
     <div class="projects">
-      <a class="project" href="projects/sharar/index.html">
+      <div class="project">
         <span class="tagline">NVIDIA DGX Spark · Qwen3.8 and Nemotron 3.5</span>
         <h3>Sharar</h3>
         <p class="what">Fast local inference for AI agents on a single DGX Spark.</p>
-        <span class="go">Explore Sharar →</span>
-      </a>
+        <p class="links"><a href="projects/sharar/index.html">Explore Sharar →</a><a href="blog/sharar-paper/index.html">Read the paper →</a></p>
+      </div>
       <div class="next"><b>More projects coming.</b> Next model and hardware targets will be listed here.</div>
     </div>
   </section>
 
-  <section class="band" id="blog">
-    <header>
-      <h2>Latest posts</h2>
-    </header>
-    <a class="post-card" href="blog/sharar-paper/index.html">
-  <div class="thumb" aria-hidden="true">
-    <svg viewBox="0 0 480 270">
-      <rect width="480" height="270" fill="#ffffff"/>
-      <text x="28" y="44" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="22" font-weight="700" fill="#a31f34">Sharar</text>
-      <text x="28" y="68" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="13" fill="#86868b">decode tokens/s, Qwen3.8-Flash-Next, one request</text>
-      <g stroke="#e8e8ed"><line x1="28" x2="452" y1="232" y2="232"/><line x1="28" x2="452" y1="182" y2="182"/><line x1="28" x2="452" y1="132" y2="132"/></g>
-      <path d="M28,232 L28,207 L81,207 L81,183 L134,183 L134,161 L187,161 L187,159 L240,159 L240,158 L293,158 L293,134 L346,134 L346,129 L399,129 L399,124 L452,124 L452,232 Z" fill="#a31f34" fill-opacity="0.08"/>
-      <path d="M28,207 L81,207 L81,183 L134,183 L134,161 L187,161 L187,159 L240,159 L240,158 L293,158 L293,134 L346,134 L346,129 L399,129 L399,124 L452,124" fill="none" stroke="#a31f34" stroke-width="3" stroke-linejoin="round"/>
-      <text x="452" y="108" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="34" font-weight="700" fill="#1d1d1f">4.3×</text>
-      <text x="54" y="196" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="12" fill="#515154">27.9</text>
-    </svg>
-  </div>
-  <div>
-    <span class="kicker">Paper</span>
-    <h3>Sharar: Fast Agentic Inference on Unified-Memory Devices</h3>
-    <p class="meta">November 4, 2026 · Emara, Chang, et al.</p>
-    <p class="dek">Model surgery, an SSD session cache, and adaptive speculation, co-designed for one DGX Spark. Interactive illustrations of each idea, and results on four models.</p>
-    <span class="more">Read the post →</span>
-  </div>
-</a>
-
-    <p><a href="blog/index.html" style="color:var(--accent);text-decoration:none;font-weight:500">All posts →</a></p>
-  </section>
 </main>
 
 <footer class="site">
