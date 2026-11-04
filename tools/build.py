@@ -22,8 +22,8 @@ HEAD = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
         'body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>\n</head>\n<body>\n')
 PAGES = [  # (source, output, path back to the site root, current site-nav item, current Sharar sub-nav item)
     ("index.html", "index.html", "", "", ""),
-    ("sharar.html", "projects/sharar/index.html", "../../", "sharar", "overview"),
-    ("models.html", "projects/sharar/models/index.html", "../../../", "sharar", "models"),
+    ("sharar.html", "projects/sharar/index.html", "../../", "projects", "overview"),
+    ("models.html", "projects/sharar/models/index.html", "../../../", "projects", "models"),
     ("blog.html", "blog/index.html", "../", "blog", ""),
     ("posts/sharar-paper.html", "blog/sharar-paper/index.html", "../../", "blog", ""),
 ]
@@ -58,7 +58,7 @@ FILL, CMP_ROWS = model_numbers()
 def render(src, root, current, sub):
     page = (SRC / src).read_text()
     nav, subnav = PARTS["nav.html"], PARTS["sharar-nav.html"]
-    for item in ("projects", "sharar", "blog"):
+    for item in ("projects", "blog"):
         nav = nav.replace(f" {{{{CUR_{item}}}}}", ' aria-current="page"' if item == current else "")
     for item in ("overview", "models"):
         subnav = subnav.replace(f" {{{{SUB_{item}}}}}", ' aria-current="page"' if item == sub else "")
