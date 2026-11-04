@@ -6,9 +6,9 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
-<title>Sharar</title>
+<title>Specialized Inference</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Sharar: fast local inference for AI agents on NVIDIA DGX Spark.">
+<meta name="description" content="Model- and hardware-specific inference: engines that fit one model family to one device.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap">
 <style>
 /* Shared by the home page and the blog index. Layout: a 1080px column on white; sticky nav; gray panels for figures and cards. */
@@ -44,10 +44,18 @@ p { margin: 0; }
 .nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgb(255 255 255 / 92%); backdrop-filter: saturate(180%) blur(14px); border-bottom: 1px solid var(--rule); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .nav-inner { max-width: 1048px; margin: 0 auto; min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .wordmark { font-family: var(--f-display); font-weight: 700; font-size: 1.125rem; letter-spacing: -0.02em; color: var(--accent); text-decoration: none; flex: none; }
+.wordmark.site { color: var(--ink); }
+/* project sub-navigation, under the site nav */
+.subnav { background: var(--surface); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.subnav-inner { max-width: 1048px; margin: 0 auto; display: flex; align-items: center; gap: 24px; min-height: 46px; }
+.subnav .proj { font-family: var(--f-display); font-weight: 700; color: var(--accent); text-decoration: none; flex: none; }
+.subnav-links { display: flex; gap: 20px; font-size: 0.875rem; overflow-x: auto; scrollbar-width: none; }
+.subnav-links a, .subnav-links span { color: var(--ink-2); text-decoration: none; white-space: nowrap; padding-block: 12px; }
+.subnav-links a:hover, .subnav-links a[aria-current="page"] { color: var(--ink); font-weight: 600; }
+.subnav-links .soon { color: var(--ink-3); }
 .nav-links { display: flex; gap: 24px; font-size: 0.875rem; overflow-x: auto; scrollbar-width: none; align-items: center; }
 .nav-links a, .nav-links span { color: var(--ink-2); text-decoration: none; white-space: nowrap; padding-block: 14px; }
 .nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--accent); }
-.nav-links .soon { color: var(--ink-3); }
 
 /* buttons */
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 999px; font: 500 0.9375rem/1 var(--f-body); text-decoration: none; border: 1px solid var(--ink); background: var(--ink); color: #ffffff; }
@@ -83,60 +91,50 @@ footer.site a:hover { color: var(--accent); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
 
-/* home page */
-.hero { padding-block: 72px 40px; display: grid; gap: 20px; justify-items: center; text-align: center; }
-.hero h1 { font-size: clamp(2.6rem, 7vw, 4.5rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.02; max-width: 14ch; }
-.hero h1 span { color: var(--accent); }
-.hero .lede { max-width: 58ch; font-size: 1.25rem; color: var(--ink-2); line-height: 1.5; }
-.hero .cta { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
-.hero .hw { font-size: 0.875rem; color: var(--ink-3); }
-.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; text-align: center; margin-top: 28px; }
-.stat .big { font-family: var(--f-display); font-size: clamp(2.6rem, 6vw, 3.75rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1; }
-.stat .what { color: var(--ink-2); margin-top: 6px; }
-.stats-note { text-align: center; font-size: 0.8125rem; color: var(--ink-3); margin-top: 18px; }
-section.band { margin-top: 88px; display: grid; gap: 22px; }
+.hero { padding-block: 80px 48px; display: grid; gap: 22px; justify-items: center; text-align: center; }
+.hero .kicker { font-size: 0.9375rem; font-weight: 600; color: var(--accent); }
+.hero h1 { font-size: clamp(2.5rem, 6.6vw, 4.4rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.04; max-width: 15ch; }
+.hero .lede { max-width: 60ch; font-size: 1.25rem; color: var(--ink-2); line-height: 1.5; }
+.hero .cta { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+section.band { margin-top: 80px; display: grid; gap: 22px; scroll-margin-top: 72px; }
 section.band > header { display: grid; gap: 8px; max-width: 64ch; }
 section.band h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
 section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
-.ideas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.idea { background: var(--surface); border-radius: var(--radius); padding: 24px; display: grid; gap: 10px; align-content: start; text-decoration: none; transition: background .2s; }
-.idea:hover { background: var(--sunk); }
-.idea .gain { font-size: 0.8125rem; font-weight: 600; color: var(--accent); }
-.idea h3 { font-size: 1.25rem; }
-.idea p { color: var(--ink-2); font-size: 0.97rem; }
-.idea .go { font-size: 0.875rem; font-weight: 500; color: var(--ink); margin-top: 4px; }
-.tablewrap { overflow-x: auto; background: var(--surface); border-radius: var(--radius); padding: 8px 22px; }
-table.models { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.97rem; }
-table.models th { text-align: left; font-size: 0.8125rem; font-weight: 600; color: var(--ink-3); padding: 14px 12px 10px 0; border-bottom: 1px solid var(--rule); }
-table.models td { padding: 14px 12px 14px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
-table.models tr:last-child td { border-bottom: 0; }
-table.models td:first-child { font-weight: 600; }
-table.models code { font-family: var(--f-mono); font-size: 0.875rem; background: var(--bg); padding: 3px 7px; border-radius: 6px; white-space: nowrap; }
-.tools-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.tool { border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px; display: grid; gap: 8px; align-content: start; }
-.tool h3 { font-size: 1.0625rem; }
-.tool p { color: var(--ink-2); font-size: 0.95rem; }
-.tool code { font-family: var(--f-mono); font-size: 0.85rem; }
-.start { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 28px; align-items: start; }
-.start ol { margin: 0; padding-left: 1.2em; display: grid; gap: 10px; color: var(--ink-2); }
-.start ol b { color: var(--ink); font-weight: 600; }
-.copyrow { display: flex; justify-content: flex-end; margin-bottom: 8px; }
-.chip { font: 500 0.8rem/1 var(--f-body); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink-2); cursor: pointer; }
-.chip:hover { border-color: var(--ink-3); color: var(--ink); }
+.principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--ink); }
+.principle { padding: 20px 22px 4px 0; display: grid; gap: 8px; align-content: start; }
+.principle + .principle { padding-left: 22px; border-left: 1px solid var(--rule); }
+.principle h3 { font-size: 1.25rem; }
+.principle p { color: var(--ink-2); font-size: 0.97rem; }
+.projects { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.project { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: center; background: var(--surface); border-radius: var(--radius); padding: 30px; text-decoration: none; transition: background .2s; }
+.project:hover { background: var(--sunk); }
+.project .tagline { font-size: 0.8125rem; font-weight: 600; color: var(--ink-3); }
+.project h3 { font-size: clamp(1.8rem, 3.6vw, 2.4rem); font-weight: 700; letter-spacing: -0.03em; color: var(--accent); margin-top: 4px; }
+.project .what { font-size: 1.125rem; margin-top: 10px; }
+.project .facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+.project .facts span { font-size: 0.8rem; font-weight: 500; padding: 5px 11px; border-radius: 999px; background: var(--bg); color: var(--ink-2); }
+.project .go { display: inline-block; margin-top: 18px; font-weight: 500; color: var(--accent); }
+.project .nums { display: grid; gap: 16px; }
+.project .nums div { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: baseline; }
+.project .nums b { font-family: var(--f-display); font-size: 2.2rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; min-width: 3.2ch; }
+.project .nums span { color: var(--ink-2); }
+.project .fine { font-size: 0.8125rem; color: var(--ink-3); }
+.next { border: 1.5px dashed var(--rule); border-radius: var(--radius); padding: 22px 26px; color: var(--ink-3); }
+.next b { color: var(--ink-2); font-weight: 600; }
 @media (max-width: 760px) {
-  .stats, .ideas, .tools-row, .start { grid-template-columns: minmax(0, 1fr); }
-  .hero { padding-top: 48px; }
+  .principles, .project { grid-template-columns: minmax(0, 1fr); }
+  .principle + .principle { padding-left: 0; border-left: 0; border-top: 1px solid var(--rule); }
+  .hero { padding-top: 52px; }
 }
 </style>
 
 <nav class="nav" aria-label="Site">
   <div class="nav-inner">
-    <a class="wordmark" href="index.html">Sharar</a>
+    <a class="wordmark site" href="index.html">Specialized Inference</a>
     <div class="nav-links">
-      <a href="index.html#models">Models</a>
-      <a href="index.html#start">Get started</a>
+      <a href="index.html#projects">Projects</a>
+      <a href="projects/sharar/index.html">Sharar</a>
       <a href="blog/index.html">Blog</a>
-      <span class="soon" title="The repository opens with the paper">GitHub (soon)</span>
     </div>
   </div>
 </nav>
@@ -144,107 +142,54 @@ table.models code { font-family: var(--f-mono); font-size: 0.875rem; background:
 
 <main class="wrap">
   <header class="hero">
-    <h1>Fast local inference for <span>AI agents</span></h1>
-    <p class="lede">Sharar is an inference engine for the NVIDIA DGX Spark. It runs Qwen and Nemotron models of up to 125B parameters for many agents at once, behind OpenAI- and Anthropic-compatible APIs.</p>
+    <span class="kicker">Model- and hardware-specific inference</span>
+    <h1>One model, one device, one engine built for both</h1>
+    <p class="lede">General-purpose engines leave speed on the table on any single device. We build inference engines that specialize to one model family and one piece of hardware, changing the model, its memory, and its decoding together.</p>
     <div class="cta">
-      <a class="btn" href="#start">Get started</a>
-      <a class="btn ghost" href="blog/sharar-paper/index.html">Read the paper post</a>
+      <a class="btn" href="#projects">See the projects</a>
+      <a class="btn ghost" href="blog/index.html">Read the blog</a>
     </div>
-    <p class="hw">One GB10 · 128 GB unified memory · 262K context · Apache 2.0</p>
   </header>
 
-  <div class="stats">
-    <div class="stat"><div class="big num">4.3×</div><div class="what">higher decoding throughput</div></div>
-    <div class="stat"><div class="big num">3.1×</div><div class="what">more agentic tasks per hour</div></div>
-    <div class="stat"><div class="big num">2.1×</div><div class="what">faster for a single user</div></div>
-  </div>
-  <p class="stats-note">Qwen3.8-Flash-Next on one DGX Spark, against the fastest of vLLM, llama.cpp, and TensorFold.</p>
-
-  <section class="band" id="how">
+  <section class="band" id="approach">
     <header>
-      <h2>Built for unified memory</h2>
-      <p>On a DGX Spark, the model and every agent's history share one memory. Sharar is designed around that.</p>
+      <h2>The approach</h2>
+      <p>Start from what the device does well and badly, then edit everything above it to match.</p>
     </header>
-    <div class="ideas">
-      <a class="idea" href="blog/sharar-paper/index.html#surgery">
-        <span class="gain">Fewer bytes per token</span>
-        <h3>Model surgery</h3>
-        <p>3-bit weights, INT8 recurrent state, and a 2-bit draft head.</p>
-        <span class="go">How it works →</span>
-      </a>
-      <a class="idea" href="blog/sharar-paper/index.html#memory">
-        <span class="gain">No recomputation between turns</span>
-        <h3>SSD session cache</h3>
-        <p>Every agent's state survives across turns, on the SSD when GPU memory is full.</p>
-        <span class="go">How it works →</span>
-      </a>
-      <a class="idea" href="blog/sharar-paper/index.html#speculation">
-        <span class="gain">More tokens per weight read</span>
-        <h3>Adaptive speculation</h3>
-        <p>Shared experts across drafted tokens, and draft lengths that follow acceptance.</p>
-        <span class="go">How it works →</span>
-      </a>
+    <div class="principles">
+      <div class="principle"><h3>Fit the model to the hardware</h3><p>Change weight formats, state precision, and the drafter so each token reads fewer bytes on this device.</p></div>
+      <div class="principle"><h3>Use the whole memory hierarchy</h3><p>Plan GPU memory, host memory, and SSD as one budget, and keep work that will be needed again.</p></div>
+      <div class="principle"><h3>Decode for the workload</h3><p>Size speculation and batching to the device's real costs and to how agents actually call the model.</p></div>
     </div>
   </section>
 
-  <section class="band" id="models">
+  <section class="band" id="projects">
     <header>
-      <h2>Models</h2>
-      <p>Each model downloads on first serve, with its calibrated 3-bit checkpoint for the default fast profile.</p>
+      <h2>Projects</h2>
     </header>
-    <div class="tablewrap">
-      <table class="models">
-        <thead><tr><th>Model</th><th>Size</th><th>Command</th><th>Port</th><th>Sparks</th></tr></thead>
-        <tbody>
-          <tr><td>Qwen3.8-27B</td><td>27B dense</td><td><code>sharar serve 27b</code></td><td class="num">30001</td><td>1 or 2</td></tr>
-          <tr><td>Qwen3.8-Flash-Next</td><td>125B MoE</td><td><code>sharar serve flashnext</code></td><td class="num">30004</td><td>1 or 2</td></tr>
-          <tr><td>Nemotron 3.5 Super</td><td>120B-A12B MoE</td><td><code>sharar serve nemotron</code></td><td class="num">30005</td><td>1</td></tr>
-          <tr><td>Nemotron 3.5 Bolt</td><td>74B-A9B MoE</td><td><code>sharar serve bolt</code></td><td class="num">30006</td><td>1</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="band" id="tools">
-    <header>
-      <h2>Works with your agents</h2>
-      <p>Point any OpenAI or Anthropic client at the server, or let Sharar launch the agent for you.</p>
-    </header>
-    <div class="tools-row">
-      <div class="tool"><h3>Coding agents</h3><p><code>sharar launch claude</code> starts Claude Code on the served model. Also opencode and aider.</p></div>
-      <div class="tool"><h3>OpenAI and Anthropic APIs</h3><p>Chat completions at <code>/v1</code>, Messages at the root, with tool calls and constrained output.</p></div>
-      <div class="tool"><h3>Two Sparks</h3><p>Add <code>--tp 2</code> to split a Qwen model across two Sparks linked by their ConnectX ports.</p></div>
-    </div>
-  </section>
-
-  <section class="band" id="start">
-    <header>
-      <h2>Get started</h2>
-      <p>One DGX Spark with DGX OS, driver 580 or newer, and <a href="https://docs.astral.sh/uv/">uv</a>.</p>
-    </header>
-    <div class="start">
-      <ol>
-        <li><b>Clone and sync.</b> uv installs the pinned CUDA 13 PyTorch and FlashInfer, about 7 GB.</li>
-        <li><b>Serve a model.</b> The first run downloads it and builds the GB10 kernels.</li>
-        <li><b>Use it.</b> Chat in the terminal, or launch a coding agent on it.</li>
-      </ol>
-      <div>
-        <div class="copyrow"><button class="chip" type="button" data-copy="qs">Copy</button></div>
-        <pre class="code" id="qs"><span class="c"># the repository opens with the paper</span>
-git clone https://github.com/abdelfattah-lab/sharar && cd sharar
-uv sync
-uv run sharar serve nemotron     <span class="c"># Nemotron 3.5 Super on :30005</span>
-
-<span class="c"># in another terminal</span>
-uv run sharar chat
-uv run sharar launch claude</pre>
-      </div>
+    <div class="projects">
+      <a class="project" href="projects/sharar/index.html">
+        <div>
+          <span class="tagline">NVIDIA DGX Spark · Qwen3.8 and Nemotron 3.5</span>
+          <h3>Sharar</h3>
+          <p class="what">Fast local inference for AI agents on a single DGX Spark.</p>
+          <div class="facts"><span>4 models up to 125B</span><span>OpenAI and Anthropic APIs</span><span>SSD session cache</span><span>Apache 2.0</span></div>
+          <span class="go">Explore Sharar →</span>
+        </div>
+        <div class="nums">
+          <div><b>4.3×</b><span>higher decoding throughput</span></div>
+          <div><b>3.1×</b><span>more agentic tasks per hour</span></div>
+          <div><b>2.1×</b><span>faster for a single user</span></div>
+          <p class="fine">Qwen3.8-Flash-Next, against the fastest of vLLM, llama.cpp, and TensorFold.</p>
+        </div>
+      </a>
+      <div class="next"><b>More projects coming.</b> Next model and hardware targets will be listed here.</div>
     </div>
   </section>
 
   <section class="band" id="blog">
     <header>
-      <h2>From the blog</h2>
+      <h2>Latest posts</h2>
     </header>
     <a class="post-card" href="blog/sharar-paper/index.html">
   <div class="thumb" aria-hidden="true">
@@ -268,25 +213,17 @@ uv run sharar launch claude</pre>
   </div>
 </a>
 
+    <p><a href="blog/index.html" style="color:var(--accent);text-decoration:none;font-weight:500">All posts →</a></p>
   </section>
 </main>
 
 <footer class="site">
   <div class="wrap">
-    <span><b>Sharar</b> · Abdelfattah Lab, Cornell University</span>
-    <span><a href="index.html">Home</a> · <a href="blog/index.html">Blog</a> · Apache 2.0</span>
+    <span><b>Specialized Inference</b> · Model- and hardware-specific inference</span>
+    <span><a href="index.html">Home</a> · <a href="projects/sharar/index.html">Sharar</a> · <a href="blog/index.html">Blog</a></span>
   </div>
 </footer>
 
-
-<script>
-document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => {
-  const pre = document.getElementById(b.dataset.copy), s = pre.innerText;
-  const done = () => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1400); };
-  try { navigator.clipboard.writeText(s).then(done, () => { getSelection().selectAllChildren(pre); b.textContent = "Selected"; }); }
-  catch { getSelection().selectAllChildren(pre); b.textContent = "Selected"; }
-}));
-</script>
 
 </body>
 </html>

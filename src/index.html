@@ -1,0 +1,102 @@
+<title>{{SITE}}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Model- and hardware-specific inference: engines that fit one model family to one device.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap">
+<style>
+/*__SITE_CSS__*/
+.hero { padding-block: 80px 48px; display: grid; gap: 22px; justify-items: center; text-align: center; }
+.hero .kicker { font-size: 0.9375rem; font-weight: 600; color: var(--accent); }
+.hero h1 { font-size: clamp(2.5rem, 6.6vw, 4.4rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.04; max-width: 15ch; }
+.hero .lede { max-width: 60ch; font-size: 1.25rem; color: var(--ink-2); line-height: 1.5; }
+.hero .cta { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+section.band { margin-top: 80px; display: grid; gap: 22px; scroll-margin-top: 72px; }
+section.band > header { display: grid; gap: 8px; max-width: 64ch; }
+section.band h2 { font-size: clamp(1.75rem, 3.4vw, 2.4rem); }
+section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
+.principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--ink); }
+.principle { padding: 20px 22px 4px 0; display: grid; gap: 8px; align-content: start; }
+.principle + .principle { padding-left: 22px; border-left: 1px solid var(--rule); }
+.principle h3 { font-size: 1.25rem; }
+.principle p { color: var(--ink-2); font-size: 0.97rem; }
+.projects { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.project { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: center; background: var(--surface); border-radius: var(--radius); padding: 30px; text-decoration: none; transition: background .2s; }
+.project:hover { background: var(--sunk); }
+.project .tagline { font-size: 0.8125rem; font-weight: 600; color: var(--ink-3); }
+.project h3 { font-size: clamp(1.8rem, 3.6vw, 2.4rem); font-weight: 700; letter-spacing: -0.03em; color: var(--accent); margin-top: 4px; }
+.project .what { font-size: 1.125rem; margin-top: 10px; }
+.project .facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+.project .facts span { font-size: 0.8rem; font-weight: 500; padding: 5px 11px; border-radius: 999px; background: var(--bg); color: var(--ink-2); }
+.project .go { display: inline-block; margin-top: 18px; font-weight: 500; color: var(--accent); }
+.project .nums { display: grid; gap: 16px; }
+.project .nums div { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: baseline; }
+.project .nums b { font-family: var(--f-display); font-size: 2.2rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; min-width: 3.2ch; }
+.project .nums span { color: var(--ink-2); }
+.project .fine { font-size: 0.8125rem; color: var(--ink-3); }
+.next { border: 1.5px dashed var(--rule); border-radius: var(--radius); padding: 22px 26px; color: var(--ink-3); }
+.next b { color: var(--ink-2); font-weight: 600; }
+@media (max-width: 760px) {
+  .principles, .project { grid-template-columns: minmax(0, 1fr); }
+  .principle + .principle { padding-left: 0; border-left: 0; border-top: 1px solid var(--rule); }
+  .hero { padding-top: 52px; }
+}
+</style>
+
+<!--__NAV__-->
+
+<main class="wrap">
+  <header class="hero">
+    <span class="kicker">Model- and hardware-specific inference</span>
+    <h1>One model, one device, one engine built for both</h1>
+    <p class="lede">General-purpose engines leave speed on the table on any single device. We build inference engines that specialize to one model family and one piece of hardware, changing the model, its memory, and its decoding together.</p>
+    <div class="cta">
+      <a class="btn" href="#projects">See the projects</a>
+      <a class="btn ghost" href="{{ROOT}}blog/index.html">Read the blog</a>
+    </div>
+  </header>
+
+  <section class="band" id="approach">
+    <header>
+      <h2>The approach</h2>
+      <p>Start from what the device does well and badly, then edit everything above it to match.</p>
+    </header>
+    <div class="principles">
+      <div class="principle"><h3>Fit the model to the hardware</h3><p>Change weight formats, state precision, and the drafter so each token reads fewer bytes on this device.</p></div>
+      <div class="principle"><h3>Use the whole memory hierarchy</h3><p>Plan GPU memory, host memory, and SSD as one budget, and keep work that will be needed again.</p></div>
+      <div class="principle"><h3>Decode for the workload</h3><p>Size speculation and batching to the device's real costs and to how agents actually call the model.</p></div>
+    </div>
+  </section>
+
+  <section class="band" id="projects">
+    <header>
+      <h2>Projects</h2>
+    </header>
+    <div class="projects">
+      <a class="project" href="{{ROOT}}projects/sharar/index.html">
+        <div>
+          <span class="tagline">NVIDIA DGX Spark · Qwen3.8 and Nemotron 3.5</span>
+          <h3>Sharar</h3>
+          <p class="what">Fast local inference for AI agents on a single DGX Spark.</p>
+          <div class="facts"><span>4 models up to 125B</span><span>OpenAI and Anthropic APIs</span><span>SSD session cache</span><span>Apache 2.0</span></div>
+          <span class="go">Explore Sharar →</span>
+        </div>
+        <div class="nums">
+          <div><b>4.3×</b><span>higher decoding throughput</span></div>
+          <div><b>3.1×</b><span>more agentic tasks per hour</span></div>
+          <div><b>2.1×</b><span>faster for a single user</span></div>
+          <p class="fine">Qwen3.8-Flash-Next, against the fastest of vLLM, llama.cpp, and TensorFold.</p>
+        </div>
+      </a>
+      <div class="next"><b>More projects coming.</b> Next model and hardware targets will be listed here.</div>
+    </div>
+  </section>
+
+  <section class="band" id="blog">
+    <header>
+      <h2>Latest posts</h2>
+    </header>
+    <!--__POST_CARD__-->
+    <p><a href="{{ROOT}}blog/index.html" style="color:var(--accent);text-decoration:none;font-weight:500">All posts →</a></p>
+  </section>
+</main>
+
+<!--__FOOTER__-->
