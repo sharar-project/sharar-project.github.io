@@ -41,6 +41,9 @@ FAVICON = ('<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,'
            "stroke-width='10' stroke-linejoin='round'/%3E%3C/svg%3E\">")
 SIDE_CUR = {"index.html": "home", "sharar.html": "overview", "blog.html": "blog",
             "posts/sharar-paper.html": "paper"}
+FAVICON_FILES = ('<link rel="icon" href="{root}favicon.ico" sizes="any">\n'
+                 '<link rel="icon" type="image/svg+xml" href="{root}favicon.svg">\n'
+                 '<link rel="apple-touch-icon" href="{root}apple-touch-icon.png">')
 RESULTS = json.loads((ROOT / "data/results.json").read_text())
 
 
@@ -59,7 +62,7 @@ def render(src, root, current, sub):
                 .replace("/*__RESULTS__*/", (ROOT / "data/results.json").read_text().replace("</", "<\\/")))
     # the logo (canvas board "14 · Shooting star"); each use gets its own gradient id
     page = re.sub(r"\{\{LOGO:(\w+)\}\}", lambda m: LOGO.format(id="lg-" + m.group(1)), page)
-    page = page.replace("<title>", FAVICON + "\n<title>", 1)
+    page = page.replace("<title>", "<!--FAVICON-->\n<title>", 1)
     # images are inlined as data URIs: the artifact viewer loads nothing from other hosts
     page = re.sub(r"\{\{IMG:([\w.-]+)\}\}", lambda m: "data:image/jpeg;base64,"
                   + base64.b64encode((SRC / "assets" / m.group(1)).read_bytes()).decode(), page)
@@ -70,8 +73,14 @@ for src, out, root, current, sub in PAGES:
     page = render(src, root, current, sub)
     assert "{{" not in page and "<!--__" not in page, f"unfilled placeholder in {src}"
     full = HEAD + page + "\n</body>\n</html>\n"
-    for base, text in (("dist", page if out == "index.html" else full), ("site", full)):
+    files = full.replace("<!--FAVICON-->", FAVICON_FILES.format(root=root))  # GitHub Pages serves the icon files
+    inline = lambda t: t.replace("<!--FAVICON-->", FAVICON)  # the artifact preview cannot, so it inlines one
+    for base, text in (("dist", inline(page if out == "index.html" else full)), ("site", files)):
         p = ROOT / base / out
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(text)
         print(p.relative_to(ROOT), len(text))
+
+# site-wide files served from the root (favicons; tools/make_favicons.py renders them from favicon.svg)
+for f in (SRC / "static").iterdir():
+    (ROOT / "site" / f.name).write_bytes(f.read_bytes())

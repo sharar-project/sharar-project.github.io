@@ -29,6 +29,11 @@ To add a post: write `src/posts/<slug>.html`, add it to `PAGES` in `tools/build.
 Data for the paper post comes from the paper figure builders in `~/.local/share/sharar` (bench-figures-rerun-1027,
 bench-figures-flare-1102); the hill-climb steps and accuracy table follow the paper on `main`.
 
+## Favicons
+
+`src/static/` holds the favicon files (`favicon.ico`, `favicon.svg`, `favicon-32.png`, `apple-touch-icon.png`), copied to the
+site root by the build. After changing the logo, re-render them with `tools/make_favicons.py`.
+
 ## Photo credits
 
 `src/assets/` holds cropped photos from Wikimedia Commons, inlined into the home page at build time:
