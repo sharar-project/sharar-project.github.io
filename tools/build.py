@@ -21,7 +21,7 @@ PARTS = {p.name: p.read_text() for p in (SRC / "partials").iterdir()}
 HEAD = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
         '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}'
-        'body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>\n</head>\n<body>\n')
+        'body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>\n')
 PAGES = [  # (source, output, path back to the site root, current nav item, unused)
     ("index.html", "index.html", "", "", ""),
     ("sharar.html", "projects/sharar/index.html", "../../", "overview", ""),
@@ -73,7 +73,10 @@ def render(src, root, current, sub):
 for src, out, root, current, sub in PAGES:
     page = render(src, root, current, sub)
     assert "{{" not in page and "<!--__" not in page, f"unfilled placeholder in {src}"
-    full = HEAD + page + "\n</body>\n</html>\n"
+    # the page's own head part (icons, <title>, meta, fonts, its first <style>) goes in <head>: Safari only finds the
+    # tab icon there
+    cut = page.index("</style>") + len("</style>")
+    full = HEAD + page[:cut] + "\n</head>\n<body>\n" + page[cut:] + "\n</body>\n</html>\n"
     files = full.replace("<!--FAVICON-->", FAVICON_FILES.format(root=root))  # GitHub Pages serves the icon files
     inline = lambda t: t.replace("<!--FAVICON-->", FAVICON)  # the artifact preview cannot, so it inlines one
     for base, text in (("dist", inline(page if out == "index.html" else full)), ("site", files)):
