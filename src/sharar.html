@@ -26,8 +26,7 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
 .idea p { color: var(--ink-2); font-size: 0.97rem; }
 .idea .go { font-size: 0.875rem; font-weight: 500; color: var(--ink); margin-top: 4px; }
 .mlist { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-.mlist a { background: var(--surface); border-radius: 14px; padding: 18px; display: grid; gap: 4px; text-decoration: none; transition: background .2s; }
-.mlist a:hover { background: var(--sunk); }
+.mlist div { background: var(--surface); border-radius: 14px; padding: 18px; display: grid; gap: 4px; }
 .mlist span { font-size: 0.875rem; color: var(--ink-3); }
 .textlink { color: var(--accent); text-decoration: none; font-weight: 500; }
 .tablewrap { overflow-x: auto; background: var(--surface); border-radius: var(--radius); padding: 8px 22px; }
@@ -63,7 +62,6 @@ table.models code { font-family: var(--f-mono); font-size: 0.875rem; background:
     <p class="lede">Sharar is an inference engine for the NVIDIA DGX Spark. It runs Qwen and Nemotron models of up to 125B parameters for many agents at once, behind OpenAI- and Anthropic-compatible APIs.</p>
     <div class="cta">
       <a class="btn" href="#start">Get started</a>
-      <a class="btn ghost" href="{{ROOT}}projects/sharar/models/index.html">See the models</a>
       <a class="btn ghost" href="{{ROOT}}blog/sharar-paper/index.html">Read the paper</a>
     </div>
     <p class="hw">One GB10 · 128 GB unified memory · 262K context · Apache 2.0</p>
@@ -109,12 +107,11 @@ table.models code { font-family: var(--f-mono); font-size: 0.875rem; background:
       <p>Four open-weight models, each tuned for the Spark.</p>
     </header>
     <div class="mlist">
-      <a href="{{ROOT}}projects/sharar/models/index.html#qwen38-27b"><b>Qwen3.8-27B</b><span>27B dense</span></a>
-      <a href="{{ROOT}}projects/sharar/models/index.html#qwen38-flash-next"><b>Qwen3.8-Flash-Next</b><span>125B MoE</span></a>
-      <a href="{{ROOT}}projects/sharar/models/index.html#nemotron-35-super"><b>Nemotron 3.5 Super</b><span>120B-A12B MoE</span></a>
-      <a href="{{ROOT}}projects/sharar/models/index.html#nemotron-35-bolt"><b>Nemotron 3.5 Bolt</b><span>74B-A9B MoE</span></a>
+      <div><b>Qwen3.8-27B</b><span>27B dense</span></div>
+      <div><b>Qwen3.8-Flash-Next</b><span>125B MoE</span></div>
+      <div><b>Nemotron 3.5 Super</b><span>120B-A12B MoE</span></div>
+      <div><b>Nemotron 3.5 Bolt</b><span>74B-A9B MoE</span></div>
     </div>
-    <p><a class="textlink" href="{{ROOT}}projects/sharar/models/index.html">Commands, sizes, and speed for each model →</a></p>
   </section>
 
   <section class="band" id="tools">

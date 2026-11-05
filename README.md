@@ -11,7 +11,6 @@ working name is the `SITE` constant in `tools/build.py`.
 |---|---|---|
 | Umbrella home | `src/index.html` | `index.html` |
 | Sharar overview | `src/sharar.html` | `projects/sharar/index.html` |
-| Sharar models | `src/models.html` | `projects/sharar/models/index.html` |
 | Blog index | `src/blog.html` | `blog/index.html` |
 | Sharar paper post | `src/posts/sharar-paper.html` | `blog/sharar-paper/index.html` |
 
