@@ -1,4 +1,7 @@
-# Model- and hardware-specific inference site
+# sharar-project.github.io
+
+The Sharar website, served at https://sharar-project.github.io. Every push to `main` builds the pages with
+`tools/build.py` and deploys them through GitHub Actions (`.github/workflows/pages.yml`).
 
 An umbrella site for model- and hardware-specific inference projects, with Sharar as the first project. `src/` holds
 the pages, `src/partials/` the shared CSS, navs, footer and post card; `tools/build.py` assembles them. The umbrella's
@@ -17,8 +20,9 @@ uv run --no-project --with matplotlib --with numpy python -I tools/export_data.p
 python3 tools/build.py                                                             # writes dist/ and site/
 ```
 
-- `site/` is the GitHub Pages output (the table above).
-- `dist/` is the same for the claude.ai artifact preview (its main page has no doctype; the host adds one).
+- `site/` is the GitHub Pages output (the table above); CI builds it, so it is not committed.
+- `dist/` is the same for a claude.ai artifact preview (its main page has no doctype; the host adds one).
+- Preview locally: `python3 tools/build.py && python3 -m http.server -d site 8000`.
 
 To add a post: write `src/posts/<slug>.html`, add it to `PAGES` in `tools/build.py`, and add a card to
 `src/blog.html` (and to the home page's "Latest posts"). A new project gets `src/<name>.html`, a card on the home page, and its own sub-nav partial.
