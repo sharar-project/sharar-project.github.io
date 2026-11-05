@@ -41,9 +41,10 @@ FAVICON = ('<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,'
            "stroke-width='10' stroke-linejoin='round'/%3E%3C/svg%3E\">")
 SIDE_CUR = {"index.html": "home", "sharar.html": "overview", "blog.html": "blog",
             "posts/sharar-paper.html": "paper"}
-FAVICON_FILES = ('<link rel="icon" href="{root}favicon.ico" sizes="any">\n'
-                 '<link rel="icon" type="image/svg+xml" href="{root}favicon.svg">\n'
-                 '<link rel="apple-touch-icon" href="{root}apple-touch-icon.png">')
+FAVICON_FILES = ('<link rel="icon" type="image/png" sizes="32x32" href="{root}favicon-32.png?v=2">\n'
+                 '<link rel="icon" href="{root}favicon.ico?v=2" sizes="any">\n'
+                 '<link rel="icon" type="image/svg+xml" href="{root}favicon.svg?v=2">\n'
+                 '<link rel="apple-touch-icon" sizes="180x180" href="{root}apple-touch-icon.png?v=2">')  # bump v to refresh caches
 RESULTS = json.loads((ROOT / "data/results.json").read_text())
 
 
