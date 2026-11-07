@@ -261,7 +261,7 @@ footer a:hover { color: var(--accent); }
 
   <section id="results">
     <h2>Results</h2>
-    <p>Our test model is Nemotron-3.5-Lightning-30B-A3B, a Mamba + attention + mixture-of-experts model with 30B total and about 3B active parameters. The only source checkpoint is the NVFP4 release. We ran the brief from two 3-bit checkpoints of it, both made with GPTQ<sup><a href="#n1">*</a></sup>: a <b>poorly calibrated</b> one and a <b>well-calibrated</b> one. Each was evaluated once on the test sets, before and after the agent's edits.</p>
+    <p>Our test model is Nemotron-3.5-Lightning-30B-A3B, a Mamba + attention + mixture-of-experts model with 30B total and about 3B active parameters. The only source checkpoint is the NVFP4 release. We ran the instruction from two 3-bit checkpoints of it, both made with GPTQ<sup><a href="#n1">*</a></sup>: a <b>poorly calibrated</b> one and a <b>well-calibrated</b> one. Each was evaluated once on the test sets, before and after the agent's edits.</p>
     <div class="card tablewrap">
       <table class="acc">
         <thead><tr><th>Checkpoint</th><th>Weights edited</th><th>GSM8K</th><th>MATH-500</th><th>LiveCodeBench v6</th><th>GPQA Diamond</th><th>MMLU</th><th>WikiText-2 PPL</th></tr></thead>
