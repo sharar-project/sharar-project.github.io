@@ -434,14 +434,14 @@ footer a:hover { color: var(--accent); }
 
   <section id="takeaways">
     <h2>What this means for quantization</h2>
-    <p>GPTQ's objective is fine. Its constraint is the problem. It fixes each group's scale from the group's largest weights <i>before</i> choosing levels. When a group also holds a tiny weight on a huge input, no choice of level can store it, and GPTQ falls back on offsetting the error through other weights, fitted to the calibration tokens and wrong on most others.</p>
-    <p>That makes the fix a cheap <b>repair pass</b> that needs no data. Scan for compensation, find the outlier input in one forward pass, apply both fixes.</p>
+    <p>The defect comes from how GPTQ orders its decisions. It sets each group's scale from the group's largest weights <i>before</i> it chooses any levels. When the same group also holds a small weight that multiplies a very large input, no level can store that weight accurately, so GPTQ offsets the error by moving other weights. The offset is fitted to the calibration tokens and adds error on most other text.</p>
+    <p>This makes repair a natural post-processing step after quantization. Given a quantized checkpoint and its higher-precision source, a <b>repair pass</b> looks for weights whose error is small in the weights but large in the model's output, such as weights on outlier inputs and the rows GPTQ moved to compensate for them, and re-quantizes only those. It needs one forward pass on a few prompts to find the outlier inputs and no calibration data. The checkpoint keeps its format, size and kernels, so the pass can follow any quantizer.</p>
   </section>
 
   <section id="next">
     <h2>Where this goes next</h2>
     <p>The agent repeated the loop until no edit helped. On this checkpoint it kept both fixes on two Mamba out_proj matrices, plus one small scale change in an attention layer, the only edit whose scale choice reads activations. The same two fixes, unchanged, repaired the poorly calibrated checkpoint. Every edit rewrites existing quantized levels and scales, so the model keeps the same size, format and kernels.</p>
-    <p>Today, that makes agent editing a finishing pass for any quantized checkpoint, whatever quantizer produced it. It smooths over the places where the quantizer failed and improves the model without quantizing it again. All it needs is the checkpoint, the higher-precision reference, and a few prompts to read activations and validate on. And because each edit comes with a reason, it also tells you what the quantizer got wrong.</p>
+    <p>Today, an agent can run this pass on any quantized checkpoint. All it needs is the checkpoint, the higher-precision reference, and a few prompts to read activations and validate on. Because each edit comes with a reason, it also tells you what the quantizer got wrong.</p>
     <p>Longer term, we see this going much further. As LLMs get more capable, we expect agents, or rather swarms of them working in parallel, to quantize models with trillions of parameters themselves, starting from the full-precision weights, instead of only repairing a checkpoint after the fact.</p>
   </section>
 
