@@ -22,6 +22,8 @@ python3 tools/build.py                                                          
 - `site/` is the GitHub Pages output (the table above); CI builds it, so it is not committed.
 - `dist/` is the same for a claude.ai artifact preview (its main page has no doctype; the host adds one).
 - Preview locally: `python3 tools/build.py && python3 -m http.server -d site 8000`.
+- Each open pull request from this repository is built into https://sharar-project.github.io/pr-preview/pr-<number>/
+  and deployed with `main`; the workflow comments the link on the PR and drops the preview when it closes.
 
 To add a post: write `src/posts/<slug>.html`, add it to `PAGES` in `tools/build.py`, and add a card to
 `src/blog.html` (and to the home page's "Latest posts"). A new project gets `src/<name>.html`, a card on the home page, and its own sub-nav partial.
