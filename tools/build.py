@@ -50,10 +50,39 @@ MIME = {".jpg": "jpeg", ".jpeg": "jpeg", ".png": "png"}  # {{IMG:...}} data URIs
 RESULTS = json.loads((ROOT / "data/results.json").read_text())
 
 
+def slug(t):
+    t = re.sub(r"<[^>]+>|\\\(|\\\)|\\[a-zA-Z]+", "", t)
+    return re.sub(r"[^a-z0-9]+", "-", t.lower()).strip("-")
+
+
+def post_toc(page):
+    """A post's "On this page" list: each <section id> with its <h2>, and the <h3>s inside it, which get ids here."""
+    items, out, last = [], [], 0
+    for m in re.finditer(r'<section id="([\w-]+)">', page):
+        sid, end = m.group(1), page.find("</section>", m.end())
+        body = page[m.end():end]
+        h2 = re.search(r"<h2[^>]*>(.*?)</h2>", body, re.S)
+        if not h2:
+            continue
+        items.append(f'    <a class="toc-link" href="#{sid}">{h2.group(1).strip()}</a>')
+        def add_id(h):
+            t = h.group(2).strip()
+            hid = f"{sid}-{slug(t)}"
+            items.append(f'    <a class="toc-link toc-sub" href="#{hid}">{t}</a>')
+            return f'<h3{h.group(1)} id="{hid}">{h.group(2)}</h3>'
+        body = re.sub(r"<h3((?:(?! id=)[^>])*)>(.*?)</h3>", add_id, body, flags=re.S)
+        out.append(page[last:m.end()] + body); last = end
+    out.append(page[last:])
+    return "".join(out), "\n".join(items)
+
+
 def render(src, root, current, sub):
     page = (SRC / src).read_text()
     nav = PARTS["nav.html"]
     side = PARTS["sidebar.html"]
+    if src.startswith("posts/"):  # a post's side menu lists its own chapters; the site menu's drawer script is reused
+        page, toc = post_toc(page)
+        side = PARTS["post-toc.html"].replace("<!--__TOC__-->", toc) + side[side.index("</aside>") + len("</aside>"):]
     for item in ("home", "overview", "paper", "blog", "repair"):
         side = side.replace(f" {{{{SIDE_{item}}}}}", ' aria-current="page"' if item == SIDE_CUR.get(src) else "")
     page = (page.replace("/*__SITE_CSS__*/", PARTS["site.css"])
