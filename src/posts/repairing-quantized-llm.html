@@ -250,7 +250,7 @@ footer a:hover { color: var(--accent); }
   <section id="idea">
     <h2>What if the LLM fixes the model itself?</h2>
     <p>Our starting point is <a href="https://rikiyat.github.io/blog/weight-space-programming/" target="_blank" rel="noopener">Sparks of Weight-Space Programming</a><sup><a href="#r3">3</a></sup>, by Takehi et al. In their Experiment 8 the agent makes Qwen3.5-0.8B much better by fixing its reasoning loops, editing 0.016% of its weights, with no gradients and no training loop.</p>
-    <p>Repairing a quantized checkpoint looked like a natural fit, with one big advantage: we know what every weight is <i>supposed</i> to be, because we have the higher-precision source to compare against. We gave the agent this brief:</p>
+    <p>Repairing a quantized checkpoint looked like a natural fit, with one big advantage: we know what every weight is <i>supposed</i> to be, because we have the higher-precision source to compare against. We gave the agent (Claude Opus 5.5) this instruction:</p>
     <div class="callout brief"><p>This 3-bit checkpoint should behave like the NVFP4 model. Find what is broken and fix it inside the 3-bit format. You may run the model and read its weights and activations; you may not fit weights to data (no GPTQ, no least-squares refits, no training).</p></div>
     <p>The agent starts from the finished 3-bit checkpoint, not from NVFP4. The NVFP4 weights are its reference: they tell it how far the 3-bit model is from where it should be, and every new 3-bit value it writes is the NVFP4 weight rounded again under a different rule. Whoever quantizes a model has its source weights, so this needs nothing extra.</p>
     <div class="card">
@@ -261,7 +261,7 @@ footer a:hover { color: var(--accent); }
 
   <section id="results">
     <h2>Results</h2>
-    <p>Our test model is Nemotron-3.5-Lightning-30B-A3B, a Mamba + attention + mixture-of-experts model with 30B total and about 3B active parameters. The only source checkpoint is the NVFP4 release. We ran the instruction from two 3-bit checkpoints of it, both made with GPTQ<sup><a href="#n1">*</a></sup>: a <b>poorly calibrated</b> one and a <b>well-calibrated</b> one. Each was evaluated once on the test sets, before and after the agent's edits.</p>
+    <p>Our test model is Nemotron-3.5-Lightning-30B-A3B, a Mamba + attention + mixture-of-experts model with 30B total and about 3B active parameters. The only source checkpoint is the NVFP4 release. We ran the brief from two 3-bit checkpoints of it, both made with GPTQ<sup><a href="#n1">*</a></sup>: a <b>poorly calibrated</b> one and a <b>well-calibrated</b> one. Each was evaluated once on the test sets, before and after the agent's edits.</p>
     <div class="card tablewrap">
       <table class="acc">
         <thead><tr><th>Checkpoint</th><th>Weights edited</th><th>GSM8K</th><th>MATH-500</th><th>LiveCodeBench v6</th><th>GPQA Diamond</th><th>MMLU</th><th>WikiText-2 PPL</th></tr></thead>
