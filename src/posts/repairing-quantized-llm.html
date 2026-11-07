@@ -54,7 +54,8 @@ code { font-size: 0.88em; }
 .crumbs a:hover { color: var(--accent); }
 .nav-links { display: flex; gap: 22px; font-size: 0.875rem; overflow-x: auto; scrollbar-width: none; }
 .nav-links a { color: var(--ink-2); text-decoration: none; white-space: nowrap; padding-block: 14px; }
-.nav-links a:hover { color: var(--accent); }
+.nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--accent); }
+.nav-links .soon { color: var(--ink-3); white-space: nowrap; padding-block: 14px; }
 
 /* hero */
 .hero { padding-block: 48px 30px; display: grid; gap: 16px; justify-items: center; text-align: center; }
@@ -190,13 +191,11 @@ footer a:hover { color: var(--accent); }
 /*__SIDE_CSS__*/
 </style>
 
-<nav class="nav" aria-label="Sections">
+<nav class="nav" aria-label="Site">
   <div class="nav-inner">
     <button class="side-btn" id="side-btn" type="button" aria-label="Open menu" aria-controls="side" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     <div class="crumbs"><a class="wordmark" style="color:var(--ink);display:inline-flex;align-items:center;gap:7px;font-style:italic;font-weight:800" href="{{ROOT}}index.html">{{LOGO:post}}<span>{{SITE}}</span></a><span class="sep">/</span><a href="{{ROOT}}blog/index.html">Blog</a></div>
-    <div class="nav-links">
-      <a href="#background">Background</a><a href="#idea">Idea</a><a href="#results">Results</a><a href="#case-study">Case study</a><a href="#takeaways">Takeaways</a><a href="#bibtex">BibTeX</a>
-    </div>
+    <!--__SITE_LINKS__-->
   </div>
 </nav>
 <!--__SIDEBAR__-->

@@ -76,6 +76,14 @@ def post_toc(page):
     return "".join(out), "\n".join(items)
 
 
+def site_links(current):
+    """The top bar's site menu, the same on every page; the page's own sections live in the side menu."""
+    links = PARTS["site-links.html"]
+    for item in ("home", "overview", "blog"):
+        links = links.replace(f" {{{{NAV_{item}}}}}", ' aria-current="page"' if item == (current or "home") else "")
+    return links
+
+
 def render(src, root, current, sub):
     page = (SRC / src).read_text()
     nav = PARTS["nav.html"]
@@ -88,6 +96,7 @@ def render(src, root, current, sub):
     page = (page.replace("/*__SITE_CSS__*/", PARTS["site.css"])
                 .replace("/*__SIDE_CSS__*/", PARTS["side.css"])
                 .replace("<!--__NAV__-->", nav)
+                .replace("<!--__SITE_LINKS__-->", site_links(current))
                 .replace("<!--__SIDEBAR__-->", side)
                 .replace("<!--__FOOTER__-->", PARTS["footer.html"])
                 .replace("<!--__POST_CARD__-->", PARTS["post-card.html"])
