@@ -1,0 +1,30 @@
+<aside class="side toc" id="side" aria-label="On this page">
+  <a class="toc-back" href="{{ROOT}}blog/index.html">‹ Back to Blog</a>
+  <p class="toc-h">On this page</p>
+  <nav class="toc-list">
+<!--__TOC__-->
+  </nav>
+</aside>
+<script>
+/* "On this page": a dot marks the chapter being read (the last one whose heading has passed under the nav);
+   a link into the folded case study opens the fold first */
+addEventListener("DOMContentLoaded", () => {  /* the sections come after this menu in the page */
+  const links = [...document.querySelectorAll("#side .toc-link")];
+  const target = a => document.getElementById(a.getAttribute("href").slice(1));
+  const open = el => { const d = el && el.closest("details"); if (d && !d.open) d.open = true; };
+  links.forEach(a => a.addEventListener("click", () => open(target(a))));
+  if (location.hash) open(document.getElementById(location.hash.slice(1)));
+  const top = links.filter(a => !a.classList.contains("toc-sub")), secs = top.map(target).filter(Boolean);
+  let raf = 0;
+  const update = () => {
+    raf = 0;
+    let cur = secs[0];
+    for (const s of secs) if (s.getBoundingClientRect().top <= 120) cur = s;
+    if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) cur = secs[secs.length - 1];
+    top.forEach(a => target(a) === cur ? a.setAttribute("aria-current", "location") : a.removeAttribute("aria-current"));
+  };
+  addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(update); }, { passive: true });
+  addEventListener("resize", update);
+  update();
+});
+</script>

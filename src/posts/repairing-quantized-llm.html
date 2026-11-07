@@ -1,10 +1,10 @@
 <title>Repairing a Quantized LLM using Weight Space Programming</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="An LLM agent repairs a broken 3-bit checkpoint by editing its weights directly, with no calibration data.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Noto+Sans+Math&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap">
 <style>
 /* Same document layout as the Sharar paper post: one 1000px column on white, figures in soft gray panels, prose ~70ch. */
-/* Single light theme. Blue = repaired, red = damage (as in the 3D error surfaces), grays = as quantized. */
+/* Single light theme. Sharar red is the key visual, as on the paper post: red = repaired ("ours"), burnt orange = damage, grays = as quantized. */
 :root {
   --bg: #ffffff;
   --surface: #f5f5f7;     /* figure panels */
@@ -15,15 +15,15 @@
   --rule: #d2d2d7;
   --accent: #a31f34;      /* Sharar red */
   --accent-soft: #f6e4e7;
-  --fix: #2f6fd0;         /* repaired weights, "ours" rows (same blue as the paper post's table) */
-  --fix-soft: #e8f0fb;
-  --deep: #17407f;
-  --damage: #a31f34;      /* the outlier input and the error it causes */
+  --fix: #a31f34;         /* repaired weights, "ours" rows: Sharar red */
+  --fix-soft: #f6e4e7;
+  --deep: #5a6a7e;        /* a second category (code) beside red */
+  --damage: #c8691c;      /* the outlier input and the error it causes: burnt orange, apart from red */
   --muted: #a1a1a6;       /* as quantized */
   --f-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
   --f-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", Arial, sans-serif;
   --f-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
-  --f-math: "STIX Two Math", "Cambria Math", "Noto Sans Math", math, serif;
+  --f-math: "Latin Modern Math", "STIX Two Math", "Cambria Math", "Times New Roman", serif;  /* close to MathJax's TeX glyphs, for figure labels */
   --step--1: 0.8125rem; --step-0: 1.0625rem; --step-2: 1.5rem;
   --radius: 18px;
   color-scheme: light;
@@ -66,6 +66,7 @@ code { font-size: 0.88em; }
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; font: 500 0.875rem/1 var(--f-body); text-decoration: none; border: 1px solid var(--ink); background: var(--ink); color: #ffffff; cursor: pointer; }
 .btn:hover { background: #000000; }
 .btn svg { width: 15px; height: 15px; }
+.btn .hf { font-size: 1.05rem; line-height: 1; }  /* Hugging Face mark on the checkpoint links */
 .intro { max-width: 70ch; margin: 8px auto 0; display: grid; gap: 1em; font-size: 1.1875rem; line-height: 1.55; text-wrap: pretty; }
 
 /* stats */
@@ -100,13 +101,12 @@ sup a { text-decoration: none; color: var(--accent); font-size: 0.8em; font-vari
 .seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
 .chip { font: 500 0.78rem/1 var(--f-body); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink-2); cursor: pointer; white-space: nowrap; }
 .chip:hover { border-color: var(--ink-3); color: var(--ink); }
-.card svg { display: block; width: 100%; height: auto; }
-.card svg text { font-family: var(--f-body); font-size: 11px; fill: var(--ink-2); }
+.card svg:not(mjx-container svg) { display: block; width: 100%; height: auto; }  /* figures only: MathJax's own SVGs keep their size */
+.card svg:not(mjx-container svg) text { font-family: var(--f-body); font-size: 11px; fill: var(--ink-2); }
 .card svg .t-ink { fill: var(--ink); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--step--1); color: var(--ink-2); }
 .legend > span { display: inline-block; }
 .legend .key { width: 12px; height: 12px; border-radius: 3px; display: inline-block; vertical-align: -1px; margin-right: 7px; }
-.legend svg.key { width: 22px; height: 10px; border-radius: 0; vertical-align: 0; }
 .legend.center { justify-content: center; }
 .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px; align-items: start; }
 .narrow { max-width: 760px; width: 100%; margin: 0 auto; }
@@ -114,11 +114,6 @@ sup a { text-decoration: none; color: var(--accent); font-size: 0.8em; font-vari
 .plate img { display: block; width: 100%; height: auto; }
 .plate.sq { max-width: 600px; margin: 0 auto; }
 canvas.sc { display: block; width: min(360px, 100%); height: auto; margin: 0 auto; background: var(--bg); border-radius: 12px; }
-.readout { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.readout div { background: var(--bg); border-radius: 8px; padding: 10px 12px; }
-.readout .k { font-size: 0.8125rem; color: var(--ink-3); }
-.readout .v { font-family: var(--f-display); font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-.readout .v.acc { color: var(--accent); }
 
 /* pipeline */
 .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
@@ -127,12 +122,25 @@ canvas.sc { display: block; width: min(360px, 100%); height: auto; margin: 0 aut
 .flow .box span { font-size: 0.8125rem; color: var(--ink-2); }
 .flow .arr { align-self: center; color: var(--ink-3); }
 
-/* equations: native MathML */
-.math { display: grid; gap: 14px; background: var(--surface); border-radius: var(--radius); padding: 22px 26px; max-width: 100%; overflow-x: auto; }
-.card .math { background: var(--bg); border-radius: 12px; padding: 16px 20px; }
-.math math { font-family: var(--f-math); font-size: 1.3rem; color: var(--ink); }
-.math math[display="block"] { margin: 0; }
-math.inl { font-family: var(--f-math); font-size: 1.1em; }
+/* equations: LaTeX, typeset by MathJax (inline \( \), display \[ \]) */
+.math { background: var(--surface); border-radius: var(--radius); padding: 16px 26px; max-width: 100%; overflow-x: auto; color: var(--ink); font-size: 1.12rem; }
+.card .math { background: var(--bg); border-radius: 12px; padding: 14px 20px; }
+.math mjx-container[display="true"] { margin: 0 !important; }
+mjx-container { color: inherit; }
+
+/* the case study folds below its summary */
+details.fold > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); font: 500 0.9375rem/1 var(--f-body); color: var(--ink); width: fit-content; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary:hover { border-color: var(--ink-3); }
+.fold-hint::before { content: "▸"; display: inline-block; margin-right: 8px; color: var(--accent); transition: transform .15s; }
+.fold-hint::after { content: "Click to expand the five steps"; }
+details.fold[open] > summary .fold-hint::before { transform: rotate(90deg); }
+details.fold[open] > summary .fold-hint::after { content: "Click to collapse"; }
+.fold-body { display: grid; gap: 16px; margin-top: 22px; }
+.fold-body > p:not(.figcap) { max-width: 70ch; color: var(--ink); }
+.fold-body > h3 { font-size: 1.25rem; margin-top: 18px; }
+ol.steps { margin: 0; padding-left: 1.4em; display: grid; gap: 6px; max-width: 70ch; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .eqrow { position: relative; height: 4.2em; color: var(--ink); }
 .eqrow > div { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; text-align: center; }
 .eqwords { font-size: 0.875rem; color: var(--ink-2); line-height: 1.35; }
@@ -151,7 +159,7 @@ table.acc tr.ref td { color: var(--ink-2); }
 table.acc tr.ours td { color: var(--ink); font-weight: 600; background: var(--fix-soft); border-bottom-color: var(--fix-soft); }
 table.acc tr.ours td:first-child { border-radius: 8px 0 0 8px; box-shadow: inset 3px 0 0 var(--fix); }
 table.acc tr.ours td:last-child { border-radius: 0 8px 8px 0; }
-table.acc tr.ours td i { color: #4d6a94; font-weight: 400; }
+table.acc tr.ours td i { color: #8a3a47; font-weight: 400; }
 
 /* end matter */
 pre.code { background: var(--surface); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font: 0.86rem/1.65 var(--f-mono); color: var(--ink); margin: 0; }
@@ -168,8 +176,7 @@ footer a:hover { color: var(--accent); }
   .two { grid-template-columns: minmax(0, 1fr); }
   .stats { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .card { padding: 16px; }
-  .readout { grid-template-columns: minmax(0, 1fr); }
-  .nav-links { gap: 16px; } .nav-inner { gap: 14px; }
+    .nav-links { gap: 16px; } .nav-inner { gap: 14px; }
   .flow { flex-direction: column; }
   .flow .box { flex: none; }
   .flow .arr { transform: rotate(90deg); line-height: 1; }
@@ -201,10 +208,10 @@ footer a:hover { color: var(--accent); }
     <p class="affil">Cornell University</p>
     <div class="links">
       <a class="btn" href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-PoorlyCalibrated" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>
+        <span class="hf" aria-hidden="true">🤗</span>
         Poorly calibrated + edits</a>
       <a class="btn" href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-WellCalibrated" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>
+        <span class="hf" aria-hidden="true">🤗</span>
         Well-calibrated + edits</a>
       <a class="btn" href="#bibtex">BibTeX</a>
     </div>
@@ -293,22 +300,14 @@ footer a:hover { color: var(--accent); }
   <section id="case-study">
     <p class="eyebrow">Case study</p>
     <h2>How the agent found the defect, and how it fixed it</h2>
-    <p>Everything here was done by reading tensors and printing numbers in a Python session. We follow the well-calibrated checkpoint, where the agent first found the defect. The same two rules later repaired the poorly calibrated checkpoint too.</p>
+    <p><b>In short.</b> One input to one matrix is huge on the first few tokens. The weights it multiplies are tiny, and the 3-bit format stores them about 5× too large, so the huge input turns a small weight error into a large error in the matrix's output. On its calibration text, GPTQ had cancelled most of that error by adjusting other weights. Fix 1 stores the tiny weights almost exactly. Fix 2 undoes GPTQ's adjustments, which fix 1 had turned into error.</p>
+    <details class="fold" id="case-study-steps">
+    <summary><span class="fold-hint" aria-hidden="true"></span><span class="sr-only">The five steps</span></summary>
+    <div class="fold-body">
+    <p>We follow the well-calibrated checkpoint, where the agent first found the defect. The same two fixes later repaired the poorly calibrated one too.</p>
 
-    <h3>1. Measure the gap</h3>
-    <p>Both models read the same held-out text, and at every token we compare their next-token distributions with KL divergence. Lower means closer to NVFP4.</p>
-    <div class="card stack">
-      <p class="sub">KL to NVFP4, well-calibrated 3-bit</p>
-      <div class="readout">
-        <div><div class="k">chat math</div><div class="v num">0.024</div></div>
-        <div><div class="k">code</div><div class="v acc num">0.351</div></div>
-        <div><div class="k">prose</div><div class="v acc num">0.331</div></div>
-      </div>
-    </div>
-    <p>Code and prose diverge about 14× more than chat math. Some gap is expected, since even after every repair it is still about 7×. But this gap was twice that, which pointed to a specific defect that hurts code and prose more than chat.</p>
-
-    <h3>2. Localize the damage</h3>
-    <p>The model has thousands of quantized matrices, too many to read one by one, so the agent narrowed down in two passes. First it restored one kind of matrix to NVFP4, in every layer at once, and measured how much of the KL gap disappeared. Then, within the worst kind, it restored one matrix at a time.</p>
+    <h3>1. One matrix holds most of the damage</h3>
+    <p>The agent first measured how far the 3-bit model's next-token predictions are from NVFP4's on held-out chat math, code and prose (KL divergence). Then it put quantized matrices back to NVFP4 and measured how much of that gap disappeared: first one kind of matrix across all layers, then one matrix at a time.</p>
     <div class="card stack">
       <div class="two">
         <div class="stack" style="gap:8px"><p class="sub">One kind of matrix at a time, all layers</p><svg id="s1a" viewBox="0 0 460 170" role="img" aria-label="Share of the KL gap removed by restoring each kind of matrix"></svg></div>
@@ -316,126 +315,85 @@ footer a:hover { color: var(--accent); }
       </div>
       <div class="legend"><span><i class="key" style="background:var(--muted)"></i>chat math</span><span><i class="key" style="background:var(--deep)"></i>code</span><span><i class="key" style="background:var(--fix)"></i>prose</span></div>
     </div>
-    <p class="figcap"><b>Share of the KL gap removed by restoring matrices to NVFP4.</b> Each bar is the share of the gap to NVFP4 that disappears when those matrices are restored; the number is the prose share. Shares can add up to more than 100%, because errors in different parts of the model interact. Restoring the Mamba in_proj matrices removes much of the chat-math gap but little of the code and prose gap, so the agent followed out_proj.</p>
-    <p>One matrix stands out, the Mamba output projection (<code>out_proj</code>) in layer 4. Restoring it alone removes about two thirds of the code and prose gap.</p>
+    <p class="figcap"><b>Share of the KL gap removed by restoring matrices to NVFP4.</b> The number on each bar is the prose share. Shares can add up to more than 100%, because errors in different parts of the model interact.</p>
+    <p>One matrix stands out: the Mamba output projection (<code>out_proj</code>) in layer 4. Restoring it alone removes about two thirds of the code and prose gap.</p>
 
-    <h3>3. Diagnose the damage: Activation outlier</h3>
-    <p>First, what this matrix does. At every token the layer computes <b>Y</b> = <b>XW</b>. Each column of <b>X</b> is an <b>input channel</b>, and each input channel has its own <b>row</b> of <b>W</b>, the weights it is multiplied by. Each column of <b>W</b>, and the matching column of <b>Y</b>, is an <b>output channel</b>, one output of the layer. (We write <b>W</b> with inputs as rows; PyTorch stores it transposed.)</p>
-    <p>The weights alone don't say which ones matter, because each weight's error is multiplied by its input. So the agent ran the NVFP4 model on a few dozen held-out sequences, recorded the input <b>X</b> to this matrix, and scored every weight by its squared error, stored value minus its NVFP4 value (the <b>reference weight</b>), times the mean of <i>x</i>² over the recorded tokens, where <i>x</i> is the value of the weight's input channel on a token. We call the result the weight's <b>output error</b>. It scores each weight on its own, so it ignores how errors in different rows can offset each other.</p>
-    <p><b>The output error comes from a few input channels.</b> Just four of them cause over 80% of it, and one alone causes 71%; no other channel causes more than 6%.</p>
-    <p>That one channel is an activation outlier. On the first three tokens it reaches 20 to 60, while a typical channel stays below 0.01; after that it is as quiet as the rest. We call it the <b>outlier input</b> (input channel <i>k</i> of <b>X</b>). The outlier is in <b>X</b>, not in <b>W</b>. <b>Row <i>k</i></b> of <b>W</b>, the row that multiplies the outlier input, holds ordinary weights. Other language models show similar huge values in a few channels on the first tokens, known as massive activations<sup><a href="#r5">5</a></sup> and linked to attention sinks<sup><a href="#r4">4</a></sup>.</p>
+    <h3>2. The cause: a huge input times badly stored weights</h3>
+    <p>The matrix computes \(\mathbf{Y} = \mathbf{X}\mathbf{W}\). Each input channel (a column of \(\mathbf{X}\)) is multiplied by its own row of \(\mathbf{W}\), and each column of \(\mathbf{W}\) gives one output channel of \(\mathbf{Y}\).</p>
+    <p>The agent ran the NVFP4 model on a few dozen held-out sequences of chat math and prose, recorded \(\mathbf{X}\), and found one input channel that is huge on the first three tokens, around 50, while a typical channel stays below 0.01. We call it the <b>outlier input</b>, channel \(k\), and the row of \(\mathbf{W}\) it multiplies <b>row \(k\)</b>. Huge values like this on the first tokens are common in language models, known as massive activations<sup><a href="#r5">5</a></sup> and linked to attention sinks<sup><a href="#r4">4</a></sup>.</p>
     <div class="card">
-      <div class="plate sq"><img src="{{IMG:wsp-input-surface.png}}" alt="3D surface of |x| over 4,096 input channels and the first 64 tokens; one channel spikes on the first tokens" width="594" height="580"></div>
+      <div class="plate sq"><img src="{{IMG:wsp-input-surface.png}}" alt="3D surface of |x| over the input channels and the first 64 tokens; one channel spikes on the first tokens" width="594" height="580"></div>
     </div>
-    <p class="figcap"><b>The input X to layer 4's Mamba out_proj, channel × token.</b> Mean |<i>x</i>| over the held-out sequences, first 64 tokens, channels pooled in blocks of 16 (max), log scale. The outlier input spikes on the first three tokens; every other channel stays below 2.</p>
-    <p>A large activation is not a problem by itself. It becomes one when the weights it multiplies are quantized with error. That error is scaled by the activation, so on those three tokens it is amplified into every output channel.</p>
+    <p class="figcap"><b>The input \(\mathbf{X}\) to layer 4's Mamba out_proj, channel × token.</b> Mean \(|x|\) over the held-out sequences, first 64 tokens, log scale.</p>
+    <p>A huge input is fine on its own. The trouble is that row \(k\)'s weights are tiny, and the 3-bit format stores them badly. Take one of them: its NVFP4 value is about 0.0005, but the smallest positive value the format can store for it is about 0.0026, so that is what is stored, about 5× too large. A weight's storage error, \(\hat w - w\), reaches \(\mathbf{Y}\) multiplied by its input:</p>
+    <div class="math">\[ \text{one weight's error in } \mathbf{Y} = (\hat w - w)\cdot x \]</div>
+    <p>where \(w\) is the NVFP4 weight, \(\hat w\) the stored weight and \(x\) its input. On those first tokens, where \(x\) is about 50, this one weight adds about 0.1 of error to its output: \((0.0026 - 0.0005) \times 50\). Later in the sequence, where \(x\) is about 0.01, the same weight adds 0.00002.</p>
     <div class="card stack">
       <div class="narrow"><svg id="xwy" viewBox="0 0 640 290" role="img" aria-label="X times W equals Y: the outlier input's column in X, row k of W that it multiplies, and the first three tokens of Y are highlighted"></svg></div>
-      <div class="legend center"><span><i class="key" style="background:var(--damage)"></i>outlier input</span><span><i class="key" style="background:transparent;outline:2px solid var(--damage);outline-offset:-2px"></i>row <i>k</i>, the row of <b>W</b> it multiplies</span><span><i class="key" style="background:repeating-linear-gradient(45deg,var(--damage) 0 2px,transparent 2px 5px)"></i>error in <b>Y</b>: row <i>k</i>'s rounding error times the outlier input</span></div>
-      <div class="math" role="group" aria-label="Error in the output equals the scale times the rounding error times the input">
-        <math display="block"><mrow>
-          <mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo><mo>−</mo><mi>w</mi><mo stretchy="false">)</mo><mspace width="0.17em"></mspace><mi>x</mi>
-          <mo>=</mo><mi mathvariant="normal">Δ</mi><mo>·</mo><mi>RoundErr</mi><mrow><mo>(</mo><mfrac><mi>w</mi><mi mathvariant="normal">Δ</mi></mfrac><mo>)</mo></mrow><mo>·</mo><mi>x</mi>
-        </mrow></math>
-      </div>
+      <div class="legend center"><span><i class="key" style="background:var(--damage)"></i>outlier input</span><span><i class="key" style="background:transparent;outline:2px solid var(--damage);outline-offset:-2px"></i>row \(k\), the row of \(\mathbf{W}\) it multiplies</span><span><i class="key" style="background:repeating-linear-gradient(45deg,var(--damage) 0 2px,transparent 2px 5px)"></i>error in \(\mathbf{Y}\): row \(k\)'s weight error times the outlier input</span></div>
     </div>
-    <p class="figcap"><b>How one input channel amplifies weight error.</b> The outlier is in the input, where one channel of <b>X</b> is large on the first three tokens. The weights in row <i>k</i> of <b>W</b> have ordinary rounding errors, but those are the errors multiplied by the outlier input, so on those tokens they show up in every output channel of <b>Y</b>. Same equation as AWQ<sup><a href="#r2">2</a></sup>, in our notation, where <i>Q</i>(<i>w</i>) is the stored weight, Δ a scale shared by a group of 32 weights, and RoundErr the rounding error in units of Δ (all in step 4).</p>
-    <p>This is the principle behind AWQ<sup><a href="#r2">2</a></sup>, which calls such weights <b>salient</b>. Which weights matter is decided by the activation distribution, not by the weights themselves. The model needs the large activation; what is broken is how the weights it multiplies were quantized.</p>
+    <p class="figcap"><b>How one input channel amplifies weight error.</b> On the first three tokens, row \(k\)'s small weight errors are multiplied by the outlier input, so they show up in every output channel of \(\mathbf{Y}\).</p>
+    <p><b>MSE in \(\mathbf{Y}\).</b> To find which weights cause the damage, the agent measured each weight's <b>MSE in \(\mathbf{Y}\)</b>: its error in \(\mathbf{Y}\) (the equation above), squared and averaged over the recorded tokens:</p>
+    <div class="math">\[ \text{MSE in } \mathbf{Y} = \text{mean}\Big[\big((\hat w - w)\cdot x\big)^2\Big] = (\hat w - w)^2 \cdot \text{mean}\big(x^2\big) \]</div>
+    <p>The two forms are equal because \(\hat w - w\) is the same on every token. So a weight's MSE in \(\mathbf{Y}\) is large only if it is stored wrong <i>and</i> its input is large. A row's MSE in \(\mathbf{Y}\) is the sum over its weights. Each weight is measured on its own, as if it were the only wrong weight, so this cannot see errors from different weights cancelling each other.</p>
+    <p>Row \(k\) alone holds 71% of the matrix's total MSE in \(\mathbf{Y}\); no other row holds more than 6%.</p>
+    <p>In one sentence: the outlier input multiplies weights stored about 5× too large, because the format has nothing that small.</p>
 
-    <h3>4. Fix 1: No rounding error in row <i>k</i></h3>
-    <p>In the equation from step 3, the cost of a weight's rounding error is that error times its input. The rounding errors in row <i>k</i> are ordinary in size, but they are the ones multiplied by the outlier input. The model needs that input, so fix 1 removes the rounding error on those weights instead.</p>
-    <p><b>How a group is quantized.</b> Each column of <b>W</b> is cut into groups of 32 consecutive input channels, and each group has one scale Δ. Each reference weight <i>w</i> in the group is divided by Δ and mapped to the nearest point of a fixed grid <i>L</i> of 8 levels (no level at zero; the largest in magnitude is <i>q</i><sub>max</sub>). The stored weight <i>ŵ</i> is that level times Δ:</p>
-    <div class="math" role="group" aria-label="Quantizer and rounding error">
-      <math display="block"><mrow>
-        <mi>Q</mi><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">Δ</mi><mo>·</mo><msub><mi>round</mi><mi>L</mi></msub><mrow><mo>(</mo><mfrac><mi>w</mi><mi mathvariant="normal">Δ</mi></mfrac><mo>)</mo></mrow>
-      </mrow></math>
-      <math display="block"><mrow>
-        <mi>RoundErr</mi><mrow><mo>(</mo><mfrac><mi>w</mi><mi mathvariant="normal">Δ</mi></mfrac><mo>)</mo></mrow><mo>=</mo><msub><mi>round</mi><mi>L</mi></msub><mrow><mo>(</mo><mfrac><mi>w</mi><mi mathvariant="normal">Δ</mi></mfrac><mo>)</mo></mrow><mo>−</mo><mfrac><mi>w</mi><mi mathvariant="normal">Δ</mi></mfrac>
-      </mrow></math>
-    </div>
-    <p>With plain rounding, <i>ŵ</i> = <i>Q</i>(<i>w</i>), so a weight's error <i>ŵ</i> − <i>w</i> is Δ · RoundErr(<i>w</i>/Δ), the term in the step-3 equation. Quantizing a group means choosing its Δ first, then mapping all 32 weights with it. GPTQ rounds <b>W</b> one row at a time and, after each row, updates the rows it has not rounded yet (step 5); we write <i>w̃</i> for a weight after those updates. GPTQ chooses Δ with the min-max rule, so that the group's largest weight in magnitude maps to <i>q</i><sub>max</sub> (<i>i</i> runs over the 32 weights of the group):</p>
-    <div class="math" role="group" aria-label="GPTQ's min-max scale">
-      <math display="block"><mrow>
-        <msub><mi mathvariant="normal">Δ</mi><mtext>GPTQ</mtext></msub><mo>=</mo>
-        <mfrac><mrow><msub><mi>max</mi><mi>i</mi></msub><mspace width="0.17em"></mspace><mo stretchy="false">|</mo><msub><mover accent="true"><mi>w</mi><mo>˜</mo></mover><mi>i</mi></msub><mo stretchy="false">|</mo></mrow><msub><mi>q</mi><mi>max</mi></msub></mfrac>
-      </mrow></math>
-    </div>
-    <p>In each output channel, row <i>k</i>'s weight <i>w</i><sub><i>k</i></sub> is tiny next to the other 31 weights in its group, so <i>w</i><sub><i>k</i></sub>/Δ falls well below the smallest level in magnitude and is rounded up to it. That error is no bigger than other weights' errors, but it is the one multiplied by the outlier input.</p>
-    <p><b>Fix 1 keeps one Δ per group and the same mapping; it only changes how Δ is chosen</b>, and only in the groups that contain a weight of row <i>k</i>, one per output channel. Instead of the min-max rule, it takes the scales that map <i>w</i><sub><i>k</i></sub> exactly onto a level, <i>w</i><sub><i>k</i></sub>/Δ = ℓ, one for each level ℓ with the sign of <i>w</i><sub><i>k</i></sub>. Of these candidate scales, 𝒞, it keeps the one under which the other 31 weights <i>w</i><sub><i>i</i></sub> are mapped with the least error (<i>Q</i><sub>Δ</sub> is <i>Q</i> with scale Δ):</p>
-    <div class="math" role="group" aria-label="Fix 1: candidate scales and the chosen scale">
-      <math display="block"><mrow>
-        <mi>𝒞</mi><mo>=</mo><mrow><mo>{</mo><mspace width="0.17em"></mspace><mfrac><msub><mi>w</mi><mi>k</mi></msub><mi>ℓ</mi></mfrac><mspace width="0.28em"></mspace><mo>:</mo><mspace width="0.28em"></mspace><mi>ℓ</mi><mo>∈</mo><mi>L</mi><mo>,</mo><mspace width="0.5em"></mspace><mi>ℓ</mi><mspace width="0.17em"></mspace><msub><mi>w</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn><mspace width="0.17em"></mspace><mo>}</mo></mrow>
-      </mrow></math>
-      <math display="block"><mrow>
-        <msub><mi mathvariant="normal">Δ</mi><mtext>fix 1</mtext></msub><mo>=</mo>
-        <munder><mrow><mi>arg</mi><mo>&#x2061;</mo><mi>min</mi></mrow><mrow><mi mathvariant="normal">Δ</mi><mo>∈</mo><mi>𝒞</mi></mrow></munder><mspace width="0.3em"></mspace>
-        <munder><mo>∑</mo><mrow><mi>i</mi><mo>≠</mo><mi>k</mi></mrow></munder>
-        <msup><mrow><mo>(</mo><msub><mi>Q</mi><mi mathvariant="normal">Δ</mi></msub><mo stretchy="false">(</mo><msub><mi>w</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>−</mo><msub><mi>w</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup>
-      </mrow></math>
-    </div>
-    <p>Every candidate maps <i>w</i><sub><i>k</i></sub> onto a level, so its rounding error is zero and <i>Q</i>(<i>w</i><sub><i>k</i></sub>) = <i>w</i><sub><i>k</i></sub>, up to the precision in which Δ itself is stored. The result is a different scale for the group, not a new maximum. In the example group, the best candidate maps <i>w</i><sub><i>k</i></sub> to the smallest level, which shrinks Δ to about a fifth of GPTQ's. Choosing Δ fits nothing to data, since it uses only the reference weights and the grid. In <b>W</b>, this touches only the groups that contain a weight of row <i>k</i>:</p>
+    <h3>3. Fix 1: Choose the scale so row \(k\)'s weight fits</h3>
+    <p><b>How a weight is stored.</b> Each column of \(\mathbf{W}\) is cut into groups of 32 weights that share one scale \(\Delta\). Each weight is stored as one of 8 levels times \(\Delta\): ±0.41, ±1.25, ±2.25 or ±3.5, with no level at zero. GPTQ sizes \(\Delta\) for the group's largest weights. Row \(k\)'s weight is far smaller than those, so it falls below the smallest level, \(0.41\,\Delta\), and is rounded up to it.</p>
+    <p><b>Fix 1</b> touches only the groups that hold a weight of row \(k\), one per output channel. For each of those groups it picks a new \(\Delta\), then re-rounds the group's weights under it:</p>
+    <ol class="steps">
+      <li><b>Fit row \(k\)'s weight.</b> Each of the four levels with the weight's sign gives one \(\Delta\) that puts the weight exactly on that level.</li>
+      <li><b>Spare the rest.</b> Of those four, keep the \(\Delta\) that rounds the other 31 weights closest to their NVFP4 values.</li>
+      <li><b>Store \(\Delta\).</b> Scales are stored in 8 bits, so \(\Delta\) is rounded too, and the weight ends up slightly off.</li>
+    </ol>
+    <p>The example weight goes from 5× too large to about 2% off. The fix uses only the NVFP4 weights and the format, no data.</p>
     <div class="card stack">
       <div class="narrow">
-        <svg id="wfix1" viewBox="0 0 720 304" role="img" aria-label="W under GPTQ and after fix 1: in every output channel, the group that contains row k's weight gets a new scale, so that weight maps onto a level"></svg>
-        <div class="eqrow">
-          <div style="left:31.9%"><span class="tag">(a)</span><math class="inl" displaystyle="true"><mi>RoundErr</mi><mrow><mo>(</mo><mfrac><msub><mi>w</mi><mi>k</mi></msub><msub><mi mathvariant="normal">Δ</mi><mtext>GPTQ</mtext></msub></mfrac><mo>)</mo></mrow><mo>≠</mo><mn>0</mn></math></div>
-          <div style="left:69.4%"><span class="tag">(b)</span><math class="inl" displaystyle="true"><mi>RoundErr</mi><mrow><mo>(</mo><mfrac><msub><mi>w</mi><mi>k</mi></msub><msub><mi mathvariant="normal">Δ</mi><mtext>fix 1</mtext></msub></mfrac><mo>)</mo></mrow><mo>=</mo><mn>0</mn></math></div>
-        </div>
+        <svg id="wfix1" viewBox="0 0 720 304" role="img" aria-label="W under GPTQ and after fix 1: in every output channel, the group that contains row k's weight gets a new scale, so that weight lands on a level"></svg>
+        <div class="eqrow eqwords"><div style="left:31.9%"><span class="tag">(a)</span>row \(k\)'s weight rounded up,<br>about 5× too large</div><div style="left:69.4%"><span class="tag">(b)</span>new \(\Delta\): row \(k\)'s weight<br>on a level</div></div>
       </div>
-      <div class="legend"><span><i class="key" style="background:var(--damage)"></i>row <i>k</i>: ordinary rounding error, amplified by the outlier input</span><span><i class="key" style="background:var(--fix)"></i>no rounding error (up to scale precision)</span><span><i class="key" style="background:repeating-linear-gradient(45deg,var(--muted) 0 2px,transparent 2px 5px)"></i>rest of each such group: less accurate (largest weights clipped), small inputs</span><span><i class="key" style="background:transparent;outline:2px dashed var(--fix);outline-offset:-2px"></i>group with a new Δ</span></div>
+      <div class="legend"><span><i class="key" style="background:var(--damage)"></i>row \(k\): stored about 5× too large</span><span><i class="key" style="background:var(--fix)"></i>row \(k\) after fix 1: on a level, slightly off</span><span><i class="key" style="background:repeating-linear-gradient(45deg,var(--muted) 0 2px,transparent 2px 5px)"></i>rest of the group: largest weights clipped</span><span><i class="key" style="background:transparent;outline:2px dashed var(--fix);outline-offset:-2px"></i>group with a new \(\Delta\)</span></div>
     </div>
-    <p class="figcap"><b>What fix 1 changes in W.</b> Rows are input channels, columns output channels; each column is cut into groups of 32 input channels, and each group has one Δ. (a) GPTQ sizes each group's Δ for its largest weights, so row <i>k</i>'s tiny weight is rounded up (red). (b) Fix 1 picks a new Δ only for the group that contains row <i>k</i>'s weight, one group per output channel (dashed), so that this weight maps exactly onto a level (blue). The other weights in those groups get less accurate, which costs little because their inputs are small.</p>
-    <p><b>The price.</b> The new Δ is smaller, so the largest weights in the group now map beyond <i>q</i><sub>max</sub> and are clipped to it. That costs little, because their inputs are tiny and the equation scales each error by its input. The group's output error falls 18×.</p>
-    <p><b>Across the matrix.</b> The rule runs once per output channel, on the one group that contains row <i>k</i>'s weight, replacing that group's Δ and re-mapping its 32 weights. Across row <i>k</i>, the stored weights go from several times too large to matching the reference:</p>
-    <div class="card stack">
-      <canvas class="sc" id="sinksc" width="720" height="720" role="img" aria-label="Row k of W: stored against reference weight, under GPTQ and after fix 1"></canvas>
-      <div class="legend center"><span><i class="key" style="background:var(--muted)"></i>GPTQ</span><span><i class="key" style="background:var(--fix)"></i>after fix 1</span><span>dashed: stored = reference</span></div>
-    </div>
-    <p class="figcap"><b>Row <i>k</i> of W: reference vs stored.</b> All of row <i>k</i> of <b>W</b>, with one dot per output channel (a sample of them), zoomed in on small weights. With GPTQ's Δ the weights sit in two clouds off the diagonal, each rounded up to the smallest level times its group's Δ. After fix 1 they lie on the diagonal.</p>
+    <p class="figcap"><b>What fix 1 changes in \(\mathbf{W}\).</b> Rows are input channels, columns output channels. Fix 1 gives a new \(\Delta\) to one group per output channel: the group that holds row \(k\)'s weight.</p>
+    <p><b>The price.</b> The new \(\Delta\) is smaller, so most of the other weights in the group are now too large and are clipped to the largest level. That costs little, because their inputs are tiny: the group's MSE in \(\mathbf{Y}\) still falls sharply.</p>
 
-    <h3>5. Fix 2: Remove GPTQ's compensation</h3>
-    <p>Fix 1 alone cut prose KL threefold, but chat math got worse, with GSM8K accuracy on the validation split falling from 93.1% to 85.6%. The cause was in other rows of the same matrix.</p>
-    <p><b>How GPTQ compensates.</b> GPTQ rounds <b>W</b> one row (input channel) at a time, in a fixed order. It minimizes ‖<b>XW</b> − <b>X</b>Ŵ‖² on its calibration text, where Ŵ holds the stored weights, so after each row it updates the rows it has not rounded yet to reduce the error in <b>Y</b> it just made. These updates are usually small. Row <i>k</i> is the exception. Its rounding error is amplified by the outlier input, so GPTQ moved some later rows a lot to offset it, namely the rows whose inputs move together with the outlier input on the calibration text. We call these rows <b>compensating rows</b>, and how far GPTQ moved their weights before rounding them, <i>w̃</i> − <i>w</i>, their <b>compensation</b>.</p>
-    <p><b>Why it breaks after fix 1.</b> Fix 1 removes row <i>k</i>'s rounding error. The compensation now has nothing to offset, so it becomes error in <b>Y</b> itself.</p>
+    <h3>4. Fix 1 exposes GPTQ's compensation; fix 2 removes it</h3>
+    <p>Fix 1 has a side effect, in other rows of the same matrix.</p>
+    <p><b>GPTQ's compensation.</b> GPTQ quantizes \(\mathbf{W}\) one row at a time. After each row, it adjusts the rows it has not quantized yet so that, on its calibration text, they cancel as much as they can of the error it just made in \(\mathbf{Y}\). Usually these adjustments are small. For row \(k\) they are not: the outlier input makes its error in \(\mathbf{Y}\) large, so GPTQ cancelled most of it with large adjustments to some later rows. We call these the <b>compensating rows</b>, and the adjustments their <b>compensation</b>.</p>
+    <p>Fix 1 removes almost all of row \(k\)'s error. The compensation then has little left to cancel, and becomes error in \(\mathbf{Y}\) itself.</p>
     <div class="card stack">
       <div class="narrow">
-        <svg id="wfix2" viewBox="0 0 720 304" role="img" aria-label="W under GPTQ, after fix 1 and after fix 2: row k, which multiplies the outlier input, and the compensating rows"></svg>
-        <div class="eqrow eqwords"><div style="left:29.2%"><span class="tag">(a)</span><i class="sw sw-hatch"></i> moved rows cancel most<br>of <i class="sw" style="background:var(--damage)"></i> row <i>k</i>'s error</div><div style="left:59.7%"><span class="tag">(b)</span><i class="sw" style="background:var(--fix)"></i> row <i>k</i> fixed, so<br><i class="sw sw-hatch"></i> moved rows add error</div><div style="left:86.1%"><span class="tag">(c)</span><i class="sw" style="background:var(--fix);opacity:.3"></i> moved rows re-rounded:<br>only ordinary error</div></div>
+        <svg id="wfix2" viewBox="0 0 720 304" role="img" aria-label="Illustration of W under GPTQ, after fix 1 and after fix 2: row k, and a few compensating rows scattered after it"></svg>
+        <div class="eqrow eqwords"><div style="left:29.2%"><span class="tag">(a)</span><i class="sw sw-hatch"></i> cancels most of<br><i class="sw" style="background:var(--damage)"></i> row \(k\)'s error</div><div style="left:59.7%"><span class="tag">(b)</span><i class="sw" style="background:var(--fix)"></i> row \(k\) fixed, so<br><i class="sw sw-hatch"></i> becomes error</div><div style="left:86.1%"><span class="tag">(c)</span><i class="sw" style="background:var(--fix);opacity:.35"></i> re-rounded:<br>compensation gone</div></div>
       </div>
-      <div class="legend"><span><i class="key" style="background:var(--damage)"></i>row <i>k</i>: ordinary rounding error, amplified by the outlier input</span><span><i class="key" style="background:repeating-linear-gradient(-45deg,var(--ink-2) 0 2px,transparent 2px 5px)"></i>compensating rows: moved off the reference by GPTQ</span><span><i class="key" style="background:var(--fix)"></i>no rounding error (fix 1)</span><span><i class="key" style="background:var(--fix);opacity:.3"></i>re-rounded to nearest (fix 2)</span></div>
+      <div class="legend"><span><i class="key" style="background:var(--damage)"></i>row \(k\): stored about 5× too large</span><span><i class="key" style="background:repeating-linear-gradient(-45deg,var(--ink-2) 0 2px,transparent 2px 5px)"></i>compensating rows: carry GPTQ's compensation</span><span><i class="key" style="background:var(--fix)"></i>row \(k\) on a level (fix 1)</span><span><i class="key" style="background:var(--fix);opacity:.35"></i>re-rounded to nearest (fix 2)</span></div>
     </div>
-    <p class="figcap"><b>What fix 2 changes in W.</b> GPTQ quantizes the rows from top to bottom. (a) Row <i>k</i> multiplies the outlier input, so its error is amplified; GPTQ cancels most of it, on its calibration text, by moving later rows off their reference values. (b) Fix 1 removes row <i>k</i>'s error, so there is nothing left to cancel and the moved rows' error shows up in the output. (c) Fix 2 re-rounds the moved rows to nearest. Under each panel is the error left in the layer's output.</p>
-    <p><b>Finding them needs no data.</b> For every row, the agent compared how far GPTQ's stored weights are from the reference weights with how far plain round-to-nearest would be under the same scales. In an ordinary row the two are about the same. In this matrix, 87 of the 4,096 rows are at least 3× farther, up to 14×, because of the compensation; we take the rows past this 3× cutoff as the compensating rows. All of them come after row <i>k</i> in GPTQ's order.</p>
-    <p><b>Fix 2 removes the compensation.</b> The compensation is held in the stored levels, not in the scales. GPTQ stored each weight of a compensating row as <i>ŵ</i> = <i>Q</i>(<i>w̃</i>), the level nearest to the moved weight. Fix 2 keeps every Δ and re-rounds each of those weights from its reference value instead, <i>ŵ</i> = <i>Q</i>(<i>w</i>), the level nearest to <i>w</i>, which no longer carries the move. Every other row keeps GPTQ's stored levels. This also drops GPTQ's small, ordinary updates on those rows; telling them apart from the compensation would need calibration data, which the fixes avoid.</p>
+    <p class="figcap"><b>What fix 2 changes in \(\mathbf{W}\).</b> Illustration. GPTQ quantizes the rows from top to bottom. The compensating rows (hatched) sit scattered after row \(k\).</p>
+    <p><b>Finding them needs no data.</b> For each row, the agent compared how far GPTQ's weights are from NVFP4 with how far plain rounding to the nearest level would be, under the same scales. In a typical row the two are about equal. In a compensating row GPTQ's weights are several times farther, because they carry the compensation. The agent marked those rows as compensating rows: a small fraction of all rows.</p>
+    <p><b>Fix 2</b> keeps every scale and re-rounds the compensating rows from their NVFP4 values to the nearest level. That removes the compensation. All other rows keep GPTQ's values.</p>
     <div class="card stack">
       <canvas class="sc" id="comp" width="720" height="720" role="img" aria-label="One compensating row: stored against reference weight, under GPTQ and after fix 2"></canvas>
-      <div class="legend center"><span><i class="key" style="background:var(--muted)"></i>GPTQ</span><span><i class="key" style="background:var(--fix)"></i>after fix 2</span><span>dashed: stored = reference</span></div>
+      <div class="legend center"><span><i class="key" style="background:var(--muted)"></i>GPTQ</span><span><i class="key" style="background:var(--fix)"></i>after fix 2</span><span>dashed: stored = NVFP4</span></div>
     </div>
-    <p class="figcap"><b>One compensating row: reference vs stored.</b> Real data for one compensating row of layer 4's <b>W</b> (the row marked “plotted below” in the figure above), with one dot per output channel for a sample of them. A dot's distance above or below the dashed diagonal is how far the stored weight is from its reference. Under GPTQ the weights sit in two bands, many with the wrong sign, whatever their reference value, and that gap is mostly the compensation. After fix 2 they lie on the diagonal, up to ordinary rounding.</p>
-    <p>Fix 1 changes some group scales and the levels in those groups; fix 2 changes only levels. Neither adds storage, so the checkpoint's size and speed are unchanged. With both fixes, GSM8K on the validation split rose to 94.7%, above where it started.</p>
+    <p class="figcap"><b>One compensating row: NVFP4 vs stored.</b> Real data, one dot per output channel for a sample of them. Under GPTQ the weights sit far from the diagonal, many with the wrong sign: that distance is the compensation. After fix 2 they lie close to the diagonal.</p>
+    <p>Neither fix adds storage, so the checkpoint's size and speed are unchanged.</p>
 
-    <h3>6. Before and after</h3>
-    <div class="card">
-      <div class="plate"><img src="{{IMG:wsp-error-surface.png}}" alt="3D surfaces of per-weight output error before and after; a wall at row 1347 disappears after the fixes" width="1292" height="593"></div>
-    </div>
-    <p class="figcap"><b>Output error per weight of <i>W</i>, before and after the fixes.</b> Each weight's output error (step 3), pooled in 16 × 16 blocks, log scale, same scale in both panels. As quantized, row <i>k</i> is a wall across every output channel; after fixes 1 and 2 that wall is gone, and what remains is close to ordinary rounding error. The matrix's total output error falls about 7×.</p>
+    <h3>5. What each fix changes</h3>
+    <p>Each row's MSE in \(\mathbf{Y}\) shows both fixes at work.</p>
     <div class="card stack">
-      <div class="card-head">
-        <div class="seg" role="group" aria-label="Text">
-          <button type="button" id="kp-math" aria-pressed="true">chat math</button>
-          <button type="button" id="kp-prose" aria-pressed="false">prose</button>
-        </div>
-      </div>
-      <svg id="klpos" viewBox="0 0 900 245" role="img" aria-label="KL to NVFP4 by token position, as quantized, after fix 1, and after fixes 1 and 2"></svg>
-      <div class="legend"><span><svg class="key" width="22" height="10" aria-hidden="true"><line x1="0" y1="5" x2="22" y2="5" style="stroke:var(--muted);stroke-width:2.5"></line></svg>as quantized</span><span><svg class="key" width="22" height="10" aria-hidden="true"><line x1="0" y1="5" x2="22" y2="5" style="stroke:var(--fix);stroke-width:2.5;stroke-dasharray:6 4"></line></svg>+ fix 1</span><span><svg class="key" width="22" height="10" aria-hidden="true"><line x1="0" y1="5" x2="22" y2="5" style="stroke:var(--deep);stroke-width:2.5"></line></svg>+ fixes 1 and 2</span></div>
+      <svg id="rowerr" viewBox="0 0 900 392" role="img" aria-label="MSE in Y of each row of W, in GPTQ's order, on a log scale, in three panels. (a) GPTQ: row k is far above every other row; the compensating rows after it stand out and cancel most of row k's error in Y. (b) After fix 1: row k drops among the other rows; the compensating rows score the same but are now error in Y. (c) After fix 2: the compensating rows drop to the level of the other rows."></svg>
+      <div class="legend"><span><i class="key" style="background:var(--damage)"></i>source of error in \(\mathbf{Y}\): row \(k\) in (a), the compensating rows in (b)</span><span><i class="key" style="background:var(--ink)"></i>compensating rows, cancelling row \(k\)'s error</span><span><i class="key" style="background:var(--fix)"></i>after its fix</span><span><i class="key" style="background:var(--muted)"></i>other rows</span></div>
     </div>
-    <p class="figcap"><b>KL to NVFP4 by token position.</b> Fix 1 repairs the start of the sequence, where the outlier input is large. On chat math, fix 2 then lowers KL at every position, because the compensating rows added error on every token.</p>
+    <p class="figcap"><b>MSE in \(\mathbf{Y}\) of each row of \(\mathbf{W}\), fix by fix.</b> Each bar is one row's MSE in \(\mathbf{Y}\) (step 2), on a log scale. Fix 1 does not touch the compensating rows, so their bars are the same in (a) and (b); because each row is measured alone, the bars cannot show that in (a) they cancel row \(k\)'s error. In (b), row \(k\) drops among the other rows; it is not zero because of the 8-bit scale (step 3). In (c), the compensating rows drop too.</p>
+    </div>
+    </details>
   </section>
 
   <section id="takeaways">
     <h2>What this means for quantization</h2>
-    <p>The defect comes from how GPTQ orders its decisions. It sets each group's scale from the group's largest weights <i>before</i> it chooses any levels. When the same group also holds a small weight that multiplies a very large input, no level can store that weight accurately, so GPTQ offsets the error by moving other weights. The offset is fitted to the calibration tokens and adds error on most other text.</p>
-    <p>This makes repair a natural post-processing step after quantization. Given a quantized checkpoint and its higher-precision source, a <b>repair pass</b> looks for weights whose error is small in the weights but large in the model's output, such as weights on outlier inputs and the rows GPTQ moved to compensate for them, and re-quantizes only those. It needs one forward pass on a few prompts to find the outlier inputs and no calibration data. The checkpoint keeps its format, size and kernels, so the pass can follow any quantizer.</p>
+    <p>The defect comes from how GPTQ orders its decisions. It sets each group's scale from the group's largest weights <i>before</i> it chooses any levels. When the same group also holds a small weight that multiplies a very large input, no level can store that weight accurately, so GPTQ cancels most of the error by adjusting other weights. Those adjustments are fitted to the calibration text and add error on most other text.</p>
+    <p>This makes repair a natural post-processing step after quantization. Given a quantized checkpoint and its higher-precision source, a <b>repair pass</b> looks for weights whose error is small in the weights but large in the model's output, such as weights on outlier inputs and the compensating rows GPTQ adjusted for them, and re-quantizes only those. It needs one forward pass on a few prompts to find the outlier inputs and no calibration data. The checkpoint keeps its format, size and kernels, so the pass can follow any quantizer.</p>
   </section>
 
   <section id="next">
@@ -470,7 +428,7 @@ footer a:hover { color: var(--accent); }
 
   <footer>
     <span><b>{{SITE}}</b> · Abdelfattah Lab, Cornell University</span>
-    <span>Checkpoints on Hugging Face: <a href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-PoorlyCalibrated" target="_blank" rel="noopener">poorly calibrated + agent edits</a> · <a href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-WellCalibrated" target="_blank" rel="noopener">well-calibrated + agent edits</a>.</span>
+    <span><span aria-hidden="true">🤗</span> Checkpoints on Hugging Face: <a href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-PoorlyCalibrated" target="_blank" rel="noopener">poorly calibrated + agent edits</a> · <a href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-WellCalibrated" target="_blank" rel="noopener">well-calibrated + agent edits</a>.</span>
   </footer>
 </div>
 
@@ -517,17 +475,6 @@ function drawLocalize() { $("s1a").innerHTML = ""; $("s1b").innerHTML = "";
   bars($("s1b"), DS.C.slice(0, 6).map(([L, v]) => ({ label: `layer ${L}`, ...v })), 90, 320); }
 
 /* ---------- chart helpers ---------- */
-function lineChart(svg, series, o) {
-  const { W = 860, H = 170, x0 = 50, T = 10, xs, ymin, ymax, xlab, ylab } = o;
-  const Y = v => T + (1 - (v - ymin) / (ymax - ymin)) * H;
-  const X = i => x0 + i / (xs.length - 1) * (W - x0);
-  [ymin, (ymin + ymax) / 2, ymax].forEach(v => { el("line", { x1: x0, x2: W, y1: Y(v), y2: Y(v), stroke: css("--rule") }, svg);
-    el("text", { x: x0 - 6, y: Y(v) + 4, "text-anchor": "end" }, svg, v.toFixed(3)); });
-  xs.forEach((x, i) => el("text", { x: X(i), y: T + H + 16, "text-anchor": "middle" }, svg, x));
-  if (xlab) el("text", { x: (x0 + W) / 2, y: T + H + 32, "text-anchor": "middle" }, svg, xlab);
-  if (ylab) el("text", { x: 0, y: 12 }, svg, ylab);
-  series.forEach(s => el("polyline", { points: s.v.map((v, i) => `${X(i)},${Y(Math.max(v, ymin))}`).join(" "), fill: "none", stroke: s.c, "stroke-width": 2.4, "stroke-linejoin": "round", "stroke-dasharray": s.dash || "" }, svg));
-}
 function scatter(canvas, sets, lim) {
   const S = 360, k = canvas.width / S, c = canvas.getContext("2d");
   c.setTransform(k, 0, 0, k, 0, 0); c.clearRect(0, 0, S, S);
@@ -549,13 +496,6 @@ function scatter(canvas, sets, lim) {
   c.restore();
 }
 
-/* ---------- KL by position ---------- */
-let kpMode = "math";
-function drawKL() { press(["kp-math", "kp-prose"], "kp-" + kpMode); const K = D.klpos, g = kpMode, keep = K[g + "_count"].map((n, i) => n >= 100 ? i : -1).filter(i => i >= 0);
-  const s = $("klpos"); s.innerHTML = ""; const pick = t => keep.map(i => K[`${g}_${t}`][i]);
-  lineChart(s, [{ v: pick("gptq_broad"), c: css("--muted") }, { v: pick("wsp_e2"), c: css("--fix"), dash: "6 4" }, { v: pick("wsp_c2"), c: css("--deep") }],
-    { xs: keep.map(i => `${K.buckets[i]}–${K.buckets[i + 1]}`), ymin: 0, ymax: Math.max(...pick("gptq_broad")) * 1.1, W: 880, T: 30, xlab: "token position", ylab: "KL to NVFP4 (per token)" }); }
-$("kp-math").onclick = () => { kpMode = "math"; drawKL(); }; $("kp-prose").onclick = () => { kpMode = "prose"; drawKL(); };
 
 /* ---------- the repair loop ---------- */
 function drawLoop() {
@@ -578,7 +518,7 @@ function drawLoop() {
    red outline  = the row of W that multiplies the outlier input
    gray hatch   = weight stored away from its reference value (rounding error, or GPTQ's compensation)
    light hatch  = coarser rounding on weights whose inputs are small
-   red hatch    = output error caused by the outlier input
+   red hatch    = error in Y caused by the outlier input
    blue fill    = stored exactly / accurately */
 function seeded(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
 function hatches(s, id) {
@@ -589,11 +529,18 @@ function hatches(s, id) {
   return k => `url(#h${k}-${id})`;
 }
 function cellRect(s, x, y, C, k, bg, H) {
-  el("rect", { x, y, width: C, height: C, fill: css("--muted"), "fill-opacity": bg, stroke: css("--ink-3"), "stroke-width": 0.5 }, s);
-  if (k && k.fill) el("rect", { x, y, width: C, height: C, fill: css(k.fill), "fill-opacity": k.op ?? 0.9, stroke: css("--ink-3"), "stroke-width": 0.5 }, s);
+  el("rect", { x, y, width: C, height: C, fill: css("--muted"), "fill-opacity": bg, stroke: css("--ink-2"), "stroke-width": 0.5 }, s);
+  if (k && k.fill) el("rect", { x, y, width: C, height: C, fill: css(k.fill), "fill-opacity": k.op ?? 0.9, stroke: css("--ink-2"), "stroke-width": 0.5 }, s);
   if (k && k.hatch) el("rect", { x: x + 0.5, y: y + 0.5, width: C - 1, height: C - 1, fill: H(k.hatch) }, s);
 }
 function lab(s, x, y, t, o = {}) { return el("text", { x, y, "text-anchor": o.anchor || "middle", class: o.ink ? "t-ink" : "", style: o.style || "", transform: o.rot ? `rotate(-90 ${x} ${y})` : "" }, s, t); }
+// a label mixing plain text with math symbols, in the math face: parts are strings or [text, "i" | "b" | "u"]
+const MATHSTYLE = { i: "font-family:var(--f-math);font-style:italic;font-size:1.15em", b: "font-family:var(--f-math);font-weight:700;font-size:1.1em", u: "font-family:var(--f-math);font-size:1.1em" };
+function labM(s, x, y, parts, o = {}) {
+  const t = lab(s, x, y, "", o); t.textContent = "";
+  parts.forEach(p => typeof p === "string" ? el("tspan", {}, t, p) : el("tspan", { style: MATHSTYLE[p[1]] }, t, p[0]));
+  return t;
+}
 function wTitle(s, x, y, t) { lab(s, x, y, t, { ink: true, style: "font-family:var(--f-display);font-size:14px;font-weight:600" }); }
 function wArrow(s, x, y) { lab(s, x, y, "→", { ink: true, style: "font-size:22px" }); }
 function drawXWY() {
@@ -610,17 +557,17 @@ function drawXWY() {
   lab(s, X[0] + 4 * C, X[1] - 8, "input channels"); lab(s, X[0] - 10, X[1] + 3 * C, "tokens", { rot: true });
   lab(s, W[0] + 2 * C, W[1] - 8, "output channels"); lab(s, W[0] - 10, W[1] + 4 * C, "input channels", { rot: true });
   lab(s, Y[0] + 2 * C, Y[1] - 8, "output channels"); lab(s, Y[0] - 10, Y[1] + 3 * C, "tokens", { rot: true });
-  const big = (x, t) => lab(s, x, 256, t, { ink: true, style: "font-family:var(--f-display);font-size:22px;font-weight:600" });
+  const big = (x, t) => lab(s, x, 256, t, { ink: true, style: "font-family:var(--f-math);font-size:24px;font-weight:700" });
   lab(s, 325, 132, "×", { ink: true, style: "font-size:22px" }); lab(s, 475, 132, "=", { ink: true, style: "font-size:22px" });
   big(X[0] + 4 * C, "X"); big(W[0] + 2 * C, "W"); big(Y[0] + 2 * C, "Y");
-  lab(s, X[0] + 4 * C, 278, "outlier input"); lab(s, W[0] + 2 * C, 278, "row k"); lab(s, Y[0] + 2 * C, 278, "error in Y");
+  lab(s, X[0] + 4 * C, 278, "outlier input"); labM(s, W[0] + 2 * C, 278, ["row ", ["k", "i"]]); labM(s, Y[0] + 2 * C, 278, ["error in ", ["Y", "b"]]);
 }
 function drawWfix1() {
   const s = $("wfix1"); s.innerHTML = ""; const H = hatches(s, "wfix1"), C = 24, K = 5, R = 10, G = 5, O = 2, y0 = 52, xs = [170, 440];
   const panel = (x0, cell) => {
     for (let r = 0; r < R; r++) for (let c = 0; c < K; c++) {
       const k = cell(r), x = x0 + c * C, y = y0 + r * C;
-      el("rect", { x, y, width: C, height: C, fill: k && k.fill ? css(k.fill) : css("--muted"), "fill-opacity": k && k.fill ? 1 : 0.22, stroke: css("--ink-3"), "stroke-width": 0.6 }, s);
+      el("rect", { x, y, width: C, height: C, fill: k && k.fill ? css(k.fill) : css("--muted"), "fill-opacity": k && k.fill ? 1 : 0.22, stroke: css("--ink-2"), "stroke-width": 0.6 }, s);
       if (k && k.hatch) el("rect", { x: x + 0.5, y: y + 0.5, width: C - 1, height: C - 1, fill: H(k.hatch) }, s);
     }
     el("line", { x1: x0, x2: x0 + K * C, y1: y0 + G * C, y2: y0 + G * C, stroke: css("--ink"), "stroke-width": 2 }, s);
@@ -632,20 +579,21 @@ function drawWfix1() {
   el("rect", { x: xs[0] + 4 * C + 1.5, y: y0 + 1.5, width: C - 3, height: G * C - 3, fill: "none", stroke: css("--ink"), "stroke-width": 2.4 }, s);
   const bx = xs[0] + K * C + 8;
   el("path", { d: `M${bx},${y0} h5 V${y0 + G * C} h-5`, fill: "none", stroke: css("--ink-2"), "stroke-width": 1.2 }, s);
-  ["one group =", "32 inputs ×", "1 output,", "one Δ"].forEach((t, i) => lab(s, bx + 12, y0 + 14 + i * 14, t, { anchor: "start", ink: true }));
+  [["one group ="], ["32 inputs ×"], ["1 output,"], ["one ", ["Δ", "u"]]].forEach((t, i) => labM(s, bx + 12, y0 + 14 + i * 14, t, { anchor: "start", ink: true }));
   // (b): each column's top segment gets its own new scale
   for (let c = 0; c < K; c++) el("rect", { x: xs[1] + c * C + 2, y: y0 + 2, width: C - 4, height: G * C - 4, fill: "none", stroke: css("--fix"), "stroke-width": 1.8, "stroke-dasharray": "4 3" }, s);
-  ["new Δ for each", "outlined group,", "one per output", "channel"].forEach((t, i) => lab(s, xs[1] + K * C + 12, y0 + 14 + i * 14, t, { anchor: "start", ink: true }));
+  [["new ", ["Δ", "u"], " for each"], ["outlined group,"], ["one per output"], ["channel"]].forEach((t, i) => labM(s, xs[1] + K * C + 12, y0 + 14 + i * 14, t, { anchor: "start", ink: true }));
   wTitle(s, xs[0] + K * C / 2, y0 - 16, "(a) GPTQ"); wTitle(s, xs[1] + K * C / 2, y0 - 16, "(b) + fix 1");
-  lab(s, xs[0] - 8, y0 + O * C + C / 2 + 4, "row k", { anchor: "end" });
+  labM(s, xs[0] - 8, y0 + O * C + C / 2 + 4, ["row ", ["k", "i"]], { anchor: "end" });
   wArrow(s, (xs[0] + K * C + xs[1]) / 2 + 22, y0 + G * C + 6);
 }
 function drawWfix2() {
-  const s = $("wfix2"); s.innerHTML = ""; const H = hatches(s, "wfix2"), C = 24, K = 5, R = 10, O = 2, CR = [5, 7], y0 = 52, xs = [150, 370, 560];
+  // Illustration, not data: a few compensating rows, scattered after row k (the real matrix has many more rows).
+  const s = $("wfix2"); s.innerHTML = ""; const H = hatches(s, "wfix2"), C = 20, K = 6, R = 12, O = 2, CR = [5, 8, 9, 11], y0 = 52, xs = [150, 370, 560];
   const panel = (x0, cell) => {
     for (let r = 0; r < R; r++) for (let c = 0; c < K; c++) {
       const k = cell(r), x = x0 + c * C, y = y0 + r * C;
-      el("rect", { x, y, width: C, height: C, fill: k && k.fill ? css(k.fill) : css("--muted"), "fill-opacity": k && k.fill ? (k.op ?? 1) : 0.22, stroke: css("--ink-3"), "stroke-width": 0.6 }, s);
+      el("rect", { x, y, width: C, height: C, fill: k && k.fill ? css(k.fill) : css("--muted"), "fill-opacity": k && k.fill ? (k.op ?? 1) : 0.22, stroke: css("--ink-2"), "stroke-width": 0.6 }, s);
       if (k && k.hatch) el("rect", { x: x + 0.5, y: y + 0.5, width: C - 1, height: C - 1, fill: H(k.hatch) }, s);
     }
     el("rect", { x: x0, y: y0, width: K * C, height: R * C, fill: "none", stroke: css("--ink"), "stroke-width": 1.6 }, s);
@@ -653,24 +601,62 @@ function drawWfix2() {
   const cells = [
     r => (r === O ? { fill: "--damage" } : CR.includes(r) ? { hatch: "s" } : null),
     r => (r === O ? { fill: "--fix" } : CR.includes(r) ? { hatch: "s" } : null),
-    r => (r === O ? { fill: "--fix" } : CR.includes(r) ? { fill: "--fix", op: 0.3 } : null)];
+    r => (r === O ? { fill: "--fix" } : CR.includes(r) ? { fill: "--fix", op: 0.35 } : null)];
   ["(a) GPTQ", "(b) + fix 1", "(c) + fix 2"].forEach((t, k) => { panel(xs[k], cells[k]); wTitle(s, xs[k] + K * C / 2, y0 - 16, t); });
-  // rounding order, only GPTQ has one
-  const ox = xs[0] + K * C + 12;
-  el("line", { x1: ox, x2: ox, y1: y0, y2: y0 + R * C - 7, stroke: css("--ink-2"), "stroke-width": 1.4 }, s);
-  el("path", { d: `M${ox - 4},${y0 + R * C - 9} L${ox},${y0 + R * C} L${ox + 4},${y0 + R * C - 9} z`, fill: css("--ink-2") }, s);
-  lab(s, ox + 13, y0 + R * C / 2, "GPTQ quantization order", { rot: true, style: "font-size:10px" });
-  wArrow(s, (ox + 20 + xs[1]) / 2, y0 + R * C / 2 + 7); wArrow(s, (xs[1] + K * C + xs[2]) / 2, y0 + R * C / 2 + 7);
-  lab(s, xs[0] - 8, y0 + O * C + C / 2 + 4, "row k", { anchor: "end" });
-  lab(s, xs[0] - 8, y0 + CR[0] * C + C / 2 + 1, "compensating", { anchor: "end" });
-  lab(s, xs[0] - 8, y0 + CR[0] * C + C / 2 + 12, "(plotted below)", { anchor: "end", style: "font-size:10px" });
-  lab(s, xs[0] - 8, y0 + CR[1] * C + C / 2 + 4, "compensating", { anchor: "end" });
+  // quantization order, only GPTQ has one
+  const ox = xs[0] + K * C + 12, HT = R * C;
+  el("line", { x1: ox, x2: ox, y1: y0, y2: y0 + HT - 7, stroke: css("--ink-2"), "stroke-width": 1.4 }, s);
+  el("path", { d: `M${ox - 4},${y0 + HT - 9} L${ox},${y0 + HT} L${ox + 4},${y0 + HT - 9} z`, fill: css("--ink-2") }, s);
+  lab(s, ox + 13, y0 + HT / 2, "GPTQ quantization order", { rot: true, style: "font-size:10px" });
+  wArrow(s, (ox + 20 + xs[1]) / 2, y0 + HT / 2 + 7); wArrow(s, (xs[1] + K * C + xs[2]) / 2, y0 + HT / 2 + 7);
+  // labels: row k, and one comb that points at each compensating row
+  const cy = r => y0 + r * C + C / 2, bx = xs[0] - 10;
+  labM(s, xs[0] - 8, cy(O) + 4, ["row ", ["k", "i"]], { anchor: "end" });
+  el("line", { x1: bx, x2: bx, y1: cy(CR[0]), y2: cy(CR[CR.length - 1]), stroke: css("--ink-2"), "stroke-width": 1 }, s);
+  CR.forEach(r => el("line", { x1: bx, x2: xs[0] - 2, y1: cy(r), y2: cy(r), stroke: css("--ink-2"), "stroke-width": 1 }, s));
+  const mid = (cy(CR[0]) + cy(CR[CR.length - 1])) / 2;
+  lab(s, bx - 6, mid - 2, "compensating", { anchor: "end" }); lab(s, bx - 6, mid + 11, "rows", { anchor: "end" });
+}
+function drawRowErr() {
+  // Fix 1 changes only row k's groups (rows group_cols[0]..group_cols[1]); fix 2 changes only the compensating rows.
+  // The two sets don't overlap, so the state after fix 1 alone is rows_e on row k's groups and rows_b everywhere else.
+  const s = $("rowerr"); s.innerHTML = ""; const M = D.matrix, k = D.group.sink_col, [g0, g1] = D.group.group_cols, CR = new Set(M.edit2_rows), N = M.d_in;
+  const fix1 = M.rows_b.map((v, i) => (i >= g0 && i <= g1 ? M.rows_e[i] : v));
+  const x0 = 70, x1 = 884, PH = 82, STEP = 122, LO = -7, HI = 0, X = i => x0 + (i + 0.5) / N * (x1 - x0);
+  const panels = [
+    ["(a) GPTQ", "compensating rows cancel most of row k's error in Y", M.rows_b, i => i === k ? "--damage" : CR.has(i) ? "--ink" : null],
+    ["(b) + fix 1", "row k fixed, so the compensation becomes error in Y", fix1, i => i === k ? "--fix" : CR.has(i) ? "--damage" : null],
+    ["(c) + fix 2", "compensating rows re-rounded: compensation gone", M.rows_e, i => i === k || CR.has(i) ? "--fix" : null]];
+  panels.forEach(([title, note, v, hi], p) => {
+    const t = 30 + p * STEP, base = t + PH, Y = x => t + (1 - (Math.log10(Math.max(x, 10 ** LO)) - LO) / (HI - LO)) * PH;
+    for (let d = LO + 1; d <= HI; d += 2) {
+      el("line", { x1: x0, x2: x1, y1: Y(10 ** d), y2: Y(10 ** d), stroke: css("--rule") }, s);
+      const tl = lab(s, x0 - 8, Y(10 ** d) + 4, d === 0 ? "1" : "10", { anchor: "end" });
+      if (d) { tl.setAttribute("x", x0 - 22); el("tspan", { x: x0 - 21, dy: -5, "text-anchor": "start", style: "font-size:8px" }, tl, "−" + -d); }
+    }
+    const path = (idx, col, w) => idx.length && el("path", { d: idx.map(i => `M${X(i).toFixed(1)},${base}V${Y(v[i]).toFixed(1)}`).join(""), stroke: css(col), "stroke-width": w, fill: "none" }, s);
+    const all = [...Array(N).keys()];
+    path(all.filter(i => !hi(i)), "--muted", 0.8);
+    path(all.filter(i => CR.has(i)), hi(M.edit2_rows[0]), 1.2);
+    path([k], hi(k), 1.8);
+    el("line", { x1: x0, x2: x1, y1: base, y2: base, stroke: css("--ink-2") }, s);
+    const tt = lab(s, x0 + 4, t - 10, title, { anchor: "start", ink: true, style: "font-family:var(--f-display);font-size:14px;font-weight:600" });
+    const n = el("tspan", { dx: 12, style: "font-family:var(--f-body);font-size:12.5px;font-weight:400", class: "" }, tt, "");
+    note.split(/(row k|Y)/).forEach(part => part === "row k" ? (el("tspan", {}, n, "row "), el("tspan", { style: MATHSTYLE.i }, n, "k")) : part === "Y" ? el("tspan", { style: MATHSTYLE.b }, n, "Y") : el("tspan", {}, n, part));
+    n.setAttribute("fill", css("--ink-2"));
+    // row k is labelled near the top of each panel, with a guide down to its line when the line is short
+    labM(s, X(k) + 8, t + 14, ["row ", ["k", "i"]], { anchor: "start", ink: true });
+    // when row k is short, a guide runs down from its label to just above the tallest bar of row k's groups
+    const grpTop = Math.min(...v.slice(g0, g1 + 1).map(Y));
+    if (Y(v[k]) > t + 20) el("line", { x1: X(k), x2: X(k), y1: t + 6, y2: grpTop - 3, stroke: css(hi(k)), "stroke-width": 1, "stroke-dasharray": "3 3" }, s);
+  });
+  labM(s, 16, 30 + (2 * STEP + PH) / 2, ["row's MSE in ", ["Y", "b"]], { rot: true });
+  labM(s, (x0 + x1) / 2, 30 + 2 * STEP + PH + 26, ["rows of ", ["W", "b"], ", in GPTQ's quantization order →"]);
 }
 
 drawLoop(); drawCaps("sh_c2"); drawLocalize(); drawXWY(); drawWfix1(); drawWfix2();
-scatter($("sinksc"), [[D.sink_scatter.before, css("--muted")], [D.sink_scatter.after, css("--fix")]], 0.006);
 scatter($("comp"), [[D.comp_scatter.before, css("--muted")], [D.comp_scatter.after, css("--fix")]], 0.2);
-drawKL();
+drawRowErr();
 
 /* copy buttons */
 document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => {
@@ -681,3 +667,5 @@ document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click"
 }));
 })();
 </script>
+<script>window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] }, svg: { fontCache: "global" } };</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>

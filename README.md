@@ -25,11 +25,12 @@ python3 tools/build.py                                                          
 - Preview locally: `python3 tools/build.py && python3 -m http.server -d site 8000`.
 
 A post can inline its own data with `/*__DATA:<name>.json__*/` (reads `data/<name>.json`) and its own images with
-`{{IMG:<file>}}` (`src/assets/`, JPEG or PNG). The repair post reads `data/wsp-repair.json` and the two 3D surface
-renders `src/assets/wsp-*.png`.
+`{{IMG:<file>}}` (`src/assets/`, JPEG or PNG). The repair post reads `data/wsp-repair.json` and the 3D surface
+render `src/assets/wsp-input-surface.png`.
 
 To add a post: write `src/posts/<slug>.html`, add it to `PAGES` (and `SIDE_CUR`) in `tools/build.py`, a link to `src/partials/sidebar.html`, and add a card to
-`src/blog.html` (and to the home page's "Latest posts"). A new project gets `src/<name>.html`, a card on the home page, and its own sub-nav partial.
+`src/blog.html` (and to the home page's "Latest posts"). On a post the side menu is its "On this page" list (`src/partials/post-toc.html`): `build.py` builds it from
+the post's `<section id>`s and their `<h2>`s, plus the `<h3>`s inside them, which it gives ids. A new project gets `src/<name>.html`, a card on the home page, and its own sub-nav partial.
 
 Data for the paper post comes from the paper figure builders in `~/.local/share/sharar` (bench-figures-rerun-1027,
 bench-figures-flare-1102); the hill-climb steps and accuracy table follow the paper on `main`.
