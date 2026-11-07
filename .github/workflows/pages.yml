@@ -1,14 +1,17 @@
 name: Deploy site
 
+# Every run builds main, plus each open pull request from this repository into pr-preview/pr-<number>/, and deploys
+# them together: GitHub Pages serves one site per repository, and only main may deploy to it. A PR event runs this
+# file as it is on main (pull_request_target), so the preview of a closed PR goes away on the next run.
 on:
   push:
     branches: [main]
+  pull_request_target:
+    types: [opened, reopened, synchronize, closed]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -17,13 +20,40 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Build the pages
         run: python3 tools/build.py
+      - name: List open pull requests from this repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --json number,headRefOid,isCrossRepository \
+            --jq '.[] | select(.isCrossRepository | not) | "\(.number) \(.headRefOid)"' > "$RUNNER_TEMP/prs.txt"
+          cat "$RUNNER_TEMP/prs.txt"
+      - name: Build each pull request into pr-preview/
+        run: |
+          # no token in this step: it runs the PR's own build.py
+          while read -r n sha; do
+            git fetch -q --depth 1 origin "$sha"
+            git worktree add -q --detach "$RUNNER_TEMP/pr-$n" "$sha"
+            if (cd "$RUNNER_TEMP/pr-$n" && python3 tools/build.py > /dev/null); then
+              mkdir -p site/pr-preview
+              cp -R "$RUNNER_TEMP/pr-$n/site" "site/pr-preview/pr-$n"
+            else
+              echo "::warning::PR #$n did not build, so it has no preview"
+            fi
+          done < "$RUNNER_TEMP/prs.txt"
+          printf 'User-agent: *\nDisallow: /pr-preview/\n' > site/robots.txt
       - name: Serve the files as they are
         run: touch site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
@@ -33,9 +63,31 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  comment:
+    needs: deploy
+    if: >-
+      github.event_name == 'pull_request_target' && contains(fromJSON('["opened", "reopened"]'), github.event.action)
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Post the preview link
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ needs.deploy.outputs.page_url }}pr-preview/pr-${{ github.event.number }}/
+        run: |
+          gh pr comment "${{ github.event.number }}" --repo "$GITHUB_REPOSITORY" \
+            --body "Preview: $URL (rebuilt on every push to this PR, removed when it closes)"
