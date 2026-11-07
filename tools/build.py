@@ -5,7 +5,7 @@
   site/  for GitHub Pages: every page is a complete HTML document.
 
 Pages: the umbrella home, the Sharar project (overview and models), the blog index, and posts. The paper post reads
-data/results.json (the paper's main results).
+data/results.json (the paper's main results); the quantized-LLM repair post reads data/wsp-repair.json.
 
     python3 tools/build.py
 """
@@ -27,6 +27,7 @@ PAGES = [  # (source, output, path back to the site root, current nav item, unus
     ("sharar.html", "projects/sharar/index.html", "../../", "overview", ""),
     ("blog.html", "blog/index.html", "../", "blog", ""),
     ("posts/sharar-paper.html", "blog/sharar-paper/index.html", "../../", "blog", ""),
+    ("posts/repairing-quantized-llm.html", "blog/repairing-quantized-llm/index.html", "../../", "blog", ""),
 ]
 LOGO = ('<svg class="logo" width="24" height="24" viewBox="0 0 100 100" aria-hidden="true"><defs>'
         '<linearGradient id="{id}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#a31f34" stop-opacity="0.1"/>'
@@ -40,32 +41,73 @@ FAVICON = ('<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,'
            "L73.5 82.4 L50 67 L26.5 82.4 L33.8 55.3 L12 37.6 L40 36.2 Z' fill='%23a31f34' stroke='%23a31f34' "
            "stroke-width='10' stroke-linejoin='round'/%3E%3C/svg%3E\">")
 SIDE_CUR = {"index.html": "home", "sharar.html": "overview", "blog.html": "blog",
-            "posts/sharar-paper.html": "paper"}
+            "posts/sharar-paper.html": "paper", "posts/repairing-quantized-llm.html": "repair"}
 FAVICON_FILES = ('<link rel="icon" type="image/png" sizes="32x32" href="{root}favicon-32.png?v=2">\n'
                  '<link rel="icon" href="{root}favicon.ico?v=2" sizes="any">\n'
                  '<link rel="icon" type="image/svg+xml" href="{root}favicon.svg?v=2">\n'
                  '<link rel="apple-touch-icon" sizes="180x180" href="{root}apple-touch-icon.png?v=2">')  # bump v to refresh caches
+MIME = {".jpg": "jpeg", ".jpeg": "jpeg", ".png": "png"}  # {{IMG:...}} data URIs
 RESULTS = json.loads((ROOT / "data/results.json").read_text())
+
+
+def slug(t):
+    t = re.sub(r"<[^>]+>|\\\(|\\\)|\\[a-zA-Z]+", "", t)
+    return re.sub(r"[^a-z0-9]+", "-", t.lower()).strip("-")
+
+
+def post_toc(page):
+    """A post's "On this page" list: each <section id> with its <h2>, and the <h3>s inside it, which get ids here."""
+    items, out, last = [], [], 0
+    for m in re.finditer(r'<section id="([\w-]+)">', page):
+        sid, end = m.group(1), page.find("</section>", m.end())
+        body = page[m.end():end]
+        h2 = re.search(r"<h2[^>]*>(.*?)</h2>", body, re.S)
+        if not h2:
+            continue
+        items.append(f'    <a class="toc-link" href="#{sid}">{h2.group(1).strip()}</a>')
+        def add_id(h):
+            t = h.group(2).strip()
+            hid = f"{sid}-{slug(t)}"
+            items.append(f'    <a class="toc-link toc-sub" href="#{hid}">{t}</a>')
+            return f'<h3{h.group(1)} id="{hid}">{h.group(2)}</h3>'
+        body = re.sub(r"<h3((?:(?! id=)[^>])*)>(.*?)</h3>", add_id, body, flags=re.S)
+        out.append(page[last:m.end()] + body); last = end
+    out.append(page[last:])
+    return "".join(out), "\n".join(items)
+
+
+def site_links(current):
+    """The top bar's site menu, the same on every page; the page's own sections live in the side menu."""
+    links = PARTS["site-links.html"]
+    for item in ("home", "overview", "blog"):
+        links = links.replace(f" {{{{NAV_{item}}}}}", ' aria-current="page"' if item == (current or "home") else "")
+    return links
 
 
 def render(src, root, current, sub):
     page = (SRC / src).read_text()
     nav = PARTS["nav.html"]
     side = PARTS["sidebar.html"]
-    for item in ("home", "overview", "paper", "blog"):
+    if src.startswith("posts/"):  # a post's side menu lists its own chapters; the site menu's drawer script is reused
+        page, toc = post_toc(page)
+        side = PARTS["post-toc.html"].replace("<!--__TOC__-->", toc) + side[side.index("</aside>") + len("</aside>"):]
+    for item in ("home", "overview", "paper", "blog", "repair"):
         side = side.replace(f" {{{{SIDE_{item}}}}}", ' aria-current="page"' if item == SIDE_CUR.get(src) else "")
     page = (page.replace("/*__SITE_CSS__*/", PARTS["site.css"])
                 .replace("/*__SIDE_CSS__*/", PARTS["side.css"])
                 .replace("<!--__NAV__-->", nav)
+                .replace("<!--__SITE_LINKS__-->", site_links(current))
                 .replace("<!--__SIDEBAR__-->", side)
                 .replace("<!--__FOOTER__-->", PARTS["footer.html"])
                 .replace("<!--__POST_CARD__-->", PARTS["post-card.html"])
                 .replace("/*__RESULTS__*/", (ROOT / "data/results.json").read_text().replace("</", "<\\/")))
+    # any other data file: /*__DATA:name.json__*/ inlines data/name.json
+    page = re.sub(r"/\*__DATA:([\w.-]+)__\*/", lambda m: (ROOT / "data" / m.group(1)).read_text().strip().replace("</", "<\\/"), page)
     # the logo (canvas board "14 · Shooting star"); each use gets its own gradient id
     page = re.sub(r"\{\{LOGO:(\w+)\}\}", lambda m: LOGO.format(id="lg-" + m.group(1)), page)
     page = page.replace("<title>", "<!--FAVICON-->\n<title>", 1)
     # images are inlined as data URIs: the artifact viewer loads nothing from other hosts
-    page = re.sub(r"\{\{IMG:([\w.-]+)\}\}", lambda m: "data:image/jpeg;base64,"
+    page = re.sub(r"\{\{IMG:([\w.-]+)\}\}", lambda m: f"data:image/{MIME[Path(m.group(1)).suffix]};base64,"
                   + base64.b64encode((SRC / "assets" / m.group(1)).read_bytes()).decode(), page)
     return page.replace("{{ROOT}}", root).replace("{{SITE}}", SITE)
 
