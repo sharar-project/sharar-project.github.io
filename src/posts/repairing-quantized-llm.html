@@ -212,7 +212,7 @@ footer a:hover { color: var(--accent); }
 
   <div class="intro">
     <p>We quantize a lot of models. Usually it goes like this: take a checkpoint, squeeze it down to a few bits per weight, watch some benchmark fall off a cliff, then spend a week poking at the calibration set until it mostly comes back. It works, kind of. But it always feels like fixing a watch by shaking it.</p>
-    <p>So we tried something sillier, inspired by <a href="https://rikiyat.github.io/blog/weight-space-programming/" target="_blank" rel="noopener">weight-space programming</a>: LLMs can read and edit neural-network weights directly. We handed a broken 3-bit checkpoint to an LLM agent, gave it a Python session with the weights loaded, and asked it to find what went wrong and fix it, by editing the weights directly and without fitting them to any data. On Nemotron-3.5-Lightning-30B-A3B it found two broken matrices out of 5,959, edited about one weight in 120,000, and closed most of the gap to the NVFP4 release.</p>
+    <p>So we tried something more direct, inspired by <a href="https://rikiyat.github.io/blog/weight-space-programming/" target="_blank" rel="noopener">weight-space programming</a>: LLMs can read and edit neural-network weights directly. We handed a broken 3-bit checkpoint to an LLM agent, gave it a Python session with the weights loaded, and asked it to find what went wrong and fix it, by editing the weights directly and without fitting them to any data. On Nemotron-3.5-Lightning-30B-A3B it found two broken matrices out of 5,959, edited about one weight in 120,000, and closed most of the gap to the NVFP4 release.</p>
   </div>
 
   <div class="stats pair">
