@@ -13,6 +13,7 @@ working name is the `SITE` constant in `tools/build.py`.
 | Sharar overview | `src/sharar.html` | `projects/sharar/index.html` |
 | Blog index | `src/blog.html` | `blog/index.html` |
 | Sharar paper post | `src/posts/sharar-paper.html` | `blog/sharar-paper/index.html` |
+| Quantized-LLM repair post | `src/posts/repairing-quantized-llm.html` | `blog/repairing-quantized-llm/index.html` |
 
 ```bash
 uv run --no-project --with matplotlib --with numpy python -I tools/export_data.py   # paper post: main results
@@ -25,8 +26,13 @@ python3 tools/build.py                                                          
 - Each open pull request from this repository is built into https://sharar-project.github.io/pr-preview/pr-<number>/
   and deployed with `main`; the workflow comments the link on the PR and drops the preview when it closes.
 
-To add a post: write `src/posts/<slug>.html`, add it to `PAGES` in `tools/build.py`, and add a card to
-`src/blog.html` (and to the home page's "Latest posts"). A new project gets `src/<name>.html`, a card on the home page, and its own sub-nav partial.
+A post can inline its own data with `/*__DATA:<name>.json__*/` (reads `data/<name>.json`) and its own images with
+`{{IMG:<file>}}` (`src/assets/`, JPEG or PNG). The repair post reads `data/wsp-repair.json` and the 3D surface
+render `src/assets/wsp-input-surface.png`.
+
+To add a post: write `src/posts/<slug>.html`, add it to `PAGES` (and `SIDE_CUR`) in `tools/build.py`, a link to `src/partials/sidebar.html`, and add a card to
+`src/blog.html` (and to the home page's "Latest posts"). On a post the side menu is its "On this page" list (`src/partials/post-toc.html`): `build.py` builds it from
+the post's `<section id>`s and their `<h2>`s, plus the `<h3>`s inside them, which it gives ids. A new project gets `src/<name>.html`, a card on the home page, and its own sub-nav partial.
 
 Data for the paper post comes from the paper figure builders in `~/.local/share/sharar` (bench-figures-rerun-1027,
 bench-figures-flare-1102); the hill-climb steps and accuracy table follow the paper on `main`.
