@@ -28,6 +28,9 @@ python3 tools/build.py                                                          
   writes only the changed text back into `src/`, formulas stay LaTeX. Figures and scripts are edited in the source.
 - Each open pull request from this repository is built into https://sharar-project.github.io/pr-preview/pr-<number>/
   and deployed with `main`; the workflow comments the link on the PR and drops the preview when it closes.
+- To comment on a preview, select text and click **Comment**: GitHub opens a new issue, labelled `review`, that
+  quotes the passage (formulas as LaTeX), links back to it and names the PR. The deploy workflow adds the button
+  (`tools/preview-comment.js`, via `tools/preview_comments.py`) to previews only, never to the live site.
 
 A post can inline its own data with `/*__DATA:<name>.json__*/` (reads `data/<name>.json`) and its own images with
 `{{IMG:<file>}}` (`src/assets/`, JPEG or PNG). The repair post reads `data/wsp-repair.json` and the 3D surface

@@ -73,6 +73,9 @@ jobs:
             if (cd "$RUNNER_TEMP/pr-$n" && python3 tools/build.py > /dev/null); then
               mkdir -p site/pr-preview
               cp -R "$RUNNER_TEMP/pr-$n/site" "site/pr-preview/pr-$n"
+              # main's tools, not the PR's: every page gets the review-comment button
+              python3 tools/preview_comments.py "site/pr-preview/pr-$n" "$n" "$GITHUB_REPOSITORY"
+              cp tools/preview-comment.js site/pr-preview/comment.js
             else
               echo "::warning::PR #$n did not build, so it has no preview"
             fi
