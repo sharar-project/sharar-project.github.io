@@ -358,7 +358,7 @@ footer a:hover { color: var(--accent); }
     </div>
     <p class="figcap"><b>What fix 1 changes in \(\mathbf{W}\).</b> Rows are input channels, columns output channels. Fix 1 gives a new \(\Delta\) to one group per output channel: the group that holds row \(k\)'s weight.</p>
     <p><b>The price.</b> The new \(\Delta\) is smaller, so most of the other weights in the group are now too large and are clipped to the largest level. That costs little, because their inputs are tiny: the group's MSE in \(\mathbf{Y}\) still falls sharply.</p>
-    <p><b>Close to AWQ.</b> Fix 1 rests on the same idea as AWQ<sup><a href="#r2">2</a></sup>: a weight that multiplies a large input matters most, so it should be stored well. AWQ builds this in before quantizing, by rescaling input channels using calibration data. The agent arrived at it on its own, after GPTQ had already run, using only the inputs it recorded in step 2 and the NVFP4 weights.</p>
+    <p class="note"><b>Note.</b> Fix 1 uses the same idea as AWQ<sup><a href="#r2">2</a></sup>: a weight that multiplies a large input matters most, so it should be stored well. AWQ builds this in before quantizing, by rescaling input channels using calibration data. The agent arrived at it on its own, after GPTQ had already run, using only the inputs it recorded in step 2 and the NVFP4 weights.</p>
 
     <h3>4. Fix 1 exposes GPTQ's compensation; fix 2 removes it</h3>
     <p>Fix 1 has a side effect, in other rows of the same matrix.</p>
