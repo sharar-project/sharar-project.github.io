@@ -1,0 +1,15 @@
+name: PR changed
+
+# Only a signal: when a pull request opens, gets a push or closes, this run finishes and "Deploy site" starts from
+# main (workflow_run) and rebuilds the previews. It has no permissions and runs nothing from the PR.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions: {}
+
+jobs:
+  signal:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Pull request changed; Deploy site will rebuild the previews."
