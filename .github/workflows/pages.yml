@@ -36,9 +36,23 @@ jobs:
       - name: List open pull requests from this repository
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_ACTION: ${{ github.event.action }}
+          PR_SAME_REPO: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         run: |
           gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --json number,headRefOid,isCrossRepository \
             --jq '.[] | select(.isCrossRepository | not) | "\(.number) \(.headRefOid)"' > "$RUNNER_TEMP/prs.txt"
+          # The list can lag the event that started this run: a PR opened or pushed seconds ago may be missing or show
+          # its previous commit, and a PR closed seconds ago may still be listed. The event itself is current, so it
+          # decides that PR's entry.
+          if [ -n "$PR_NUMBER" ]; then
+            grep -v "^$PR_NUMBER " "$RUNNER_TEMP/prs.txt" > "$RUNNER_TEMP/others.txt" || true
+            mv "$RUNNER_TEMP/others.txt" "$RUNNER_TEMP/prs.txt"
+            if [ "$PR_ACTION" != closed ] && [ "$PR_SAME_REPO" = true ]; then
+              echo "$PR_NUMBER $PR_SHA" >> "$RUNNER_TEMP/prs.txt"
+            fi
+          fi
           cat "$RUNNER_TEMP/prs.txt"
       - name: Build each pull request into pr-preview/
         run: |
