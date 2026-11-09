@@ -391,16 +391,10 @@ footer a:hover { color: var(--accent); }
     </details>
   </section>
 
-  <section id="takeaways">
-    <h2>What this means for quantization</h2>
-    <p>The defect comes from how GPTQ orders its decisions. It sets each group's scale from the group's largest weights <i>before</i> it chooses any levels. When the same group also holds a small weight that multiplies a very large input, no level can store that weight accurately, so GPTQ cancels most of the error by adjusting other weights. Those adjustments are fitted to the calibration text and add error on most other text.</p>
-    <p>This makes repair a natural post-processing step after quantization. Given a quantized checkpoint and its higher-precision source, a <b>repair pass</b> looks for weights whose error is small in the weights but large in the model's output, such as weights on outlier inputs and the compensating rows GPTQ adjusted for them, and re-quantizes only those. It needs one forward pass on a few prompts to find the outlier inputs and no calibration data. The checkpoint keeps its format, size and kernels, so the pass can follow any quantizer.</p>
-  </section>
-
   <section id="next">
-    <h2>Where this goes next</h2>
-    <p>The agent repeated the loop until no edit helped. On this checkpoint it kept both fixes on two Mamba out_proj matrices, plus one small scale change in an attention layer, the only edit whose scale choice reads activations. The same two fixes, unchanged, repaired the poorly calibrated checkpoint. Every edit rewrites existing quantized levels and scales, so the model keeps the same size, format and kernels.</p>
-    <p>Today, an agent can run this pass on any quantized checkpoint. All it needs is the checkpoint, the higher-precision reference, and a few prompts to read activations and validate on. Because each edit comes with a reason, it also tells you what the quantizer got wrong.</p>
+    <h2>Conclusion</h2>
+    <p>Weight-space programming is already useful for quantization. Given a broken 3-bit checkpoint and its NVFP4 source, an agent found what GPTQ got wrong and fixed it by editing about one weight in 120,000, with no calibration data and no training. On the poorly calibrated checkpoint, that closed ~80% of the gap to NVFP4 on every benchmark. The edits only rewrite existing levels and scales, so the model keeps its size, format and kernels.</p>
+    <p>We view fix 1 as close in spirit to AWQ<sup><a href="#r2">2</a></sup>. Both rest on the idea that weights multiplying large inputs matter most and should be stored well. AWQ builds this in before quantizing, by rescaling input channels with calibration data. The agent arrived at it without being pointed to it, after GPTQ had already run, using one forward pass and the reference weights. Fix 2 removes GPTQ’s error compensation from the rows where it backfired, and stores those rows as plain round-to-nearest.</p>
     <p>Longer term, we see this going much further. As LLMs get more capable, we expect agents, or rather swarms of them working in parallel, to quantize models with trillions of parameters themselves, starting from the full-precision weights, instead of only repairing a checkpoint after the fact.</p>
   </section>
 
