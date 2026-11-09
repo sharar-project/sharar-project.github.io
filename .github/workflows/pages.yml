@@ -1,13 +1,15 @@
 name: Deploy site
 
 # Every run builds main, plus each open pull request from this repository into pr-preview/pr-<number>/, and deploys
-# them together: GitHub Pages serves one site per repository, and only main may deploy to it. A PR event runs this
-# file as it is on main (pull_request_target), so the preview of a closed PR goes away on the next run.
+# them together: GitHub Pages serves one site per repository, and only main may deploy to it. A pull request starts
+# this file through "PR changed" (pr-changed.yml): when that run finishes, this one runs as it is on main
+# (workflow_run), so the preview of a closed PR goes away on the next run. Pull requests from forks get no preview.
 on:
   push:
     branches: [main]
-  pull_request_target:
-    types: [opened, reopened, synchronize, closed]
+  workflow_run:
+    workflows: [PR changed]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -19,7 +21,11 @@ concurrency:
 
 jobs:
   build:
+    if: >-
+      github.event_name != 'workflow_run' || github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
+    outputs:
+      pr: ${{ steps.prs.outputs.pr }}
     permissions:
       contents: read
       pull-requests: read
@@ -34,24 +40,28 @@ jobs:
       - name: Build the pages
         run: python3 tools/build.py
       - name: List open pull requests from this repository
+        id: prs
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_SHA: ${{ github.event.pull_request.head.sha }}
-          PR_ACTION: ${{ github.event.action }}
-          PR_SAME_REPO: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --json number,headRefOid,isCrossRepository \
             --jq '.[] | select(.isCrossRepository | not) | "\(.number) \(.headRefOid)"' > "$RUNNER_TEMP/prs.txt"
-          # The list can lag the event that started this run: a PR opened or pushed seconds ago may be missing or show
-          # its previous commit, and a PR closed seconds ago may still be listed. The event itself is current, so it
-          # decides that PR's entry.
-          if [ -n "$PR_NUMBER" ]; then
-            grep -v "^$PR_NUMBER " "$RUNNER_TEMP/prs.txt" > "$RUNNER_TEMP/others.txt" || true
-            mv "$RUNNER_TEMP/others.txt" "$RUNNER_TEMP/prs.txt"
-            if [ "$PR_ACTION" != closed ] && [ "$PR_SAME_REPO" = true ]; then
-              echo "$PR_NUMBER $PR_SHA" >> "$RUNNER_TEMP/prs.txt"
-            fi
+          # The list can lag the pull request that started this run: one opened or pushed seconds ago may be missing
+          # or show its previous commit, and one closed seconds ago may still be listed. The pull requests whose head
+          # is the commit that started this run are read directly, and decide their own entries.
+          if [ -n "$HEAD_SHA" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA/pulls" --jq '.[]
+              | select(.head.sha == $ENV.HEAD_SHA and .head.repo.full_name == $ENV.GITHUB_REPOSITORY)
+              | "\(.number) \(.state)"' > "$RUNNER_TEMP/event.txt"
+            while read -r n state; do
+              grep -v "^$n " "$RUNNER_TEMP/prs.txt" > "$RUNNER_TEMP/others.txt" || true
+              mv "$RUNNER_TEMP/others.txt" "$RUNNER_TEMP/prs.txt"
+              if [ "$state" = open ]; then
+                echo "$n $HEAD_SHA" >> "$RUNNER_TEMP/prs.txt"
+                echo "pr=$n" >> "$GITHUB_OUTPUT"
+              fi
+            done < "$RUNNER_TEMP/event.txt"
           fi
           cat "$RUNNER_TEMP/prs.txt"
       - name: Build each pull request into pr-preview/
@@ -90,18 +100,21 @@ jobs:
         uses: actions/deploy-pages@v4
 
   comment:
-    needs: deploy
-    if: >-
-      github.event_name == 'pull_request_target' && contains(fromJSON('["opened", "reopened"]'), github.event.action)
-      && github.event.pull_request.head.repo.full_name == github.repository
+    needs: [build, deploy]
+    if: needs.build.outputs.pr != ''
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     steps:
-      - name: Post the preview link
+      - name: Post the preview link once
         env:
           GH_TOKEN: ${{ github.token }}
-          URL: ${{ needs.deploy.outputs.page_url }}pr-preview/pr-${{ github.event.number }}/
+          PR: ${{ needs.build.outputs.pr }}
+          URL: ${{ needs.deploy.outputs.page_url }}pr-preview/pr-${{ needs.build.outputs.pr }}/
         run: |
-          gh pr comment "${{ github.event.number }}" --repo "$GITHUB_REPOSITORY" \
-            --body "Preview: $URL (rebuilt on every push to this PR, removed when it closes)"
+          posted=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate --jq \
+            '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("Preview:"))) | .id')
+          if [ -z "$posted" ]; then
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" \
+              --body "Preview: $URL (rebuilt on every push to this PR, removed when it closes)"
+          fi
