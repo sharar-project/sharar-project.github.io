@@ -341,7 +341,7 @@ footer a:hover { color: var(--accent); }
     <p>In one sentence: the outlier input multiplies weights stored about 5× too large, because the format has nothing that small.</p>
 
     <h3>3. Fix 1: Choose the scale so row \(k\)'s weight fits</h3>
-    <p><b>How a weight is stored.</b> Each column of \(\mathbf{W}\) is cut into groups of 32 weights that share one scale \(\Delta\). Each weight is stored as one of 8 levels times \(\Delta\): ±0.41, ±1.25, ±2.25 or ±3.5, with no level at zero. GPTQ sizes \(\Delta\) for the group's largest weights. Row \(k\)'s weight is far smaller than those, so it falls below the smallest level, \(0.41\,\Delta\), and is rounded up to it.</p>
+    <p><b>How a weight is stored.</b> Each column of \(\mathbf{W}\) is cut into groups of 32 weights that share one scale \(\Delta\). Each weight is stored as one of 8 levels times \(\Delta\), four positive and four negative, with no level at zero. GPTQ sizes \(\Delta\) for the group's largest weights. Row \(k\)'s weight is far smaller than those, so it falls below the smallest level and is rounded up to it.</p>
     <p><b>Fix 1</b> touches only the groups that hold a weight of row \(k\), one per output channel. For each of those groups it picks a new \(\Delta\), then re-rounds the group's weights under it:</p>
     <ol class="steps">
       <li><b>Fit row \(k\)'s weight.</b> Each of the four levels with the weight's sign gives one \(\Delta\) that puts the weight exactly on that level.</li>
@@ -358,6 +358,7 @@ footer a:hover { color: var(--accent); }
     </div>
     <p class="figcap"><b>What fix 1 changes in \(\mathbf{W}\).</b> Rows are input channels, columns output channels. Fix 1 gives a new \(\Delta\) to one group per output channel: the group that holds row \(k\)'s weight.</p>
     <p><b>The price.</b> The new \(\Delta\) is smaller, so most of the other weights in the group are now too large and are clipped to the largest level. That costs little, because their inputs are tiny: the group's MSE in \(\mathbf{Y}\) still falls sharply.</p>
+    <p class="note"><b>Note.</b> Fix 1 uses the same idea as AWQ<sup><a href="#r2">2</a></sup>: a weight that multiplies a large input matters most, so it should be stored well. AWQ builds this in before quantizing, by rescaling input channels using calibration data. The agent arrived at it on its own, after GPTQ had already run, using only the inputs it recorded in step 2 and the NVFP4 weights.</p>
 
     <h3>4. Fix 1 exposes GPTQ's compensation; fix 2 removes it</h3>
     <p>Fix 1 has a side effect, in other rows of the same matrix.</p>
@@ -394,7 +395,6 @@ footer a:hover { color: var(--accent); }
   <section id="next">
     <h2>Conclusion</h2>
     <p>Weight-space programming is already useful for quantization. Given a broken 3-bit checkpoint and its NVFP4 source, an agent found what GPTQ got wrong and fixed it by editing about one weight in 120,000, with no calibration data and no training. On the poorly calibrated checkpoint, that closed ~80% of the gap to NVFP4 on every benchmark. The edits only rewrite existing levels and scales, so the model keeps its size, format and kernels.</p>
-    <p>We view fix 1 as close in spirit to AWQ<sup><a href="#r2">2</a></sup>. Both rest on the idea that weights multiplying large inputs matter most and should be stored well. AWQ builds this in before quantizing, by rescaling input channels with calibration data. The agent arrived at it without being pointed to it, after GPTQ had already run, using one forward pass and the reference weights. Fix 2 removes GPTQ’s error compensation from the rows where it backfired, and stores those rows as plain round-to-nearest.</p>
     <p>Longer term, we see this going much further. As LLMs get more capable, we expect agents, or rather swarms of them working in parallel, to quantize models with trillions of parameters themselves, starting from the full-precision weights, instead of only repairing a checkpoint after the fact.</p>
   </section>
 
