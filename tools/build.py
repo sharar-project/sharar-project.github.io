@@ -84,8 +84,9 @@ def site_links(current):
     return links
 
 
-def render(src, root, current, sub):
-    page = (SRC / src).read_text()
+def render(src, root, current, sub, text=None):
+    """One page, ready to serve. `text` replaces the source file's contents (tools/edit.py renders unsaved markup)."""
+    page = (SRC / src).read_text() if text is None else text
     nav = PARTS["nav.html"]
     side = PARTS["sidebar.html"]
     if src.startswith("posts/"):  # a post's side menu lists its own chapters; the site menu's drawer script is reused
@@ -112,21 +113,30 @@ def render(src, root, current, sub):
     return page.replace("{{ROOT}}", root).replace("{{SITE}}", SITE)
 
 
-for src, out, root, current, sub in PAGES:
-    page = render(src, root, current, sub)
-    assert "{{" not in page and "<!--__" not in page, f"unfilled placeholder in {src}"
-    # the page's own head part (icons, <title>, meta, fonts, its first <style>) goes in <head>: Safari only finds the
-    # tab icon there
+def full_page(page):
+    """A rendered page as a complete document. Its own head part (icons, <title>, meta, fonts, its first <style>) goes
+    in <head>: Safari only finds the tab icon there."""
     cut = page.index("</style>") + len("</style>")
-    full = HEAD + page[:cut] + "\n</head>\n<body>\n" + page[cut:] + "\n</body>\n</html>\n"
-    files = full.replace("<!--FAVICON-->", FAVICON_FILES.format(root=root))  # GitHub Pages serves the icon files
-    inline = lambda t: t.replace("<!--FAVICON-->", FAVICON)  # the artifact preview cannot, so it inlines one
-    for base, text in (("dist", inline(page if out == "index.html" else full)), ("site", files)):
-        p = ROOT / base / out
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(text)
-        print(p.relative_to(ROOT), len(text))
+    return HEAD + page[:cut] + "\n</head>\n<body>\n" + page[cut:] + "\n</body>\n</html>\n"
 
-# site-wide files served from the root (favicons; tools/make_favicons.py renders them from favicon.svg)
-for f in (SRC / "static").iterdir():
-    (ROOT / "site" / f.name).write_bytes(f.read_bytes())
+
+def main():
+    for src, out, root, current, sub in PAGES:
+        page = render(src, root, current, sub)
+        assert "{{" not in page and "<!--__" not in page, f"unfilled placeholder in {src}"
+        full = full_page(page)
+        files = full.replace("<!--FAVICON-->", FAVICON_FILES.format(root=root))  # GitHub Pages serves the icon files
+        inline = lambda t: t.replace("<!--FAVICON-->", FAVICON)  # the artifact preview cannot, so it inlines one
+        for base, text in (("dist", inline(page if out == "index.html" else full)), ("site", files)):
+            p = ROOT / base / out
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(text)
+            print(p.relative_to(ROOT), len(text))
+
+    # site-wide files served from the root (favicons; tools/make_favicons.py renders them from favicon.svg)
+    for f in (SRC / "static").iterdir():
+        (ROOT / "site" / f.name).write_bytes(f.read_bytes())
+
+
+if __name__ == "__main__":
+    main()

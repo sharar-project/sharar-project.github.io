@@ -23,6 +23,9 @@ python3 tools/build.py                                                          
 - `site/` is the GitHub Pages output (the table above); CI builds it, so it is not committed.
 - `dist/` is the same for a claude.ai artifact preview (its main page has no doctype; the host adds one).
 - Preview locally: `python3 tools/build.py && python3 -m http.server -d site 8000`.
+- Edit a page visually: `python3 tools/edit.py` (the repair post; pass another source such as `posts/sharar-paper.html`)
+  and open http://localhost:8001. Click any paragraph, heading, list item or table cell and type; Save (Cmd/Ctrl+S)
+  writes only the changed text back into `src/`, formulas stay LaTeX. Figures and scripts are edited in the source.
 - Each open pull request from this repository is built into https://sharar-project.github.io/pr-preview/pr-<number>/
   and deployed with `main`; the workflow comments the link on the PR and drops the preview when it closes.
 
