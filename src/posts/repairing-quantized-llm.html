@@ -245,12 +245,12 @@ footer a:hover { color: var(--accent); }
 
   <section id="lessons">
     <h2>Some bitter lessons</h2>
-    <p>If you have pushed PTQ to aggressive bit widths, you have probably run into both of these:</p>
+    <p>If you have pushed PTQ to aggressive bit widths, you have probably run into all three of these:</p>
     <div class="callout">
       <p><b>Calibration data matters way more than it should.</b> The result depends heavily on what goes into the calibration set: which domains, in what proportions, and at what sample lengths. Choosing these is mostly trial and error. A mix that improves math can make code worse, and you only find out after quantizing and evaluating.</p>
       <p><b>Low bit widths leave a gap.</b> At 3 bits and below, even good methods fall short of the source model, and some tasks lose far more than others.</p>
+      <p><b>Often you don't have the recipe.</b> When PTQ falls short like this, the most common remedy is quantization-aware distillation (QAD), which is extra fine-tuning on the pre-training corpus so that the weights adapt and recover the accuracy that quantization lost. But if all you get is a released checkpoint, you don't know what the mixture of the pre-training data is.</p>
     </div>
-    <p>When PTQ falls short like this, the most common remedy is quantization-aware distillation (QAD): extra fine-tuning on the pre-training corpus, so the weights adapt and recover the accuracy that quantization lost. But <b>often you don't have the recipe.</b> If all you get is a released checkpoint, you don't know what the mixture of the pre-training data is.</p>
     <p>PTQ and QAD have the same limit. When the quantized model comes out broken, all you can really change is the data, and neither method looks at which weights actually went wrong.</p>
   </section>
 
