@@ -249,7 +249,7 @@ footer a:hover { color: var(--accent); }
     <div class="callout">
       <p><b>Calibration data matters way more than it should.</b> The result depends heavily on what goes into the calibration set: which domains, in what proportions, and at what sample lengths. Choosing these is mostly trial and error. A mix that improves math can make code worse, and you only find out after quantizing and evaluating.</p>
       <p><b>Low bit widths leave a gap.</b> At 3 bits and below, even good methods fall short of the source model, and some tasks lose far more than others.</p>
-      <p><b>Often you don't have the recipe.</b> When PTQ falls short like this, the most common remedy is quantization-aware distillation (QAD), which is extra fine-tuning on the pre-training corpus so that the weights adapt and recover the accuracy that quantization lost. But if all you get is a released checkpoint, you don't know what the mixture of the pre-training data is.</p>
+      <p><b>Often you don't have the recipe.</b> When PTQ falls short like this, the most common remedy is quantization-aware distillation (QAD)<sup><a href="#r2">2</a></sup>, which is extra fine-tuning on the pre-training corpus so that the weights adapt and recover the accuracy that quantization lost. But if all you get is a released checkpoint, you don't know what the mixture of the pre-training data is.</p>
     </div>
     <p>PTQ and QAD have the same limit. When the quantized model comes out broken, all you can really change is the data, and neither method looks at which weights actually went wrong.</p>
   </section>
@@ -321,7 +321,7 @@ footer a:hover { color: var(--accent); }
 
     <h3>2. The cause: a huge input times badly stored weights</h3>
     <p>To see why this one matrix does so much damage, it helps to first look at what it computes. It is a linear layer that multiplies its input \(\mathbf{X}\) by its weights \(\mathbf{W}\) to produce its output, \(\mathbf{Y} = \mathbf{X}\mathbf{W}\). Each input channel is a column of \(\mathbf{X}\) and is multiplied by its own row of \(\mathbf{W}\), and each column of \(\mathbf{W}\) produces one output channel of \(\mathbf{Y}\).</p>
-    <p>To find out what this input looks like in practice, the agent ran the NVFP4 model on a few dozen held-out sequences of chat math and prose and recorded \(\mathbf{X}\). One input channel turned out to be huge on the first three tokens, with values around 50, where a typical channel stays below 0.01. We call this channel the <b>outlier input</b>, channel \(k\), and the row of \(\mathbf{W}\) it multiplies <b>row \(k\)</b>. Huge values on the first tokens are common in language models, where they are known as massive activations<sup><a href="#r5">5</a></sup> and are linked to attention sinks<sup><a href="#r4">4</a></sup>.</p>
+    <p>To find out what this input looks like in practice, the agent ran the NVFP4 model on a few dozen held-out sequences of chat math and prose and recorded \(\mathbf{X}\). One input channel turned out to be huge on the first three tokens, with values around 50, where a typical channel stays below 0.01. We call this channel the <b>outlier input</b>, channel \(k\), and the row of \(\mathbf{W}\) it multiplies <b>row \(k\)</b>. Huge values on the first tokens are common in language models, where they are known as massive activations<sup><a href="#r4">4</a></sup> and are linked to attention sinks<sup><a href="#r5">5</a></sup>.</p>
     <div class="card">
       <div class="plate sq"><img src="{{IMG:wsp-input-surface.png}}" alt="3D surface of |x| over the input channels and the first 64 tokens; one channel spikes on the first tokens" width="594" height="580"></div>
     </div>
@@ -341,7 +341,7 @@ footer a:hover { color: var(--accent); }
     <p>In short, the defect is that the outlier input multiplies weights whose stored values are much larger than the weights themselves, because the format has no level as small as these weights.</p>
 
     <h3>3. Fix 1: Choose the scale so row \(k\)'s weight fits</h3>
-    <p>Each group of 32 weights in a column of \(\mathbf{W}\) shares one scale \(\Delta\), and each weight is stored as one of 8 levels, \(\pm c_1\Delta, \dots, \pm c_4\Delta\). GPTQ sets \(\Delta\) to fit the group's largest weights, which leads to a large rounding error on row \(k\)'s weight, because even the smallest level, \(c_1\Delta\), is far larger than this weight. For the basics of scales and levels, see <a href="https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-quantization" target="_blank" rel="noopener">A Visual Guide to Quantization</a>.</p>
+    <p>Each group of 32 weights in a column of \(\mathbf{W}\) shares one scale \(\Delta\), and each weight is stored as one of 8 levels, \(\pm c_1\Delta, \dots, \pm c_4\Delta\). GPTQ sets \(\Delta\) to fit the group's largest weights, which leads to a large rounding error on row \(k\)'s weight, because even the smallest level, \(c_1\Delta\), is far larger than this weight. For the basics of scales and levels, see <a href="https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-quantization" target="_blank" rel="noopener">A Visual Guide to Quantization</a><sup><a href="#r6">6</a></sup>.</p>
     <div class="card stack">
       <div class="narrow"><svg id="wgrid" viewBox="0 0 720 292" role="img" aria-label="The eight levels of one group on a number line, under GPTQ's scale and under fix 1's smaller scale. Under GPTQ's scale a large weight sits next to a level, but row k's weight is near zero and is rounded up to the smallest level. Under fix 1's scale a level lands on row k's weight, and the large weight is clipped to the largest level."></svg></div>
     </div>
@@ -357,7 +357,7 @@ footer a:hover { color: var(--accent); }
     </div>
     <p class="figcap"><b>What fix 1 changes in \(\mathbf{W}\).</b> Rows are input channels, columns output channels. Fix 1 gives a new \(\Delta\) to one group per output channel, namely the group that holds row \(k\)'s weight.</p>
     <p>The fix results in a smaller \(\Delta\), which leads to a larger clipping error on the other weights in the group. However, this cost is acceptable, because those weights have relatively small inputs, which limits their impact on the final output \(\mathbf{Y}\).</p>
-    <p class="note"><b>Note.</b> Fix 1 uses the same idea as AWQ<sup><a href="#r2">2</a></sup>: a weight that multiplies a large input matters most, so it should be stored well. AWQ builds this in before quantizing, by rescaling input channels using calibration data. The agent arrived at it on its own, after GPTQ had already run, using only the inputs it recorded in step 2 and the NVFP4 weights.</p>
+    <p class="note"><b>Note.</b> Fix 1 uses the same idea as AWQ<sup><a href="#r7">7</a></sup>: a weight that multiplies a large input matters most, so it should be stored well. AWQ builds this in before quantizing, by rescaling input channels using calibration data. The agent arrived at it on its own, after GPTQ had already run, using only the inputs it recorded in step 2 and the NVFP4 weights.</p>
 
     <h3>4. Fix 2: Remove GPTQ's compensation</h3>
     <p><b>GPTQ's compensation.</b> GPTQ quantizes \(\mathbf{W}\) one row at a time. After each row, GPTQ adjusts the rows it has not yet quantized, so that on its calibration text these rows cancel as much as possible of the error it just made in \(\mathbf{Y}\). For most rows these adjustments are small, but row \(k\)'s error in \(\mathbf{Y}\) is large because of the outlier input, so GPTQ compensated for most of it by making large adjustments to some of the rows after row \(k\). We call these rows the <b>compensating rows</b>, and the adjustments their <b>compensation</b>.</p>
@@ -411,10 +411,12 @@ footer a:hover { color: var(--accent); }
     <h2>References</h2>
     <ol class="refs">
       <li id="r1">Frantar, Ashkboos, Hoefler, Alistarh. <a href="https://arxiv.org/abs/2210.17323" target="_blank" rel="noopener">GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers</a>. ICLR 2023.</li>
-      <li id="r2">Lin et al. <a href="https://arxiv.org/abs/2306.00978" target="_blank" rel="noopener">AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration</a>. MLSys 2024.</li>
+      <li id="r2">Xin et al. <a href="https://arxiv.org/abs/2601.20088" target="_blank" rel="noopener">Quantization-Aware Distillation for NVFP4 Inference Accuracy Recovery</a>. arXiv 2026.</li>
       <li id="r3">Takehi, Teoh, Zhang, Khattab. <a href="https://rikiyat.github.io/blog/weight-space-programming/" target="_blank" rel="noopener">Sparks of Weight-Space Programming: LLMs can natively read &amp; write neural network weights</a>. November 2026.</li>
-      <li id="r4">Xiao et al. <a href="https://arxiv.org/abs/2309.17453" target="_blank" rel="noopener">Efficient Streaming Language Models with Attention Sinks</a>. ICLR 2024.</li>
-      <li id="r5">Sun et al. <a href="https://arxiv.org/abs/2402.17762" target="_blank" rel="noopener">Massive Activations in Large Language Models</a>. COLM 2024.</li>
+      <li id="r4">Sun et al. <a href="https://arxiv.org/abs/2402.17762" target="_blank" rel="noopener">Massive Activations in Large Language Models</a>. COLM 2024.</li>
+      <li id="r5">Xiao et al. <a href="https://arxiv.org/abs/2309.17453" target="_blank" rel="noopener">Efficient Streaming Language Models with Attention Sinks</a>. ICLR 2024.</li>
+      <li id="r6">Grootendorst. <a href="https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-quantization" target="_blank" rel="noopener">A Visual Guide to Quantization</a>. Exploring Language Models, July 2024.</li>
+      <li id="r7">Lin et al. <a href="https://arxiv.org/abs/2306.00978" target="_blank" rel="noopener">AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration</a>. MLSys 2024.</li>
     </ol>
     <p class="note" id="n1">* Both checkpoints use the same 3-bit format (8 levels per matrix, an FP8 scale per 32 weights). The poorly calibrated one was calibrated on a small, narrow set of 64 code files plus a few hundred model-generated reasoning traces and MMLU answers; the well-calibrated one on an equal mix of six domains (code, math answers, prose, chat, multilingual chat, knowledge questions). Neither calibration set overlaps the test sets.</p>
   </section>
