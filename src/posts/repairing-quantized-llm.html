@@ -212,8 +212,8 @@ footer a:hover { color: var(--accent); }
         <tbody>
           <tr class="ref"><td><code>NVFP4</code> release</td><td>88.0</td><td>55.6</td><td>72.1</td><td>77.0</td><td>8.08</td></tr>
           <tr><td>Poorly calibrated (GPTQ)</td><td>61.6</td><td>30.0</td><td>46.6</td><td>66.6</td><td>11.76</td></tr>
-          <tr><td>Re-calibrated on new data (GPTQ)</td><td><b>84.4</b></td><td>35.6</td><td>62.6</td><td>68.5</td><td>11.18</td></tr>
-          <tr class="ours"><td>Poorly calibrated + agent edits (WSP)</td><td>83.0</td><td><b>47.8</b></td><td><b>64.3</b></td><td><b>74.3</b></td><td><b>9.38</b></td></tr>
+          <tr><td>+ re-calibration (GPTQ)</td><td><b>84.4</b></td><td>35.6</td><td>62.6</td><td>68.5</td><td>11.18</td></tr>
+          <tr class="ours"><td>+ agent edits (WSP)</td><td>83.0</td><td><b>47.8</b></td><td><b>64.3</b></td><td><b>74.3</b></td><td><b>9.38</b></td></tr>
         </tbody>
       </table>
     </div>
@@ -319,7 +319,7 @@ footer a:hover { color: var(--accent); }
 
   <section id="next">
     <h2>Conclusion</h2>
-    <p>A broken quantized model does not always have to be fixed by changing the calibration data and quantizing again. In our experiment, a newly composed calibration set recovered MATH-500 and GPQA Diamond but still fell short on LiveCodeBench, MMLU and perplexity. An agent given the same data and the NVFP4 reference instead traced most of the damage to one matrix, worked out what GPTQ had got wrong, and repaired it by editing 0.0008% of the weights, with no training. Every benchmark improved, with LiveCodeBench rising from 30.0% to 47.8%. The edits only rewrite existing levels and scales, so the model keeps its size, format, and kernels.</p>
+    <p>A broken quantized model does not always have to be fixed by changing the calibration data and quantizing again. In our experiment, a newly composed calibration set recovered MATH-500 and GPQA Diamond but still fell short on LiveCodeBench, MMLU and perplexity. An agent given the same data and the NVFP4 reference instead traced most of the damage to one matrix, worked out what GPTQ had got wrong, and repaired it by editing 0.0008% of the weights, with no training. Every benchmark improved, with LiveCodeBench rising from 30.0% to 47.8%. The repaired checkpoint stays in the same 3-bit format, so it can still be loaded and run by the same inference code, at the same size and speed, with no extra code change required.</p>
     <p><b>Future work.</b> This post repairs one GPTQ checkpoint, but the approach does not depend on how the checkpoint was made. Other quantization methods, such as AWQ<sup><a href="#r6">6</a></sup>, may avoid the defect we found here and leave different errors of their own, so a natural next step is to give the agent an AWQ checkpoint and see whether it can improve that too. Another is to apply the same kind of diagnosis to stabilize quantization-aware training (QAT).</p>
     <p>In the longer term, we see this approach going much further, where agents, or swarms of agents, quantize trillion-parameter models through weight space programming, starting from the full-precision weights, instead of only repairing a checkpoint afterwards.</p>
   </section>
@@ -350,7 +350,7 @@ footer a:hover { color: var(--accent); }
 
   <footer>
     <span><b>{{SITE}}</b> · Abdelfattah Lab, Cornell University</span>
-    <span><span aria-hidden="true">🤗</span> Checkpoints on Hugging Face: <a href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-PoorlyCalibrated" target="_blank" rel="noopener">poorly calibrated + agent edits</a> · <a href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-WellCalibrated" target="_blank" rel="noopener">well-calibrated + agent edits</a>.</span>
+    <span><span aria-hidden="true">🤗</span> Checkpoint on Hugging Face: <a href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-PoorlyCalibrated" target="_blank" rel="noopener">poorly calibrated + agent edits</a>.</span>
     <span>Prompt and code on GitHub: <a href="https://github.com/yahya010/wsp-ptq" target="_blank" rel="noopener">wsp-ptq</a>.</span>
   </footer>
 </div>
