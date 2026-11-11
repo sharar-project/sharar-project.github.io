@@ -1,6 +1,6 @@
 <title>Repairing a Quantized LLM using Weight Space Programming</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="An LLM agent repairs a broken 3-bit checkpoint by editing its weights directly, with no calibration data.">
+<meta name="description" content="An LLM agent repairs a poorly calibrated 3-bit checkpoint by editing 0.0008% of its weights, without gradient updates.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap">
 <style>
 /* Same document layout as the Sharar paper post: one 1000px column on white, figures in soft gray panels, prose ~70ch. */
@@ -69,15 +69,8 @@ code { font-size: 0.88em; }
 .btn svg { width: 15px; height: 15px; }
 .btn .hf { font-size: 1.05rem; line-height: 1; }  /* Hugging Face mark on the checkpoint links */
 .intro { max-width: 70ch; margin: 8px auto 0; display: grid; gap: 1em; font-size: 1.1875rem; line-height: 1.55; text-wrap: pretty; }
+.lead { display: grid; gap: 16px; margin-top: 36px; }  /* the repair-loop figure under the intro */
 
-/* stats */
-.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 48px; text-align: center; }
-.stat { display: grid; gap: 6px; }
-.stat .big { font-family: var(--f-display); font-size: clamp(2.75rem, 6vw, 4rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums; }
-.stat .acc { color: var(--fix); }
-.stats.pair .big { font-size: clamp(2.2rem, 4.4vw, 3rem); }
-.stat .what { font-size: var(--step-0); color: var(--ink-2); }
-.stats-note { text-align: center; margin-top: 18px; }
 
 /* sections */
 section { padding-block: 44px 0; display: grid; gap: 16px; border-top: 1px solid var(--rule); margin-top: 44px; }
@@ -86,20 +79,13 @@ section > h3 { font-size: 1.25rem; margin-top: 18px; }
 section > p { max-width: 70ch; color: var(--ink); }
 section > .eyebrow + h2 { margin-top: -10px; }
 sup a { text-decoration: none; color: var(--accent); font-size: 0.8em; font-variant-numeric: tabular-nums; }
-.callout { border-left: 3px solid var(--accent); padding: 4px 0 4px 20px; display: grid; gap: 10px; max-width: 70ch; }
-.callout b { font-weight: 600; }
-.callout.brief { border-left-color: var(--fix); font-style: italic; color: var(--ink-2); }
 
 /* figure cards */
 .card { background: var(--surface); border-radius: var(--radius); padding: 26px; min-width: 0; }
-.card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .stack { display: grid; gap: 14px; }
 .figcap { font-size: 0.9375rem; color: var(--ink-2); line-height: 1.5; margin-top: -4px; max-width: 80ch; }
 .figcap b { color: var(--ink); font-weight: 600; }
 .sub { font-size: var(--step--1); color: var(--ink-2); font-weight: 600; }
-.seg { display: inline-flex; border-radius: 999px; padding: 2px; background: var(--sunk); flex-wrap: wrap; }
-.seg button { font: 500 0.78rem/1 var(--f-body); border: 0; background: none; color: var(--ink-2); padding: 7px 12px; border-radius: 999px; cursor: pointer; }
-.seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
 .chip { font: 500 0.78rem/1 var(--f-body); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink-2); cursor: pointer; white-space: nowrap; }
 .chip:hover { border-color: var(--ink-3); color: var(--ink); }
 .card svg:not(mjx-container svg) { display: block; width: 100%; height: auto; }  /* figures only: MathJax's own SVGs keep their size */
@@ -116,12 +102,6 @@ sup a { text-decoration: none; color: var(--accent); font-size: 0.8em; font-vari
 .plate.sq { max-width: 600px; margin: 0 auto; }
 canvas.sc { display: block; width: min(360px, 100%); height: auto; margin: 0 auto; background: var(--bg); border-radius: 12px; }
 
-/* pipeline */
-.flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
-.flow .box { flex: 1 1 140px; min-width: 0; border-radius: 12px; padding: 14px 16px; background: var(--bg); display: grid; gap: 4px; align-content: start; }
-.flow .box b { font-family: var(--f-display); font-size: 1rem; font-weight: 600; }
-.flow .box span { font-size: 0.8125rem; color: var(--ink-2); }
-.flow .arr { align-self: center; color: var(--ink-3); }
 
 /* equations: LaTeX, typeset by MathJax (inline \( \), display \[ \]) */
 .math { background: var(--surface); border-radius: var(--radius); padding: 16px 26px; max-width: 100%; overflow-x: auto; color: var(--ink); font-size: 1.12rem; }
@@ -134,7 +114,7 @@ details.fold > summary { list-style: none; cursor: pointer; display: inline-flex
 details.fold > summary::-webkit-details-marker { display: none; }
 details.fold > summary:hover { border-color: var(--ink-3); }
 .fold-hint::before { content: "▸"; display: inline-block; margin-right: 8px; color: var(--accent); transition: transform .15s; }
-.fold-hint::after { content: "Click to expand the five steps"; }
+.fold-hint::after { content: "Click to expand the case study"; }
 details.fold[open] > summary .fold-hint::before { transform: rotate(90deg); }
 details.fold[open] > summary .fold-hint::after { content: "Click to collapse"; }
 .fold-body { display: grid; gap: 16px; margin-top: 22px; }
@@ -155,12 +135,11 @@ table.acc { border-collapse: collapse; width: 100%; min-width: 760px; font-varia
 table.acc th { font: 600 0.8rem var(--f-body); color: var(--ink-3); text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--ink); vertical-align: bottom; }
 table.acc td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
 table.acc td:first-child, table.acc th:first-child { text-align: left; }
-table.acc td i { font-style: normal; font-size: 0.72rem; color: var(--ink-3); margin-left: 5px; }
 table.acc tr.ref td { color: var(--ink-2); }
-table.acc tr.ours td { color: var(--ink); font-weight: 600; background: var(--fix-soft); border-bottom-color: var(--fix-soft); }
+table.acc td b { font-weight: 700; }  /* the best 3-bit score in a column */
+table.acc tr.ours td { color: var(--ink); background: var(--fix-soft); border-bottom-color: var(--fix-soft); }
 table.acc tr.ours td:first-child { border-radius: 8px 0 0 8px; box-shadow: inset 3px 0 0 var(--fix); }
 table.acc tr.ours td:last-child { border-radius: 0 8px 8px 0; }
-table.acc tr.ours td i { color: #8a3a47; font-weight: 400; }
 
 /* end matter */
 pre.code { background: var(--surface); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font: 0.86rem/1.65 var(--f-mono); color: var(--ink); margin: 0; }
@@ -175,12 +154,8 @@ footer a:hover { color: var(--accent); }
 
 @media (max-width: 760px) {
   .two { grid-template-columns: minmax(0, 1fr); }
-  .stats { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .card { padding: 16px; }
     .nav-links { gap: 16px; } .nav-inner { gap: 14px; }
-  .flow { flex-direction: column; }
-  .flow .box { flex: none; }
-  .flow .arr { transform: rotate(90deg); line-height: 1; }
 }
 @media (max-width: 600px) {
   .eqrow { height: auto; display: flex; flex-direction: column; gap: 6px; align-items: center; }
@@ -209,106 +184,59 @@ footer a:hover { color: var(--accent); }
       <a class="btn" href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-PoorlyCalibrated" target="_blank" rel="noopener">
         <span class="hf" aria-hidden="true">🤗</span>
         Poorly calibrated + edits</a>
-      <a class="btn" href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-WellCalibrated" target="_blank" rel="noopener">
-        <span class="hf" aria-hidden="true">🤗</span>
-        Well-calibrated + edits</a>
       <a class="btn" href="https://github.com/yahya010/wsp-ptq" target="_blank" rel="noopener">Code</a>
       <a class="btn" href="#bibtex">BibTeX</a>
     </div>
   </header>
 
   <div class="intro">
-    <p>We quantize models all the time to get them to fit the hardware we have. The usual routine is to take a high-precision checkpoint, squeeze it down to a few bits per weight, watch some benchmark fall off a cliff, then spend time updating the calibration set and checking divergence in distributions until we recover most of what we lost. It works, in the way that shaking a watch sometimes fixes it.</p>
-    <p>So we tried something more direct, inspired by <a href="https://rikiyat.github.io/blog/weight-space-programming/" target="_blank" rel="noopener">weight-space programming</a> (wsp). We handed a broken 3-bit checkpoint to an LLM agent, gave it a Python session with the weights loaded, and asked it to find what went wrong and fix it by editing the weights directly. On <code>Nemotron-3.5-Lightning-30B-A3B</code> it found two broken matrices and edited a tiny fraction of the weights. The outcome is pretty impressive, as the agent closed most of the accuracy gap between the poorly calibrated checkpoint and the NVFP4 release!</p>
+    <p>We quantize language models to fit them on the hardware we have. At 3 bits per weight, the memory savings can come with a substantial drop in accuracy. One way to recover that accuracy is to change the calibration data and quantize the model again. We tested whether an LLM agent could repair the existing checkpoint directly.</p>
+    <p>Inspired by <a href="https://rikiyat.github.io/blog/weight-space-programming/" target="_blank" rel="noopener">weight-space programming</a> (WSP)<sup><a href="#r3">3</a></sup>, we gave an agent, Claude Opus 5.5, a Python session with two checkpoints of <code>Nemotron-3.5-Lightning-30B-A3B</code>: a poorly calibrated 3-bit GPTQ<sup><a href="#r1">1</a></sup> checkpoint, whose calibration set was small and narrow, and NVIDIA's 4-bit NVFP4<sup><a href="#r2">2</a></sup> release as a reference. The agent traced the quantization errors to two matrices and edited 0.0008% of the model's weights without gradient updates. On LiveCodeBench v6, the repair raised the score from 30.0% to 47.8%. Rerunning GPTQ with the agent's validation data as the calibration set reached only 35.6%.</p>
+    <p>The agent ran both checkpoints on a small validation set<sup><a href="#n2">†</a></sup> and compared their next-token predictions. It used those differences to guide its inspection of the weights and activations, then proposed and tested edits within the 3-bit format. It kept edits that improved its validation scores. Once the repair was complete, we evaluated the resulting checkpoint on held-out benchmarks.</p>
+    <p class="note" id="n2">† The validation data is published as <a href="https://huggingface.co/datasets/yemara/wsp-agent-data" target="_blank" rel="noopener">wsp-agent-data</a>. It holds about 370K tokens, made up of the NVFP4 model's own answers to 256 <a href="https://huggingface.co/datasets/openai/gsm8k" target="_blank" rel="noopener">GSM8K</a> training questions, the <a href="https://huggingface.co/datasets/Salesforce/wikitext" target="_blank" rel="noopener">WikiText-2</a> validation split in 259 windows of 1,024 tokens, the 1,816 questions of the <a href="https://huggingface.co/datasets/cais/mmlu" target="_blank" rel="noopener">MMLU</a> validation and development splits, and 1,000 further GSM8K training questions. The agent also measured KL on 32 code files, which are not in the published set. We use the same data as the new calibration set in the results below.</p>
   </div>
 
-  <div class="stats pair">
-    <div class="stat"><div class="big num">71.4 → <span class="acc">91.6</span></div><div class="what">GSM8K, poorly calibrated 3-bit</div></div>
-    <div class="stat"><div class="big num">30.8 → <span class="acc">48.6</span></div><div class="what">LiveCodeBench v6</div></div>
-    <div class="stat"><div class="big num">0.0008%</div><div class="what">of weights edited</div></div>
-  </div>
-  <p class="cap stats-note">Nemotron-3.5-Lightning-30B-A3B, 3-bit GPTQ checkpoint before and after the agent's edits.</p>
-
-  <section id="background">
-    <h2>How quantization usually works</h2>
-    <p>The standard recipe is calibration plus post-training quantization (PTQ). You run a small calibration set through the model, then apply a method like GPTQ<sup><a href="#r1">1</a></sup> to actually round and encode the weights onto the quantization grid.</p>
-    <div class="card">
-      <div class="flow">
-        <div class="box"><b>Source model</b><span>BF16 or NVFP4</span></div><div class="arr" aria-hidden="true">→</div>
-        <div class="box"><b>Calibration</b><span>~100 text sequences → layer activations</span></div><div class="arr" aria-hidden="true">→</div>
-        <div class="box"><b>PTQ</b><span>GPTQ, AWQ, …</span></div><div class="arr" aria-hidden="true">→</div>
-        <div class="box"><b>Low-bit model</b><span>2–4 bits, lossy</span></div>
-      </div>
-    </div>
-    <p class="figcap"><b>The usual quantization pipeline.</b></p>
-  </section>
-
-  <section id="lessons">
-    <h2>Some bitter lessons</h2>
-    <p>If you have pushed PTQ to aggressive bit widths, you have probably run into all three of these:</p>
-    <div class="callout">
-      <p><b>Calibration data matters way more than it should.</b> The result depends heavily on what goes into the calibration set: which domains, in what proportions, and at what sample lengths. Choosing these is mostly trial and error. A mix that improves math can make code worse, and you only find out after quantizing and evaluating.</p>
-      <p><b>Low bit widths leave a gap.</b> At 3 bits and below, even good methods fall short of the source model, and some tasks lose far more than others.</p>
-      <p><b>Often you don't have the recipe.</b> When PTQ falls short like this, the most common remedy is quantization-aware distillation (QAD)<sup><a href="#r2">2</a></sup>, which is extra fine-tuning on the pre-training corpus so that the weights adapt and recover the accuracy that quantization lost. But if all you get is a released checkpoint, you don't know what the mixture of the pre-training data is.</p>
-    </div>
-    <p>PTQ and QAD have the same limit. When the quantized model comes out broken, all you can really change is the data, and neither method looks at which weights actually went wrong.</p>
-  </section>
-
-  <section id="idea">
-    <h2>What if the LLM fixes the model itself?</h2>
-    <p>Our starting point is <a href="https://rikiyat.github.io/blog/weight-space-programming/" target="_blank" rel="noopener">Sparks of Weight-Space Programming</a><sup><a href="#r3">3</a></sup>, by Takehi et al. In their Experiment 8, an agent makes Qwen3.5-0.8B much better by fixing its repeated loops while reasoning. The agent does so by editing a small fraction of the weights, with no gradients and no training loop.</p>
-    <p>Repairing a quantized checkpoint looked like a natural fit for weight-space programming. The big advantage of this task is that we know what every weight is <i>supposed</i> to be, because we have the higher-precision source to compare against. We gave the agent (Claude Opus 5.5) this instruction:</p>
-    <div class="callout brief"><p>This 3-bit checkpoint should behave like the NVFP4 model. Find what is broken and fix it inside the 3-bit format. You may run the model and read its weights and activations; you may not fit weights to data directly (no training).</p></div>
-    <p>That is only the task section of the prompt. The full version, with the rules, the repair loop and the evaluation harness the agent uses, is in <code>program.md</code> in the <a href="https://github.com/yahya010/wsp-ptq" target="_blank" rel="noopener">wsp-ptq repository</a>.</p>
-    <p><b>The hero run.</b> We have the agent start from the quantized 3-bit checkpoint and provide the NVFP4 weights as its reference. The reference tells the agent what the 3-bit model is supposed to be, so the agent can see where the 3-bit model went wrong and what to repair it toward. We also give it a set of validation data, which it uses to measure how far the 3-bit model is from NVFP4 and to record the activations inside the model. We prompt the agent to drive the optimization loop. In each loop, the agent runs both models on the validation data to see where their next-token predictions differ, tracks the difference down to specific weights, works out why those weights went wrong, and edits them. It keeps an edit only if the 3-bit model then scores better on the validation data. When no further edit helps, we evaluate the final model once on the test sets, which the agent never sees before this final evaluation.</p>
+  <div class="lead">
     <div class="card">
       <svg id="loop" viewBox="0 0 900 150" role="img" aria-label="The repair loop: measure, localize, read and edit, keep or revert, repeat"></svg>
     </div>
-    <p class="figcap"><b>The repair loop.</b> The agent edits the 3-bit weights directly. After each edit it scores the model on validation data: KL divergence to NVFP4 on held-out chat math, code and prose, plus perplexity, MMLU-val, GSM8K-dev, and how well it predicts NVFP4's own answers. If the scores improve and nothing regresses, it keeps the edit; otherwise it reverts the edit. It never sees the test sets.</p>
-  </section>
+    <p class="figcap"><b>The repair loop.</b> After each edit the agent scores the model on validation data: KL divergence to NVFP4 on chat math, code, and prose, plus perplexity, MMLU-val, 1,000 GSM8K training questions, and how well it predicts NVFP4's own answers. The agent runs a greedy search, in which an edit stays only if the scores improve and nothing regresses.</p>
+  </div>
 
   <section id="results">
     <h2>Results</h2>
-    <p>We use Nemotron-3.5-Lightning-30B-A3B as our experiment target. We made two 3-bit checkpoints of it with GPTQ<sup><a href="#n1">*</a></sup>, a <b>poorly calibrated</b> one and a <b>well-calibrated</b> one, and gave the agent the same instruction on each. Each was evaluated on the test sets once before the agent's edits and once after.</p>
+    <p>We started from the poorly calibrated 3-bit checkpoint<sup><a href="#n1">*</a></sup>, which scored well below NVIDIA's NVFP4 release, and compared two ways to recover the lost accuracy. In the first, we reran GPTQ, starting from the weights of the 3-bit checkpoint, with the validation set<sup><a href="#n2">†</a></sup> as the new calibration set. In the second, the agent repaired the existing checkpoint, with NVFP4 as its reference and the validation set to check its edits. We evaluated all four checkpoints on the same held-out benchmarks.</p>
     <div class="card tablewrap">
       <table class="acc">
-        <thead><tr><th>Checkpoint</th><th>Weights edited</th><th>GSM8K</th><th>MATH-500</th><th>LiveCodeBench v6</th><th>GPQA Diamond</th><th>MMLU</th><th>WikiText-2 PPL</th></tr></thead>
+        <thead><tr><th>Checkpoint</th><th>MATH-500 ↑</th><th>LiveCodeBench v6 ↑</th><th>GPQA Diamond ↑</th><th>MMLU ↑</th><th>WikiText-2 PPL ↓</th></tr></thead>
         <tbody>
-          <tr class="ref"><td>NVFP4 release</td><td>–</td><td>95.0</td><td>88.8</td><td>55.2</td><td>71.1</td><td>77.1</td><td>8.08</td></tr>
-          <tr><td>Poorly calibrated 3-bit</td><td>–</td><td>71.4</td><td>60.8</td><td>30.8</td><td>47.1</td><td>66.8</td><td>11.76</td></tr>
-          <tr class="ours"><td>+ agent edits</td><td>0.0008%</td><td>91.6<i>+20.2</i></td><td>82.2<i>+21.4</i></td><td>48.6<i>+17.8</i></td><td>62.6<i>+15.5</i></td><td>74.3<i>+7.5</i></td><td>9.39<i>−2.37</i></td></tr>
-          <tr><td>Well-calibrated 3-bit</td><td>–</td><td>91.6</td><td>80.8</td><td>39.2</td><td>59.6</td><td>67.2</td><td>11.15</td></tr>
-          <tr class="ours"><td>+ agent edits</td><td>0.001%</td><td>92.1<i>+0.5</i></td><td>84.6<i>+3.8</i></td><td>41.2<i>+2.0</i></td><td>63.0<i>+3.4</i></td><td>74.1<i>+6.9</i></td><td>8.87<i>−2.28</i></td></tr>
+          <tr class="ref"><td><code>NVFP4</code> release</td><td>88.0</td><td>55.6</td><td>72.1</td><td>77.0</td><td>8.08</td></tr>
+          <tr><td>Poorly calibrated 3-bit</td><td>61.6</td><td>30.0</td><td>46.6</td><td>66.6</td><td>11.76</td></tr>
+          <tr><td>Re-calibrated on new data (GPTQ)</td><td><b>84.4</b></td><td>35.6</td><td>62.6</td><td>68.5</td><td>11.18</td></tr>
+          <tr class="ours"><td>Poorly calibrated + agent edits (WSP)</td><td>83.0</td><td><b>47.8</b></td><td><b>64.3</b></td><td><b>74.3</b></td><td><b>9.38</b></td></tr>
         </tbody>
       </table>
     </div>
-    <p class="figcap"><b>The agent's edits improve both checkpoints on every benchmark.</b> GSM8K and MATH-500 greedy, thinking off. LiveCodeBench (131 problems from 2025-02 on) and GPQA Diamond: thinking on, 3 and 4 samples, 32K tokens. MMLU 0-shot. WikiText-2 perplexity, lower is better. Small numbers are the change from the same checkpoint before the edits. 3-bit weights dequantized to BF16 in vLLM, on one GPU (GSM8K on these checkpoints shifts with the number of GPUs).</p>
-    <p>The table shows that the edits improve both checkpoints on every benchmark. The poorly calibrated checkpoint gains the most, with GSM8K rising from 71.4 to 91.6 and LiveCodeBench from 30.8 to 48.6. After the edits, this checkpoint matches or outperforms the unedited well-calibrated checkpoint on all six benchmarks. On the well-calibrated checkpoint, the gains are concentrated in MMLU (67.2 to 74.1) and perplexity (11.15 to 8.87), while the four generation benchmarks improve by 0.5 to 3.8 points.</p>
-    <p>The edits could raise a benchmark score in two different ways. A damaged checkpoint can keep generating until it reaches the token limit, and a sample that is cut off this way almost never counts as correct, so one way is simply that more samples now finish. The other is that the answers themselves get better among the samples that do finish. The figure below splits each benchmark's gain into these two parts, and most of it comes from better answers.</p>
+    <p class="figcap"><b>The agent's edits improve every benchmark; re-calibration recovers MATH-500 and GPQA Diamond but little else.</b> MATH-500: greedy decoding, thinking off. LiveCodeBench v6 (131 problems from 2025-02 on) and GPQA Diamond: thinking on, 32K-token limit, averaged over 3 and 4 samples respectively. MMLU: test split, 0-shot. WikiText-2: perplexity on the test split. Arrows show which direction is better. Bold marks the best 3-bit score in each column; the gaps on MATH-500 (7 questions) and GPQA Diamond (1.7 points) are small.</p>
+    <p>Both approaches use the same validation data, so the last two rows of the table differ in how the data is used, and in the agent also having NVFP4 as a reference. Re-calibration gives the data to GPTQ as a new calibration set and quantizes the whole model again, which helps, but unevenly. It recovers MATH-500 (84.4%, against 83.0% for the repaired checkpoint) and GPQA Diamond (62.6% against 64.3%), but it reaches only 35.6% on LiveCodeBench, 68.5% on MMLU and 11.18 in perplexity, close to where the poorly calibrated checkpoint started.</p>
+    <p>The agent uses the same data to find where the 3-bit model differs from NVFP4 and to check each edit. The agent's repair improves every benchmark while editing only 0.0008% of the weights. It matches re-calibration on MATH-500 and GPQA Diamond and is well ahead on the other three: LiveCodeBench rises from 30.0% to 47.8%, MMLU from 66.6% to 74.3%, and perplexity drops from 11.76 to 9.38. The reference makes this possible, because the agent can compare the 3-bit weights and activations with NVFP4 and repair the specific weights that went wrong, instead of relying on a different mix of data to fix them.</p>
+    <p>The edits can raise a score in two ways. First, more samples can finish: on the benchmarks run with thinking on, a quantized model sometimes falls into a reasoning loop that runs until the token limit, and such a sample almost never counts as correct. Second, the answers can get better among the samples that do finish. The figure below splits each benchmark's improvement into these two parts, and most of it comes from better answers.</p>
     <div class="card stack">
-      <div class="card-head">
-        <div class="seg" role="group" aria-label="Checkpoint">
-          <button type="button" id="cap-poor" aria-pressed="true">Poorly calibrated + agent edits</button>
-          <button type="button" id="cap-well" aria-pressed="false">Well-calibrated + agent edits</button>
-        </div>
-      </div>
-      <svg id="caps" viewBox="0 0 900 280" role="img" aria-label="Gain split into finishing and better answers"></svg>
+      <svg id="caps" viewBox="0 0 900 280" role="img" aria-label="Accuracy points gained on MATH-500, LiveCodeBench and GPQA Diamond, split into finishing and better answers"></svg>
       <div class="legend"><span><i class="key" style="background:var(--muted)"></i>from finishing within the token limit</span><span><i class="key" style="background:var(--fix)"></i>from better answers</span></div>
     </div>
-    <p class="figcap"><b>Mostly better answers.</b> Accuracy points gained by the agent's edits on each generation benchmark, split into samples that now finish within the token limit and better answers among samples that finish.</p>
+    <p class="figcap"><b>Mostly better answers.</b> Accuracy points gained by the agent's edits on the poorly calibrated checkpoint, split into samples that now finish within the token limit and better answers among samples that finish.</p>
   </section>
 
   <section id="case-study">
     <p class="eyebrow">Case study</p>
     <h2>How does the agent get to the fix?</h2>
-    <p><b>In short.</b> One matrix has an input that is huge on the first few tokens, and this input amplifies the quantization error of the weights it multiplies into a large error in the matrix's output. GPTQ had hidden most of that error on its calibration text, by adjusting other weights to cancel it. Fix 1 stores the weights that the huge input multiplies almost exactly, so GPTQ's adjustments are left with nothing to cancel and become errors themselves, which is why fix 2 then undoes them.</p>
+    <p>The agent first locates the error and finds that one matrix holds most of the damage. The cause is that one input to this matrix is huge on the first few tokens, while the stored values of the weights it multiplies are much larger than they should be, so the input turns this storage error into a large error in the matrix's output. Fix 1 gives these weights a new scale, so that they are stored almost exactly. GPTQ had adjusted other weights to cancel the old error, and after fix 1 these adjustments have nothing left to cancel, so fix 2 removes them. The last section shows how each fix changes the error.</p>
     <details class="fold" id="case-study-steps">
-    <summary><span class="fold-hint" aria-hidden="true"></span><span class="sr-only">The five steps</span></summary>
+    <summary><span class="fold-hint" aria-hidden="true"></span><span class="sr-only">The case study</span></summary>
     <div class="fold-body">
-    <p>The five steps below describe what the agent did on the well-calibrated checkpoint, which is where it first found the defect. It later repaired the poorly calibrated checkpoint with the same two fixes.</p>
-
-    <h3>1. Error location: One matrix holds most of the damage</h3>
-    <p>The agent began by measuring how far the 3-bit model's next-token predictions are from NVFP4's, as KL divergence on held-out chat math, code and prose. It then restored quantized matrices to their NVFP4 values and checked how much of that gap went away, first for one kind of matrix across all layers, then for one matrix at a time.</p>
+    <h3>Error location: one matrix holds most of the damage</h3>
+    <p>The agent began by measuring how far the 3-bit model's next-token predictions are from NVFP4's, as KL divergence on held-out chat math, code and prose. It then restored quantized matrices to their NVFP4 values and checked how much of that gap went away. In a first pass, it restored all matrices of one kind at once, such as every Mamba output projection in the model, to see which kind of matrix matters most. In a second pass, it restored the matrices of that kind one layer at a time, to find the single matrix that matters most.</p>
     <div class="card stack">
       <div class="two">
         <div class="stack" style="gap:8px"><p class="sub">One kind of matrix at a time, all layers</p><svg id="s1a" viewBox="0 0 460 170" role="img" aria-label="Share of the KL gap removed by restoring each kind of matrix"></svg></div>
@@ -316,10 +244,10 @@ footer a:hover { color: var(--accent); }
       </div>
       <div class="legend"><span><i class="key" style="background:var(--muted)"></i>chat math</span><span><i class="key" style="background:var(--deep)"></i>code</span><span><i class="key" style="background:var(--fix)"></i>prose</span></div>
     </div>
-    <p class="figcap"><b>Share of the KL gap removed by restoring matrices to NVFP4.</b> The number on each bar is the prose share. Shares can add up to more than 100%, because errors in different parts of the model interact.</p>
+    <p class="figcap"><b>Share of the KL gap removed by restoring matrices to NVFP4.</b> Each group of bars shows the share for chat math, code and prose, and the number printed next to it is the share for prose. Shares can add up to more than 100%, because errors in different parts of the model interact.</p>
     <p>The matrix that stands out is the Mamba output projection (<code>out_proj</code>) in layer 4, because restoring it alone removes about two thirds of the code and prose gap.</p>
 
-    <h3>2. The cause: a huge input times badly stored weights</h3>
+    <h3>The cause: a huge input times badly stored weights</h3>
     <p>To see why this one matrix does so much damage, it helps to first look at what it computes. It is a linear layer that multiplies its input \(\mathbf{X}\) by its weights \(\mathbf{W}\) to produce its output, \(\mathbf{Y} = \mathbf{X}\mathbf{W}\). Each input channel is a column of \(\mathbf{X}\) and is multiplied by its own row of \(\mathbf{W}\), and each column of \(\mathbf{W}\) produces one output channel of \(\mathbf{Y}\).</p>
     <p>To find out what this input looks like in practice, the agent ran the NVFP4 model on a few dozen held-out sequences of chat math and prose and recorded \(\mathbf{X}\). One input channel turned out to be huge on the first three tokens, with values around 50, where a typical channel stays below 0.01. We call this channel the <b>outlier input</b>, channel \(k\), and the row of \(\mathbf{W}\) it multiplies <b>row \(k\)</b>. Huge values on the first tokens are common in language models, where they are known as massive activations<sup><a href="#r4">4</a></sup> and are linked to attention sinks<sup><a href="#r5">5</a></sup>.</p>
     <div class="card">
@@ -328,7 +256,7 @@ footer a:hover { color: var(--accent); }
     <p class="figcap"><b>The input \(\mathbf{X}\) to layer 4's Mamba out_proj, channel × token.</b> Mean \(|x|\) over the held-out sequences, first 64 tokens, log scale.</p>
     <p>A huge input would be harmless if the weights were stored exactly, but quantization always leaves a small error in each weight, because the stored weight \(\hat w\) differs from the NVFP4 weight \(w\) by \(\hat w - w\). When the matrix is applied, this error is multiplied by the weight's input \(x\), so what reaches \(\mathbf{Y}\) is:</p>
     <div class="math">\[ \text{one weight's error in } \mathbf{Y} = (\hat w - w)\cdot x \]</div>
-    <p>For most weights, the input they are multiplied by is small, so their error barely shows in \(\mathbf{Y}\). Row \(k\) is different, because its weights are multiplied by the outlier input, so on the first tokens even a small weight error becomes a large error in \(\mathbf{Y}\). Row \(k\)'s weights are also stored worse than most weights, because they are much smaller than the other weights that share their scale, so the format rounds them up to values far larger than they should be, as step 3 explains.</p>
+    <p>For most weights, the input they are multiplied by is small, so their error barely shows in \(\mathbf{Y}\). Row \(k\) is different, because its weights are multiplied by the outlier input, so on the first tokens even a small weight error becomes a large error in \(\mathbf{Y}\). Row \(k\)'s weights are also stored worse than most weights, because they are much smaller than the other weights that share their scale, so the format rounds them up to values far larger than they should be, as the section on fix 1 explains.</p>
     <div class="card stack">
       <div class="narrow"><svg id="xwy" viewBox="0 0 640 290" role="img" aria-label="X times W equals Y: the outlier input's column in X, row k of W that it multiplies, and the first three tokens of Y are highlighted"></svg></div>
       <div class="legend center"><span><i class="key" style="background:var(--damage)"></i>outlier input</span><span><i class="key" style="background:transparent;outline:2px solid var(--damage);outline-offset:-2px"></i>row \(k\), the row of \(\mathbf{W}\) it multiplies</span><span><i class="key" style="background:repeating-linear-gradient(45deg,var(--damage) 0 2px,transparent 2px 5px)"></i>error in \(\mathbf{Y}\): row \(k\)'s weight error times the outlier input</span></div>
@@ -336,18 +264,12 @@ footer a:hover { color: var(--accent); }
     <p class="figcap"><b>How one input channel amplifies weight error.</b> On the first three tokens, row \(k\)'s small weight errors are multiplied by the outlier input, so they show up in every output channel of \(\mathbf{Y}\).</p>
     <p><b>MSE in \(\mathbf{Y}\).</b> To find which weights cause the damage, the agent measured each weight's <b>MSE in \(\mathbf{Y}\)</b>, which is the weight's error in \(\mathbf{Y}\) (the equation above), squared and averaged over the recorded tokens:</p>
     <div class="math">\[ \text{MSE in } \mathbf{Y} = \text{mean}\Big[\big((\hat w - w)\cdot x\big)^2\Big] = (\hat w - w)^2 \cdot \text{mean}\big(x^2\big) \]</div>
-    <p>The two forms are equal because \(\hat w - w\) is the same on every token. So a weight's MSE in \(\mathbf{Y}\) is large only if the weight is stored wrong <i>and</i> its input is large. A row's MSE in \(\mathbf{Y}\) is the sum over its weights. This measure has one caveat that matters in step 4, namely that each weight is measured as if it were the only wrong one, so the measure cannot see errors from different weights cancelling each other.</p>
+    <p>The two forms are equal because \(\hat w - w\) is the same on every token. So a weight's MSE in \(\mathbf{Y}\) is large only if the weight is stored wrong <i>and</i> its input is large. A row's MSE in \(\mathbf{Y}\) is the sum over its weights. This measure has one caveat that matters for fix 2, namely that each weight is measured as if it were the only wrong one, so the measure cannot see errors from different weights cancelling each other.</p>
     <p>Measured this way, row \(k\) alone holds most of the matrix's total MSE in \(\mathbf{Y}\), far more than any other row.</p>
     <p>In short, the defect is that the outlier input multiplies weights whose stored values are much larger than the weights themselves, because the format has no level as small as these weights.</p>
 
-    <h3>3. Fix 1: Choose the scale so row \(k\)'s weight fits</h3>
-    <p>Each group of 32 weights in a column of \(\mathbf{W}\) shares one scale \(\Delta\), and each weight is stored as one of 8 levels, \(\pm c_1\Delta, \dots, \pm c_4\Delta\). GPTQ sets \(\Delta\) to fit the group's largest weights, which leads to a large rounding error on row \(k\)'s weight, because even the smallest level, \(c_1\Delta\), is far larger than this weight. For the basics of scales and levels, see <a href="https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-quantization" target="_blank" rel="noopener">A Visual Guide to Quantization</a><sup><a href="#r6">6</a></sup>.</p>
-    <div class="card stack">
-      <div class="narrow"><svg id="wgrid" viewBox="0 0 720 292" role="img" aria-label="The eight levels of one group on a number line, under GPTQ's scale and under fix 1's smaller scale. Under GPTQ's scale a large weight sits next to a level, but row k's weight is near zero and is rounded up to the smallest level. Under fix 1's scale a level lands on row k's weight, and the large weight is clipped to the largest level."></svg></div>
-    </div>
-    <p class="figcap"><b>The levels of one group under each scale.</b> Illustration. (a) GPTQ's \(\Delta\) fits the large weight, but the closest level to row \(k\)'s weight is \(c_1\Delta\), which leaves a large rounding error. (b) Fix 1's smaller \(\Delta\) puts a level on row \(k\)'s weight, and the large weight is clipped to the largest level, \(c_4\Delta\).</p>
-    <p><b>Fix 1</b> touches only the groups that contain a weight of row \(k\), which is one group per output channel. For each of them, it tries the four scales \(\Delta = |w| / c_i\) that store row \(k\)'s weight \(w\) exactly, keeps the scale that rounds the rest of the group closest to the group's NVFP4 values, and re-rounds the group under that scale.</p>
-    <p>Scales are stored in 8 bits, so \(\Delta\) itself gets rounded and row \(k\)'s stored value ends up slightly off. Even so, the stored value is now almost equal to row \(k\)'s weight, instead of much larger than it.</p>
+    <h3>Fix 1: Choose the scale so row \(k\)'s error is minimized</h3>
+    <p>Each group of 32 weights in a column of \(\mathbf{W}\) shares one scale \(\Delta\), and each weight is stored as one of 8 levels, \(\pm c_1\Delta, \dots, \pm c_4\Delta\). GPTQ sets \(\Delta\) to fit the group's largest weights, which leads to a large rounding error on row \(k\)'s weight, because even the smallest level, \(c_1\Delta\), is far larger than this weight.</p>
     <div class="card stack">
       <div class="narrow">
         <svg id="wfix1" viewBox="0 0 720 304" role="img" aria-label="W under GPTQ and after fix 1: in every output channel, the group that contains row k's weight gets a new scale, so that weight lands on a level"></svg>
@@ -356,11 +278,16 @@ footer a:hover { color: var(--accent); }
       <div class="legend"><span><i class="key" style="background:var(--damage)"></i>row \(k\): rounded up to the smallest level</span><span><i class="key" style="background:var(--fix)"></i>row \(k\) after fix 1: on a level, slightly off</span><span><i class="key" style="background:repeating-linear-gradient(45deg,var(--muted) 0 2px,transparent 2px 5px)"></i>rest of the group: largest weights clipped</span><span><i class="key" style="background:transparent;outline:2px dashed var(--fix);outline-offset:-2px"></i>group with a new \(\Delta\)</span></div>
     </div>
     <p class="figcap"><b>What fix 1 changes in \(\mathbf{W}\).</b> Rows are input channels, columns output channels. Fix 1 gives a new \(\Delta\) to one group per output channel, namely the group that holds row \(k\)'s weight.</p>
-    <p>The fix results in a smaller \(\Delta\), which leads to a larger clipping error on the other weights in the group. However, this cost is acceptable, because those weights have relatively small inputs, which limits their impact on the final output \(\mathbf{Y}\).</p>
-    <p class="note"><b>Note.</b> Fix 1 uses the same idea as AWQ<sup><a href="#r7">7</a></sup>: a weight that multiplies a large input matters most, so it should be stored well. AWQ builds this in before quantizing, by rescaling input channels using calibration data. The agent arrived at it on its own, after GPTQ had already run, using only the inputs it recorded in step 2 and the NVFP4 weights.</p>
+    <p><b>Fix 1</b> targets the groups that contain a weight of row \(k\), which is one group per output channel. For each of them, it tries the four scales \(\Delta = |w| / c_i\) under which row \(k\)'s weight \(w\) falls exactly on a level, and it rounds the rest of the group to the nearest levels under each scale. The format stores each scale in 8 bits, so each of the four scales is itself rounded, and row \(k\)'s stored weight ends up slightly off \(w\). Fix 1 keeps the scale under which this stored weight is closest to \(w\).</p>
+    <div class="card stack">
+      <div class="narrow"><svg id="wgrid" viewBox="0 0 720 292" role="img" aria-label="The eight levels of one group on a number line, under GPTQ's scale and under fix 1's smaller scale. Under GPTQ's scale a large weight sits next to a level, but row k's weight is near zero and is rounded up to the smallest level. Under fix 1's scale a level lands on row k's weight, and the large weight is clipped to the largest level."></svg></div>
+    </div>
+    <p class="figcap"><b>The levels of one group under each scale.</b> Illustration. (a) GPTQ's \(\Delta\) fits the large weight, but the closest level to row \(k\)'s weight is \(c_1\Delta\), which leaves a large rounding error. (b) Fix 1's smaller \(\Delta\) puts a level on row \(k\)'s weight, and the large weight is clipped to the largest level, \(c_4\Delta\).</p>
+    <p>The fix results in a smaller \(\Delta\), which leads to a larger clipping error on the other weights in the group. However, this cost is acceptable, because the trade-off between rounding error and clipping error depends on the input that each weight multiplies. The other weights have relatively small inputs, which limits their impact on the final output \(\mathbf{Y}\), while row \(k\)'s weight multiplies the outlier input and has to be stored well. Fix 1 therefore treats the groups differently, adjusting the scale in the groups that contain a weight of row \(k\) and leaving the scale of every other group as GPTQ set it.</p>
+    <p class="note"><b>Connection to AWQ.</b> The agent's first fix follows a principle already used in AWQ<sup><a href="#r6">6</a></sup>: a weight multiplied by a large input needs to be stored accurately. AWQ applies this principle while it quantizes a full-precision model, whereas the agent arrived at it while investigating a checkpoint that GPTQ had already quantized. The principle itself is not new, and what this post shows is that the agent identified the problem and arrived at a suitable repair through its own inspection of the weights and activations.</p>
 
-    <h3>4. Fix 2: Remove GPTQ's compensation</h3>
-    <p><b>GPTQ's compensation.</b> GPTQ quantizes \(\mathbf{W}\) one row at a time. After each row, GPTQ adjusts the rows it has not yet quantized, so that on its calibration text these rows cancel as much as possible of the error it just made in \(\mathbf{Y}\). For most rows these adjustments are small, but row \(k\)'s error in \(\mathbf{Y}\) is large because of the outlier input, so GPTQ compensated for most of it by making large adjustments to some of the rows after row \(k\). We call these rows the <b>compensating rows</b>, and the adjustments their <b>compensation</b>.</p>
+    <h3>Fix 2: Remove GPTQ's compensation</h3>
+    <p><b>GPTQ's compensation.</b> GPTQ quantizes \(\mathbf{W}\) one row at a time. After each row, GPTQ adjusts the rows it has not yet quantized, so that on its calibration set these rows cancel as much as possible of the error it just made in \(\mathbf{Y}\). For most rows these adjustments are small, but row \(k\)'s error in \(\mathbf{Y}\) is large because of the outlier input, so GPTQ compensated for most of it by making large adjustments to some of the rows after row \(k\). We call these rows the <b>compensating rows</b>, and the adjustments their <b>compensation</b>.</p>
     <p>Once fix 1 removes almost all of row \(k\)'s error, the compensation has little left to cancel, so the compensation itself turns into an error in \(\mathbf{Y}\) of its own.</p>
     <div class="card stack">
       <div class="narrow">
@@ -369,7 +296,7 @@ footer a:hover { color: var(--accent); }
       </div>
       <div class="legend"><span><i class="key" style="background:var(--damage)"></i>row \(k\): rounded up to the smallest level</span><span><i class="key" style="background:repeating-linear-gradient(-45deg,var(--ink-2) 0 2px,transparent 2px 5px)"></i>compensating rows: carry GPTQ's compensation</span><span><i class="key" style="background:var(--fix)"></i>row \(k\) on a level (fix 1)</span><span><i class="key" style="background:var(--fix);opacity:.35"></i>re-rounded to nearest (fix 2)</span></div>
     </div>
-    <p class="figcap"><b>What fix 2 changes in \(\mathbf{W}\).</b> Illustration. GPTQ quantizes the rows from top to bottom. The compensating rows (hatched) sit scattered after row \(k\).</p>
+    <p class="figcap"><b>What fix 2 changes in \(\mathbf{W}\).</b> GPTQ quantizes the rows from top to bottom. The compensating rows (hatched) sit scattered after row \(k\).</p>
     <p>You may wonder how the agent located these compensating rows. For each row, the agent measured how far two versions of the row are from the NVFP4 weights. The first version is GPTQ's weights, and the second is the NVFP4 weights rounded to the nearest level under the same scales. In a typical row the two distances are about equal, but in a compensating row GPTQ's weights are much farther away, because they carry the compensation. The agent marked the rows where this happens as compensating rows, and they turned out to be a small fraction of all rows.</p>
     <p><b>Fix 2</b> keeps every scale and re-rounds the compensating rows from their NVFP4 values to the nearest level, which removes the compensation. All other rows keep GPTQ's values.</p>
     <div class="card stack">
@@ -379,21 +306,22 @@ footer a:hover { color: var(--accent); }
     <p class="figcap"><b>One compensating row: NVFP4 vs stored.</b> Real data, one dot per output channel for a sample of them. Under GPTQ the weights sit far from the diagonal, many with the wrong sign, and that distance is the compensation. After fix 2 they lie close to the diagonal.</p>
     <p>Neither fix adds storage, so the checkpoint's size and speed are unchanged.</p>
 
-    <h3>5. What each fix changes</h3>
+    <h3>What each fix changes</h3>
     <p>The figure below plots each row's MSE in \(\mathbf{Y}\) before the fixes, after fix 1, and after fix 2.</p>
     <div class="card stack">
       <svg id="rowerr" viewBox="0 0 900 392" role="img" aria-label="MSE in Y of each row of W, in GPTQ's order, on a log scale, in three panels. (a) GPTQ: row k is far above every other row; the compensating rows after it stand out and cancel most of row k's error in Y. (b) After fix 1: row k drops among the other rows; the compensating rows score the same but are now error in Y. (c) After fix 2: the compensating rows drop to the level of the other rows."></svg>
       <div class="legend"><span><i class="key" style="background:var(--damage)"></i>source of error in \(\mathbf{Y}\): row \(k\) in (a), the compensating rows in (b)</span><span><i class="key" style="background:var(--ink)"></i>compensating rows, cancelling row \(k\)'s error</span><span><i class="key" style="background:var(--fix)"></i>after its fix</span><span><i class="key" style="background:var(--muted)"></i>other rows</span></div>
     </div>
-    <p class="figcap"><b>MSE in \(\mathbf{Y}\) of each row of \(\mathbf{W}\), fix by fix.</b> Each bar is one row's MSE in \(\mathbf{Y}\) (step 2), on a log scale. Fix 1 does not touch the compensating rows, so their bars are the same in (a) and (b). Because each row is measured alone, the bars cannot show that in (a) those rows are cancelling row \(k\)'s error. In (b), row \(k\) drops down among the other rows; the 8-bit scale (step 3) keeps it from reaching zero. In (c), the compensating rows drop too.</p>
+    <p class="figcap"><b>MSE in \(\mathbf{Y}\) of each row of \(\mathbf{W}\), fix by fix.</b> Each bar is one row's MSE in \(\mathbf{Y}\), on a log scale. Fix 1 does not touch the compensating rows, so their bars are the same in (a) and (b). Because each row is measured alone, the bars cannot show that in (a) those rows are cancelling row \(k\)'s error. In (b), row \(k\) drops down among the other rows; the 8-bit scale (see fix 1) keeps it from reaching zero. In (c), the compensating rows drop too.</p>
     </div>
     </details>
   </section>
 
   <section id="next">
     <h2>Conclusion</h2>
-    <p>In this blog post, we shared our attempt at using weight-space programming for quantization. The takeaway is that a broken quantized model does not have to be fixed by changing the data and quantizing again, because an agent can look inside the checkpoint, find the weights that went wrong, and repair them directly. Given a broken 3-bit checkpoint, its NVFP4 source and a set of validation data, an agent found what GPTQ got wrong and fixed it by editing 0.0008% of the weights, with no training. On the poorly calibrated checkpoint, these edits improved every benchmark, with GSM8K rising from 71.4 to 91.6. The edits only rewrite existing levels and scales, so the model keeps its size, format and kernels.</p>
-    <p><b>Future work.</b> In the longer term, we see this approach going much further, and as LLMs get more capable, we expect many agents working in parallel to quantize trillion-parameter models themselves, starting from the full-precision weights, instead of only repairing a checkpoint after the fact.</p>
+    <p>A broken quantized model does not always have to be fixed by changing the calibration data and quantizing again. In our experiment, a newly composed calibration set recovered MATH-500 and GPQA Diamond but still fell short on LiveCodeBench, MMLU and perplexity. An agent given the same data and the NVFP4 reference instead traced most of the damage to one matrix, worked out what GPTQ had got wrong, and repaired it by editing 0.0008% of the weights, with no training. Every benchmark improved, with LiveCodeBench rising from 30.0% to 47.8%. The edits only rewrite existing levels and scales, so the model keeps its size, format, and kernels.</p>
+    <p><b>Future work.</b> This post repairs one GPTQ checkpoint, but the approach does not depend on how the checkpoint was made. Other quantization methods, such as AWQ<sup><a href="#r6">6</a></sup>, may avoid the defect we found here and leave different errors of their own, so a natural next step is to give the agent an AWQ checkpoint and see whether it can improve that too. Another is to apply the same kind of diagnosis to stabilize quantization-aware training (QAT).</p>
+    <p>In the longer term, we see this approach going much further, where agents, or swarms of agents, quantize trillion-parameter models through weight space programming, starting from the full-precision weights, instead of only repairing a checkpoint afterwards.</p>
   </section>
 
   <section id="bibtex">
@@ -415,10 +343,9 @@ footer a:hover { color: var(--accent); }
       <li id="r3">Takehi, Teoh, Zhang, Khattab. <a href="https://rikiyat.github.io/blog/weight-space-programming/" target="_blank" rel="noopener">Sparks of Weight-Space Programming: LLMs can natively read &amp; write neural network weights</a>. November 2026.</li>
       <li id="r4">Sun et al. <a href="https://arxiv.org/abs/2402.17762" target="_blank" rel="noopener">Massive Activations in Large Language Models</a>. COLM 2024.</li>
       <li id="r5">Xiao et al. <a href="https://arxiv.org/abs/2309.17453" target="_blank" rel="noopener">Efficient Streaming Language Models with Attention Sinks</a>. ICLR 2024.</li>
-      <li id="r6">Grootendorst. <a href="https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-quantization" target="_blank" rel="noopener">A Visual Guide to Quantization</a>. Exploring Language Models, July 2024.</li>
-      <li id="r7">Lin et al. <a href="https://arxiv.org/abs/2306.00978" target="_blank" rel="noopener">AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration</a>. MLSys 2024.</li>
+      <li id="r6">Lin et al. <a href="https://arxiv.org/abs/2306.00978" target="_blank" rel="noopener">AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration</a>. MLSys 2024.</li>
     </ol>
-    <p class="note" id="n1">* Both checkpoints use the same 3-bit format (8 levels per matrix, an FP8 scale per 32 weights). The poorly calibrated one was calibrated on a small, narrow set of 64 code files plus a few hundred model-generated reasoning traces and MMLU answers; the well-calibrated one on an equal mix of six domains (code, math answers, prose, chat, multilingual chat, knowledge questions). Neither calibration set overlaps the test sets.</p>
+    <p class="note" id="n1">* All 3-bit checkpoints use the same format (8 levels per matrix, an FP8 scale per 32 weights). The poorly calibrated one was calibrated on a small, narrow set of 64 code files plus a few hundred model-generated reasoning traces and MMLU answers, and the re-calibrated one on the validation data<sup><a href="#n2">†</a></sup>. No calibration set overlaps the test sets.</p>
   </section>
 
   <footer>
@@ -436,10 +363,10 @@ const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).
 const $ = id => document.getElementById(id);
 const NS = "http://www.w3.org/2000/svg";
 function el(tag, attrs, parent, text) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; if (parent) parent.appendChild(e); return e; }
-function press(ids, on) { ids.forEach(i => $(i).setAttribute("aria-pressed", i === on ? "true" : "false")); }
 
 /* ---------- gain split: finishing vs better answers ---------- */
-const CAPB = [["gsm8k", "GSM8K"], ["math500", "MATH-500"], ["lcb", "LiveCodeBench"], ["gpqa", "GPQA"]];
+// GSM8K is left out: the agent's validation data contains GSM8K training questions.
+const CAPB = [["math500", "MATH-500"], ["lcb", "LiveCodeBench"], ["gpqa", "GPQA"]];
 function drawCaps(tag) {
   const s = $("caps"); s.innerHTML = "";
   const rows = CAPB.map(([k, name]) => ({ name, ...D.caps[`${k}/${tag}`] })), vals = rows.flatMap(r => [r.finishing, r.better]);
@@ -457,8 +384,6 @@ function drawCaps(tag) {
     el("text", { x: cx, y: B + 22, "text-anchor": "middle", class: "t-ink", style: "font-weight:600" }, s, r.name);
     el("text", { x: cx, y: B + 40, "text-anchor": "middle" }, s, `total ${sgn(r.gain)}`); });
 }
-$("cap-poor").onclick = () => { press(["cap-poor", "cap-well"], "cap-poor"); drawCaps("sh_c2"); };
-$("cap-well").onclick = () => { press(["cap-poor", "cap-well"], "cap-well"); drawCaps("wsp_c5"); };
 
 /* ---------- localize: share of the KL gap removed ---------- */
 const DS = D.discover;

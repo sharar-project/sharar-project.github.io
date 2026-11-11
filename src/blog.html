@@ -23,18 +23,18 @@
         <svg viewBox="0 0 480 270">
           <rect width="480" height="270" fill="#ffffff"/>
           <text x="28" y="44" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="22" font-weight="700" fill="#a31f34">Weight-space repair</text>
-          <text x="28" y="68" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="13" fill="#86868b">GSM8K, Nemotron 3-bit</text>
-          <text x="452" y="70" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="34" font-weight="700" fill="#1d1d1f">+20.2</text>
+          <text x="28" y="68" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="13" fill="#86868b">LiveCodeBench v6, Nemotron 3-bit</text>
+          <text x="452" y="70" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="34" font-weight="700" fill="#1d1d1f">+17.8</text>
           <g font-family="-apple-system, BlinkMacSystemFont, Inter, sans-serif" font-size="12">
-            <rect x="28" y="118" width="294" height="28" rx="6" fill="#d2d2d7"/>
+            <rect x="28" y="118" width="210" height="28" rx="6" fill="#d2d2d7"/>
             <text x="40" y="136" fill="#1d1d1f">poorly calibrated 3-bit</text>
-            <text x="330" y="136" fill="#515154">71.4</text>
-            <rect x="28" y="160" width="377" height="28" rx="6" fill="#2f6fd0"/>
+            <text x="246" y="136" fill="#515154">30.0</text>
+            <rect x="28" y="160" width="335" height="28" rx="6" fill="#2f6fd0"/>
             <text x="40" y="178" fill="#ffffff" font-weight="600">+ agent edits, 0.0008% of weights</text>
-            <text x="413" y="178" fill="#1d1d1f" font-weight="600">91.6</text>
+            <text x="371" y="178" fill="#1d1d1f" font-weight="600">47.8</text>
             <rect x="28.75" y="202.75" width="389.9" height="26.5" rx="6" fill="none" stroke="#86868b" stroke-width="1.5" stroke-dasharray="4 3"/>
             <text x="40" y="220" fill="#515154">NVFP4 release</text>
-            <text x="426" y="220" fill="#515154">95.0</text>
+            <text x="426" y="220" fill="#515154">55.6</text>
           </g>
         </svg>
       </div>
@@ -42,7 +42,7 @@
         <span class="kicker">Quantization</span>
         <h3>Repairing a Quantized LLM using Weight Space Programming</h3>
         <p class="meta">November 2026 · Emara, Chang, Abdelfattah</p>
-        <p class="dek">We handed a broken 3-bit checkpoint to an LLM agent. Editing 0.0008% of the weights, with no training, it closed most of the accuracy gap between a poorly calibrated checkpoint and the NVFP4 release.</p>
+        <p class="dek">We gave an LLM agent a poorly calibrated 3-bit checkpoint and NVIDIA's NVFP4 release as a reference. The agent edited 0.0008% of the weights without gradient updates, and LiveCodeBench v6 rose from 30.0% to 47.8%.</p>
         <span class="more">Read the post →</span>
       </div>
     </a>
