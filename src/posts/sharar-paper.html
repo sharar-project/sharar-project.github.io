@@ -1,6 +1,6 @@
-<title>Sharar: Fast Agentic Inference on Unified-Memory Devices</title>
+<title>Hibana: Fast Agentic Inference on Unified-Memory Devices</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Sharar: fast agentic inference on unified-memory devices.">
+<meta name="description" content="Hibana: fast agentic inference on unified-memory devices.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Noto+Sans+Math&display=swap">
 <style>
 /* Layout: one 1040px column on plain white; figures sit in soft gray panels, Apple-product-page style; prose ~60ch. */
@@ -13,7 +13,7 @@
   --ink-2: #515154;
   --ink-3: #86868b;
   --rule: #d2d2d7;
-  --accent: #a31f34;      /* Sharar red, the paper figures' color */
+  --accent: #a31f34;      /* Hibana red, the paper figures' color */
   --accent-soft: #f6e4e7;
   --accent-ink: #ffffff;
   --e-vllm: #1d1d1f;
@@ -231,9 +231,9 @@ footer b { color: var(--ink); font-family: var(--f-display); }
 <!--__SIDEBAR__-->
 <div class="wrap" id="top">
   <header class="hero">
-    <h1><span class="brand">Sharar</span>: Fast Agentic Inference on Unified-Memory Devices</h1>
+    <h1><span class="brand">Hibana</span>: Fast Agentic Inference on Unified-Memory Devices</h1>
     <p class="postdate">Paper · November 4, 2026</p>
-    <p class="summary">On a unified-memory device, the model and every agent's history share one memory. Sharar co-designs the model, its memory, and its decoding so many agents run fast on a single DGX Spark.</p>
+    <p class="summary">On a unified-memory device, the model and every agent's history share one memory. Hibana co-designs the model, its memory, and its decoding so many agents run fast on a single DGX Spark.</p>
     <p class="authors">Yahya Emara<sup>1*</sup>, Chi-Chih Chang<sup>1*</sup>, Anthony Fei<sup>1</sup>, Ahmed F. AbouElhamayed<sup>1</sup>, Chong-Yan Chen<sup>2</sup>, Hung-Yueh Chiang<sup>3</sup>, Kai-Chiang Wu<sup>4</sup>, Mohamed S. Abdelfattah<sup>1</sup></p>
     <p class="affil"><span><sup>1</sup>Cornell University</span><span><sup>2</sup>University of Illinois Urbana-Champaign</span><span><sup>3</sup>Independent researcher</span><span><sup>4</sup>National Yang Ming Chiao Tung University</span><span><sup>*</sup>Equal contribution</span></p>
     <div class="links">
@@ -250,7 +250,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
   <figure class="hero-fig" id="climb-card">
     <div class="card">
     <div class="card-head">
-      <p class="lead">Building Sharar · <b id="climb-lead">27.9 tokens/s</b></p>
+      <p class="lead">Building Hibana · <b id="climb-lead">27.9 tokens/s</b></p>
       <div class="tools">
         <button class="chip" id="climb-play" type="button">Pause</button>
         <button class="chip" id="climb-replay" type="button">Replay</button>
@@ -280,7 +280,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
 
   <section id="idea">
     <h2>The idea in a minute</h2>
-    <p>Local agents extend long histories, pause for tools, and run side by side. On a unified-memory device such as the DGX Spark, the weights, the active requests, and every saved history share one 128 GB pool, and every generated token streams the weights through limited bandwidth. Sharar attacks both limits at once.</p>
+    <p>Local agents extend long histories, pause for tools, and run side by side. On a unified-memory device such as the DGX Spark, the weights, the active requests, and every saved history share one 128 GB pool, and every generated token streams the weights through limited bandwidth. Hibana attacks both limits at once.</p>
     <div class="callout">
       <p><b>Model surgery.</b> Edit the trained model to fit the hardware: 3-bit weights, INT8 recurrent state, and a 2-bit draft head, so each token reads fewer bytes.</p>
       <p><b>Unified-memory management.</b> Keep every agent's state across turns, spilling it to the SSD when GPU memory runs out, so a returning agent resumes instead of recomputing.</p>
@@ -309,7 +309,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
     <p class="figcap"><b>Eight values per group, three bits per weight.</b> Codes take 3 bits and each group of 32 adds one 8-bit scale: 3 + 8/32 = 3.25 bits per weight. The codebook here is fitted to the group for illustration.</p>
 
     <h3>Two-bit draft head</h3>
-    <p>The drafter's output head scores every token in the vocabulary and is the largest matrix the drafter reads. A 2-bit copy is cheap but noisy, so Sharar uses it only to shortlist candidates, then rescores the shortlist in FP8.</p>
+    <p>The drafter's output head scores every token in the vocabulary and is the largest matrix the drafter reads. A 2-bit copy is cheap but noisy, so Hibana uses it only to shortlist candidates, then rescores the shortlist in FP8.</p>
     <div class="card" style="display:grid;gap:14px">
       <div class="card-head" style="margin:0">
         <div class="seg" role="group" aria-label="Example">
@@ -339,7 +339,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
     <h2>Unified-memory management</h2>
     <p>Agents take turns. By the time an agent returns, other agents have usually pushed its state out of GPU memory.</p>
     <h3>SSD session cache</h3>
-    <p>Discard an evicted agent's state and its next turn recomputes the whole context. Sharar spills the KV cache, recurrent state, and draft state to the SSD instead, and reads them back when the agent returns.</p>
+    <p>Discard an evicted agent's state and its next turn recomputes the whole context. Hibana spills the KV cache, recurrent state, and draft state to the SSD instead, and reads them back when the agent returns.</p>
     <div class="card" style="display:grid;gap:16px">
       <div class="card-head" style="margin:0">
         <div class="seg" role="group" aria-label="On eviction">
@@ -365,9 +365,9 @@ footer b { color: var(--ink); font-family: var(--f-display); }
 
   <section id="speculation">
     <h2>Adaptive speculation</h2>
-    <p>A drafter proposes several tokens and the target checks them in one pass. Sharar makes each of these rounds cheaper and sizes it to what will be accepted.</p>
+    <p>A drafter proposes several tokens and the target checks them in one pass. Hibana makes each of these rounds cheaper and sizes it to what will be accepted.</p>
     <h3>Expert sharing</h3>
-    <p>In a mixture-of-experts layer, verifying drafted tokens loads every expert any of them picked. Sharar gives the round a shared expert budget, so it reads fewer weights.</p>
+    <p>In a mixture-of-experts layer, verifying drafted tokens loads every expert any of them picked. Hibana gives the round a shared expert budget, so it reads fewer weights.</p>
     <div class="card two">
       <div class="chart"><svg id="moe-svg" viewBox="0 0 470 300" role="img" aria-label="Token by expert routing grid"></svg></div>
       <div style="display:grid;gap:16px;min-width:0">
@@ -390,7 +390,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
     <p class="figcap"><b>Fewer experts per round.</b> Toy example: 6 tokens, 12 experts, top-2 routing. Shaded columns are the experts read from memory; ↺ marks a second choice replaced by one inside the budget.</p>
 
     <h3>Adaptive draft length</h3>
-    <p>A longer draft can yield more tokens per round, but each extra draft token costs time to draft and verify. Sharar picks the draft length that maximizes expected tokens per unit time:</p>
+    <p>A longer draft can yield more tokens per round, but each extra draft token costs time to draft and verify. Hibana picks the draft length that maximizes expected tokens per unit time:</p>
     <div class="math" role="group" aria-label="Adaptive draft length">
       <math display="block">
         <mrow>
@@ -481,8 +481,8 @@ uv run sharar launch claude      <span class="c"># point a coding agent at it</s
 
   <section id="bibtex">
     <div class="copyrow"><h2>BibTeX</h2><button class="chip" type="button" data-copy="bib">Copy</button></div>
-    <pre class="code" id="bib">@misc{emara2026sharar,
-  title  = {Sharar: Fast Agentic Inference on Unified-Memory Devices},
+    <pre class="code" id="bib">@misc{emara2026hibana,
+  title  = {Hibana: Fast Agentic Inference on Unified-Memory Devices},
   author = {Emara, Yahya and Chang, Chi-Chih and Fei, Anthony and
             AbouElhamayed, Ahmed F. and Chen, Chong-Yan and Chiang, Hung-Yueh and
             Wu, Kai-Chiang and Abdelfattah, Mohamed S.},
@@ -492,7 +492,7 @@ uv run sharar launch claude      <span class="c"># point a coding agent at it</s
   </section>
 
   <footer>
-    <span><b>Sharar</b> · Abdelfattah Lab, Cornell University</span>
+    <span><b>Hibana</b> · Abdelfattah Lab, Cornell University</span>
     <span>Numbers from the preprint, November 2026. Measured on one NVIDIA DGX Spark (GB10).</span>
   </footer>
 </div>
@@ -740,7 +740,7 @@ let dhEx = "hard";
 const DH_STEPS = [
   ["FP8 head", "The full-precision head scores every token. Its top token is the one to match.", "100%"],
   ["2-bit head", "A 2-bit copy reads a quarter of the bytes, but its scores are noisy. On uncertain tokens its top pick can be wrong.", "25%"],
-  ["Shortlist", "Keep only the 2-bit head's top candidates (4 here, 16 in Sharar). The right token is almost always among them.", "25%"],
+  ["Shortlist", "Keep only the 2-bit head's top candidates (4 here, 16 in Hibana). The right token is almost always among them.", "25%"],
   ["FP8 rescore", "Rescore just the shortlist with FP8 rows. The pick matches the FP8 head, for 16 extra rows out of more than 100,000.", "25% + 16 rows"]];
 const dhSvg = $("dh-svg");
 function dhShow(k) {
@@ -821,7 +821,7 @@ if (reduce) { for (let i = 0; i < 12; i++) ssStep(); ssStop(); } else { for (let
 
 /* ---------------- results explorer ---------------- */
 const RES = JSON.parse($("results-data").textContent);
-const RENG = ["Sharar", "vLLM", "Flare", "TensorFold", "llama.cpp"].map(n => ({ name: n === "Sharar" ? "Sharar (ours)" : n, key: n, c: col(n), on: true }));
+const RENG = ["Sharar", "vLLM", "Flare", "TensorFold", "llama.cpp"].map(n => ({ name: n === "Sharar" ? "Hibana (ours)" : n, key: n, c: col(n), on: true }));
 const AKEY = { Sharar: "sharar", vLLM: "vllm", Flare: "flare", TensorFold: "tensorfold", "llama.cpp": "llamacpp" };
 let rModel = "Qwen3.8-Flash-Next";
 function seg(box, opts, get, set) {
@@ -849,10 +849,10 @@ function drawResults() {
     const pts = cells[e.key];
     el("polyline", { points: pts.map(p => `${x(p.user)},${y(p.agg)}`).join(" "), fill: "none", stroke: e.c, "stroke-width": e.key === "Sharar" ? 2.8 : 2, "stroke-linejoin": "round" }, svg);
     pts.forEach(p => { const c = el("circle", { cx: x(p.user), cy: y(p.agg), r: e.key === "Sharar" ? 4.5 : 3.6, fill: e.c, stroke: "var(--surface)", "stroke-width": 1.5, style: "cursor:default" }, svg);
-      c.addEventListener("pointerenter", () => showTip(box, svg, x(p.user), y(p.agg), `${e.key} · ${p.n} req · ${p.user} tok/s/user · ${p.agg} tok/s${p.accept ? ` · accept ${p.accept}` : ""}`));
+      c.addEventListener("pointerenter", () => showTip(box, svg, x(p.user), y(p.agg), `${e.name} · ${p.n} req · ${p.user} tok/s/user · ${p.agg} tok/s${p.accept ? ` · accept ${p.accept}` : ""}`));
       c.addEventListener("pointerleave", () => hideTip(box)); });
   });
-  const missing = RENG.filter(e => e.on && !cells[e.key]).map(e => e.key);
+  const missing = RENG.filter(e => e.on && !cells[e.key]).map(e => e.name);
   if (missing.length) txt(svg, W - R, 14, `not measured here: ${missing.join(", ")}`, { "text-anchor": "end", "font-size": 10.5, fill: "var(--ink-3)" });
 
   // agents
@@ -869,7 +869,7 @@ function drawResults() {
     const pts = am[AKEY[e.key]];
     el("polyline", { points: pts.map(p => `${ax_(p[0])},${ay(p[1])}`).join(" "), fill: "none", stroke: e.c, "stroke-width": e.key === "Sharar" ? 2.8 : 2 }, as);
     pts.forEach(p => { const c = el("circle", { cx: ax_(p[0]), cy: ay(p[1]), r: e.key === "Sharar" ? 4.5 : 3.6, fill: e.c, stroke: "var(--surface)", "stroke-width": 1.5 }, as);
-      c.addEventListener("pointerenter", () => showTip(abox, as, ax_(p[0]), ay(p[1]), `${e.key} · ${p[0]} agents · ${p[1]} tasks/h`));
+      c.addEventListener("pointerenter", () => showTip(abox, as, ax_(p[0]), ay(p[1]), `${e.name} · ${p[0]} agents · ${p[1]} tasks/h`));
       c.addEventListener("pointerleave", () => hideTip(abox)); });
   });
 }
