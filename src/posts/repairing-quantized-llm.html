@@ -69,7 +69,6 @@ code { font-size: 0.88em; }
 .btn svg { width: 15px; height: 15px; }
 .btn .hf { font-size: 1.05rem; line-height: 1; }  /* Hugging Face mark on the checkpoint links */
 .intro { max-width: 70ch; margin: 8px auto 0; display: grid; gap: 1em; font-size: 1.1875rem; line-height: 1.55; text-wrap: pretty; }
-.lead { display: grid; gap: 16px; margin-top: 36px; }  /* the repair-loop figure under the intro */
 
 
 /* sections */
@@ -79,6 +78,10 @@ section > h3 { font-size: 1.25rem; margin-top: 18px; }
 section > p { max-width: 70ch; color: var(--ink); }
 section > .eyebrow + h2 { margin-top: -10px; }
 sup a { text-decoration: none; color: var(--accent); font-size: 0.8em; font-variant-numeric: tabular-nums; }
+
+.callout { border-left: 3px solid var(--accent); padding: 4px 0 4px 20px; display: grid; gap: 10px; max-width: 70ch; }
+.callout b { font-weight: 600; }
+.callout.brief { border-left-color: var(--fix); font-style: italic; color: var(--ink-2); }
 
 /* figure cards */
 .card { background: var(--surface); border-radius: var(--radius); padding: 26px; min-width: 0; }
@@ -102,6 +105,13 @@ sup a { text-decoration: none; color: var(--accent); font-size: 0.8em; font-vari
 .plate.sq { max-width: 600px; margin: 0 auto; }
 canvas.sc { display: block; width: min(360px, 100%); height: auto; margin: 0 auto; background: var(--bg); border-radius: 12px; }
 
+
+/* pipeline */
+.flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+.flow .box { flex: 1 1 140px; min-width: 0; border-radius: 12px; padding: 14px 16px; background: var(--bg); display: grid; gap: 4px; align-content: start; }
+.flow .box b { font-family: var(--f-display); font-size: 1rem; font-weight: 600; }
+.flow .box span { font-size: 0.8125rem; color: var(--ink-2); }
+.flow .arr { align-self: center; color: var(--ink-3); }
 
 /* equations: LaTeX, typeset by MathJax (inline \( \), display \[ \]) */
 .math { background: var(--surface); border-radius: var(--radius); padding: 16px 26px; max-width: 100%; overflow-x: auto; color: var(--ink); font-size: 1.12rem; }
@@ -155,6 +165,9 @@ footer a:hover { color: var(--accent); }
 @media (max-width: 760px) {
   .two { grid-template-columns: minmax(0, 1fr); }
   .card { padding: 16px; }
+  .flow { flex-direction: column; }
+  .flow .box { flex: none; }
+  .flow .arr { transform: rotate(90deg); line-height: 1; }
     .nav-links { gap: 16px; } .nav-inner { gap: 14px; }
 }
 @media (max-width: 600px) {
@@ -192,16 +205,42 @@ footer a:hover { color: var(--accent); }
   <div class="intro">
     <p>We quantize language models to fit them on the hardware we have. At 3 bits per weight, the memory savings can come with a substantial drop in accuracy. One way to recover that accuracy is to change the calibration data and quantize the model again. We tested whether an LLM agent could repair the existing checkpoint directly.</p>
     <p>Inspired by <a href="https://rikiyat.github.io/blog/weight-space-programming/" target="_blank" rel="noopener">weight-space programming</a> (WSP)<sup><a href="#r3">3</a></sup>, we gave an agent, Claude Opus 5.5, a Python session with two checkpoints of <code>Nemotron-3.5-Lightning-30B-A3B</code>: a poorly calibrated 3-bit GPTQ<sup><a href="#r1">1</a></sup> checkpoint, whose calibration set was small and narrow, and NVIDIA's 4-bit NVFP4<sup><a href="#r2">2</a></sup> release as a reference. The agent traced the quantization errors to two matrices and edited 0.0008% of the model's weights without gradient updates. On LiveCodeBench v6, the repair raised the score from 30.0% to 47.8%. Rerunning GPTQ with the agent's validation data as the calibration set reached only 35.6%.</p>
-    <p>The agent ran both checkpoints on a small validation set<sup><a href="#n2">†</a></sup> and compared their next-token predictions. It used those differences to guide its inspection of the weights and activations, then proposed and tested edits within the 3-bit format. It kept edits that improved its validation scores. Once the repair was complete, we evaluated the resulting checkpoint on held-out benchmarks.</p>
-    <p class="note" id="n2">† The validation data is published as <a href="https://huggingface.co/datasets/yemara/wsp-agent-data" target="_blank" rel="noopener">wsp-agent-data</a>. It holds about 370K tokens, made up of the NVFP4 model's own answers to 256 <a href="https://huggingface.co/datasets/openai/gsm8k" target="_blank" rel="noopener">GSM8K</a> training questions, the <a href="https://huggingface.co/datasets/Salesforce/wikitext" target="_blank" rel="noopener">WikiText-2</a> validation split in 259 windows of 1,024 tokens, the 1,816 questions of the <a href="https://huggingface.co/datasets/cais/mmlu" target="_blank" rel="noopener">MMLU</a> validation and development splits, and 1,000 further GSM8K training questions. The agent also measured KL on 32 code files, which are not in the published set. We use the same data as the new calibration set in the results below.</p>
   </div>
 
-  <div class="lead">
+  <section id="background">
+    <h2>Quick Quantization Background</h2>
+    <p>In post-training quantization (PTQ), you run a small calibration set through the model to collect activation statistics, then apply a method like GPTQ<sup><a href="#r1">1</a></sup> to round the weights onto the quantization grid while compensating for the error that rounding introduces.</p>
+    <div class="card">
+      <div class="flow">
+        <div class="box"><b>Source model</b><span>BF16 or NVFP4</span></div><div class="arr" aria-hidden="true">→</div>
+        <div class="box"><b>Calibration</b><span>~100 text sequences → layer activations</span></div><div class="arr" aria-hidden="true">→</div>
+        <div class="box"><b>PTQ</b><span>GPTQ, AWQ, …</span></div><div class="arr" aria-hidden="true">→</div>
+        <div class="box"><b>Low-bit model</b><span>2–4 bits, lossy</span></div>
+      </div>
+    </div>
+    <p class="figcap"><b>The usual quantization pipeline.</b></p>
+    <p>If you have pushed PTQ to aggressive bit widths, you have probably run into all three of these:</p>
+    <div class="callout">
+      <p><b>Calibration data matters more than it should.</b> The result depends heavily on what goes into the calibration set, such as which domains it covers, in what proportions, and at what sample lengths. Choosing these is mostly trial and error because a mix that improves math can make code worse, and you only find out after quantizing and evaluating.</p>
+      <p><b>At 3 bits and below, a large gap remains.</b> Even with a newly composed calibration set, the model falls short, and the loss varies a lot between tasks. In our results below, the re-calibrated 3-bit checkpoint loses 3.6 points on MATH-500 but 20.0 points on LiveCodeBench against the NVFP4 model.</p>
+      <p><b>Often you don't have the fine-tuning data.</b> The common solution when PTQ falls short is quantization-aware distillation (QAD)<sup><a href="#r2">2</a></sup>, which fine-tunes the quantized model to match the full-precision model's outputs, ideally on the data the original was trained on. But if all you have is a released checkpoint, you don't know what that data was or how it was mixed.</p>
+    </div>
+  </section>
+
+  <section id="idea">
+    <h2>What if an agent repairs the weights?</h2>
+    <p>Our starting point is <a href="https://rikiyat.github.io/blog/weight-space-programming/" target="_blank" rel="noopener">Sparks of Weight-Space Programming</a><sup><a href="#r3">3</a></sup>, by Takehi et al. In one of their experiments, an agent stops <code>Qwen3.5-0.8B</code> from getting stuck in endless loops during reasoning, improving its performance on math tasks. The agent does so by analyzing the weights and editing a small fraction of them, with no gradients and no training loop.</p>
+    <p>The same approach seems well suited to repairing quantization errors, especially because we can use the original, higher-precision checkpoint as a reference. The <code>NVFP4</code> checkpoint tells us what every weight and activation should look like, so the agent can measure exactly where the 3-bit checkpoint has drifted.</p>
+    <p>We gave the agent (Claude Opus 5.5) this instruction:</p>
+    <div class="callout brief"><p>This 3-bit checkpoint should behave like the NVFP4 model. Find what is broken and fix it inside the 3-bit format. You may run the model and read its weights and activations; you may not fit weights to data directly (no training).</p></div>
+    <p>That is only the task section of the prompt. The full version, with the rules, the repair loop and the evaluation harness the agent uses, is in <code>program.md</code> in the <a href="https://github.com/yahya010/wsp-ptq" target="_blank" rel="noopener">wsp-ptq repository</a>.</p>
+    <p>The agent also gets a set of validation data<sup><a href="#n2">†</a></sup> from public datasets, and it drives the repair loop itself. In each round it runs both models on the validation data to see where their next-token predictions differ, traces the difference to specific weights, works out why those weights went wrong, and edits them. It keeps an edit only if the 3-bit model then scores better on the validation data. When no further edit helps, we evaluate the final model once on test sets the agent has never seen.</p>
+    <p class="note" id="n2">† The validation data is published as <a href="https://huggingface.co/datasets/yemara/wsp-agent-data" target="_blank" rel="noopener">wsp-agent-data</a>. It holds about 370K tokens, made up of the NVFP4 model's own answers to 256 <a href="https://huggingface.co/datasets/openai/gsm8k" target="_blank" rel="noopener">GSM8K</a> training questions, the <a href="https://huggingface.co/datasets/Salesforce/wikitext" target="_blank" rel="noopener">WikiText-2</a> validation split in 259 windows of 1,024 tokens, the 1,816 questions of the <a href="https://huggingface.co/datasets/cais/mmlu" target="_blank" rel="noopener">MMLU</a> validation and development splits, and 1,000 further GSM8K training questions. The agent also measured KL on 32 code files, which are not in the published set. We use the same data as the new calibration set in the results below.</p>
     <div class="card">
       <svg id="loop" viewBox="0 0 900 150" role="img" aria-label="The repair loop: measure, localize, read and edit, keep or revert, repeat"></svg>
     </div>
     <p class="figcap"><b>The repair loop.</b> After each edit the agent scores the model on validation data: KL divergence to NVFP4 on chat math, code, and prose, plus perplexity, MMLU-val, 1,000 GSM8K training questions, and how well it predicts NVFP4's own answers. The agent runs a greedy search, in which an edit stays only if the scores improve and nothing regresses.</p>
-  </div>
+  </section>
 
   <section id="results">
     <h2>Results</h2>
