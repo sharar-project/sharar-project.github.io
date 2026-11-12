@@ -187,7 +187,7 @@ footer a:hover { color: var(--accent); }
       <a class="btn" href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-PoorlyCalibrated" target="_blank" rel="noopener">
         <span class="hf" aria-hidden="true">🤗</span>
         Poorly calibrated + edits</a>
-      <a class="btn" href="https://github.com/yahya010/wsp-ptq" target="_blank" rel="noopener">Code</a>
+      <a class="btn" href="https://github.com/yahya010/wsq" target="_blank" rel="noopener">Code</a>
       <a class="btn" href="#bibtex">BibTeX</a>
     </div>
   </header>
@@ -203,7 +203,7 @@ footer a:hover { color: var(--accent); }
     <p>We gave an agent, Claude Opus 5.5, a Python session with two checkpoints of <code>Nemotron-3.5-Lightning-30B-A3B</code>: a poorly calibrated 3-bit GPTQ<sup><a href="#r1">1</a></sup> checkpoint, whose calibration set was small and narrow, and NVIDIA's 4-bit NVFP4<sup><a href="#r2">2</a></sup> release as a reference. The <code>NVFP4</code> checkpoint tells us what every weight and activation should look like, so the agent can measure exactly where the 3-bit checkpoint has drifted.</p>
     <p>We gave the agent this instruction:</p>
     <div class="callout brief"><p>This 3-bit checkpoint should behave like the NVFP4 model. Find what is broken and fix it inside the 3-bit format. You may run the model and read its weights and activations; you may not fit weights to data directly (no training).</p></div>
-    <p>That is only the task section of the prompt. The full version, with the rules, the repair loop and the evaluation harness the agent uses, is in <code>program.md</code> in the <a href="https://github.com/yahya010/wsp-ptq" target="_blank" rel="noopener">wsp-ptq repository</a>.</p>
+    <p>That is only the task section of the prompt. The full version, with the rules, the repair loop and the evaluation harness the agent uses, is in <code>program.md</code> in the <a href="https://github.com/yahya010/wsq" target="_blank" rel="noopener">wsq repository</a>.</p>
     <p>The agent also gets a set of validation data<sup><a href="#n2">†</a></sup> from public datasets, and it drives the repair loop itself. In each round it runs both models on the validation data to see where their next-token predictions differ, traces the difference to specific weights, works out why those weights went wrong, and edits them. It keeps an edit only if the 3-bit model then scores better on the validation data. When no further edit helps, we evaluate the final model once on test sets the agent has never seen.</p>
     <div class="card">
       <svg id="loop" viewBox="0 0 900 150" role="img" aria-label="The repair loop: measure, localize, read and edit, keep or revert, repeat"></svg>
@@ -362,7 +362,7 @@ footer a:hover { color: var(--accent); }
   <footer>
     <span><b>{{SITE}}</b> · Abdelfattah Lab, Cornell University</span>
     <span><span aria-hidden="true">🤗</span> Checkpoint on Hugging Face: <a href="https://huggingface.co/yemara/Nemotron-3.5-Lightning-30B-A3B-W3-WSP-PoorlyCalibrated" target="_blank" rel="noopener">poorly calibrated + agent edits</a>.</span>
-    <span>Prompt and code on GitHub: <a href="https://github.com/yahya010/wsp-ptq" target="_blank" rel="noopener">wsp-ptq</a>.</span>
+    <span>Prompt and code on GitHub: <a href="https://github.com/yahya010/wsq" target="_blank" rel="noopener">wsq</a>.</span>
   </footer>
 </div>
 
