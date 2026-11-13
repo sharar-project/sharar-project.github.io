@@ -240,9 +240,9 @@ footer b { color: var(--ink); font-family: var(--f-display); }
       <a class="btn" href="https://arxiv.org/abs/2611.10469" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
         Paper (arXiv)</a>
-      <span class="btn ghost" title="The repository is private for now">
+      <a class="btn" href="https://github.com/sharar-project/hibana" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
-        Code (soon)</span>
+        Code</a>
       <a class="btn" href="#bibtex">BibTeX</a>
     </div>
   </header>
@@ -471,7 +471,7 @@ footer b { color: var(--ink); font-family: var(--f-display); }
     <h2>Quick start</h2>
     <div class="copyrow"><p class="cap">Install uv, then:</p><button class="chip" type="button" data-copy="qs">Copy</button></div>
     <pre class="code" id="qs"><span class="c"># the repository opens with the paper</span>
-git clone https://github.com/abdelfattah-lab/sharar && cd sharar
+git clone https://github.com/sharar-project/hibana && cd hibana
 uv sync
 uv run sharar serve 27b          <span class="c"># Qwen3.8-27B on http://127.0.0.1:30001</span>
 uv run sharar serve flashnext    <span class="c"># Qwen3.8-Flash-Next (125B MoE)</span>
