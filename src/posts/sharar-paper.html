@@ -473,9 +473,9 @@ footer b { color: var(--ink); font-family: var(--f-display); }
     <pre class="code" id="qs"><span class="c"># the repository opens with the paper</span>
 git clone https://github.com/sharar-project/hibana && cd hibana
 uv sync
-uv run sharar serve 27b          <span class="c"># Qwen3.8-27B on http://127.0.0.1:30001</span>
-uv run sharar serve flashnext    <span class="c"># Qwen3.8-Flash-Next (125B MoE)</span>
-uv run sharar launch claude      <span class="c"># point a coding agent at it</span></pre>
+uv run hibana serve 27b          <span class="c"># Qwen3.8-27B on http://127.0.0.1:30001</span>
+uv run hibana serve flashnext    <span class="c"># Qwen3.8-Flash-Next (125B MoE)</span>
+uv run hibana launch claude      <span class="c"># point a coding agent at it</span></pre>
     <p class="cap">OpenAI- and Anthropic-compatible APIs, 262K context, one Spark or two over ConnectX. Add <span class="mono">--exact</span> for the model's own outputs.</p>
   </section>
 
