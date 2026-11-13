@@ -151,7 +151,7 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
     $("qs-model").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === st.model)));
     $("qs-profile").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === st.profile)));
     const flags = (st.tp === "2" ? " --tp 2" : "") + (st.profile === "fast" ? "" : " --" + st.profile);
-    const cmd = `git clone https://github.com/abdelfattah-lab/sharar\ncd sharar && uv sync\nuv run sharar serve ${st.model}${flags}`;
+    const cmd = `git clone https://github.com/sharar-project/hibana\ncd hibana && uv sync\nuv run hibana serve ${st.model}${flags}`;
     $("qs-cmd").textContent = cmd;
   }
   [["qs-model", "model"], ["qs-profile", "profile"], ["qs-tp", "tp"]].forEach(([id, key]) =>
