@@ -4,7 +4,6 @@
 .side-link { display: block; padding: 7px 10px; border-radius: 8px; font-size: 0.9rem; color: var(--ink-2); text-decoration: none; }
 a.side-link:hover { background: var(--surface); color: var(--ink); }
 .side-link[aria-current="page"] { background: var(--accent-soft, #f6e4e7); color: var(--accent); font-weight: 600; }
-.side-link.soon { color: var(--ink-3); }
 .side-btn { display: none; width: 40px; height: 40px; margin-left: -8px; border: 0; background: none; border-radius: 10px; color: var(--ink); cursor: pointer; align-items: center; justify-content: center; flex: none; }
 .side-btn:hover { background: var(--surface); }
 .side-btn svg { width: 22px; height: 22px; }
