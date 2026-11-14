@@ -113,8 +113,8 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
       </div></div>
       <div class="qs-row"><span class="qs-k">Model</span><div class="qs-opts" id="qs-model">
         <button type="button" data-v="27b" aria-pressed="false">Qwen3.8-27B</button>
-        <button type="button" data-v="flashnext" aria-pressed="false">Qwen3.8-Flash-Next</button>
-        <button type="button" data-v="nemotron" aria-pressed="true">Nemotron 3.5 Super</button>
+        <button type="button" data-v="flashnext" aria-pressed="true">Qwen3.8-Flash-Next</button>
+        <button type="button" data-v="nemotron" aria-pressed="false">Nemotron 3.5 Super</button>
         <button type="button" data-v="bolt" aria-pressed="false">Nemotron 3.5 Bolt</button>
       </div></div>
       <div class="qs-row"><span class="qs-k">Profile</span><div class="qs-opts" id="qs-profile">
@@ -142,7 +142,7 @@ section.band > header p { color: var(--ink-2); font-size: 1.125rem; }
     flashnext: { port: 30004, model: 135, w3: 51, tp2: true },
     nemotron: { port: 30005, model: 75, w3: 49, tp2: false },
     bolt: { port: 30006, model: 25, w3: 0, tp2: false } };
-  const st = { model: "nemotron", profile: "fast", tp: "1" };
+  const st = { model: "flashnext", profile: "fast", tp: "1" };
   const $ = id => document.getElementById(id);
   function render() {
     const m = M[st.model];
